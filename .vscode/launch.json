@@ -1,0 +1,81 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug Server (TypeScript)",
+            "type": "node",
+            "request": "launch",
+            "program": "${workspaceFolder}/server/server.ts",
+            "cwd": "${workspaceFolder}/server",
+            "runtimeArgs": [
+                "-r",
+                "ts-node/register",
+                "-r",
+                "tsconfig-paths/register"
+            ],
+            "envFile": "${workspaceFolder}/server/.env",
+            "env": {
+                "NODE_ENV": "development",
+                "TS_NODE_PROJECT": "${workspaceFolder}/server/tsconfig.json",
+                "TS_NODE_TRANSPILE_ONLY": "false",
+                "TS_NODE_FILES": "true"
+            },
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen",
+            "skipFiles": ["<node_internals>/**"],
+            "sourceMaps": true,
+            "smartStep": true,
+            "stopOnEntry": false,
+            "outFiles": [
+                "${workspaceFolder}/server/dist/**/*.js"
+            ],
+            "resolveSourceMapLocations": [
+                "${workspaceFolder}/server/**",
+                "!**/node_modules/**"
+            ]
+        },
+        {
+            "name": "Debug Server",
+            "type": "node",
+            "request": "launch",
+            "program": "${workspaceFolder}/server/server.ts",
+            "cwd": "${workspaceFolder}/server",
+            "runtimeArgs": [
+                "-r",
+                "ts-node/register",
+                "-r",
+                "tsconfig-paths/register"
+            ],
+            "sourceMaps": true,
+            "envFile": "${workspaceFolder}/server/.env",
+            "env": {
+                "NODE_ENV": "development",
+                "TS_NODE_PROJECT": "${workspaceFolder}/server/tsconfig.json"
+            },
+            "console": "integratedTerminal",
+            "restart": true,
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "outFiles": [
+                "${workspaceFolder}/server/dist/**/*.js"
+            ],
+            "resolveSourceMapLocations": [
+                "${workspaceFolder}/server/**",
+                "!**/node_modules/**"
+            ]
+        },
+        {
+            "name": "Debug Server (Attach)",
+            "type": "node",
+            "request": "attach",
+            "port": 9229,
+            "restart": true,
+            "localRoot": "${workspaceFolder}/server",
+            "remoteRoot": "${workspaceFolder}/server",
+            "skipFiles": [
+                "<node_internals>/**"
+            ]
+        }
+    ]
+}
