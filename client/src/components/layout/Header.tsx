@@ -40,7 +40,7 @@ const Header = () => {
     <div className={classes.header}>
       <Container className={classes.mainSection} size="xl">
         <Group justify="space-between">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '15px', cursor: 'pointer' }} onClick={() => navigate('/')}>
             <Image src="/logo40x40.svg" alt="Bluehorses Logo" w={40} h={40} />
             <Text fw={700} fz="xl" className={classes.logoText}>
               Blue Horses

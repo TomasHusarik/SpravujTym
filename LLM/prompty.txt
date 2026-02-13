@@ -1,0 +1,20 @@
+1) 
+Na základě následujícího popisu navrhni konceptuální UML diagram tříd pomocí PlantUML syntaxe.
+Při návrhu se striktně řiď prepromptem pro konceptuální diagram tříd, který máš k dispozici.
+Dodržuj všechna jeho pravidla (rozsah, omezení, styl výstupu).
+
+Navrhovaný systém je aplikace pro správu sportovních týmů a lig.
+
+Systém umožňuje: evidenci uživatelů zapojených do týmů, plánování týmových událostí (např. zápasy, tréninky), evidenci účasti hráčů na událostech, správu týmů, publikaci týmových a veřejných příspěvků, správu plateb souvisejících s členstvím nebo aktivitami týmu
+Model má zachytit základní pojmy domény, jejich vlastnosti a vztahy.
+
+Model by měl obsahovat entity typu: uživatel (user), tým (team), účast (attendance), hala(venue), platba(payment), příspěvek(announcement)...
+
+2)
+Na základě již vygenerovaného konceptuálního UML diagramu tříd proveď jeho revizi a úpravy tak, aby lépe odpovídal doménovým pravidlům aplikace pro správu sportovních týmů a lig. Při úpravách se striktně řiď prepromptem pro konceptuální diagram tříd a zachovej konceptuální úroveň modelu (žádné identifikátory, datové typy ani implementační detaily).
+
+Uprav názvosloví tak, aby bylo jednotné a doménově smysluplné (např. Event přejmenuj na TeamEvent, Attendance na EventParticipation). Platby v systému eviduj výhradně vůči uživateli, nikoli vůči týmu – odstraň tedy vztah mezi Payment a Team a zachovej pouze vztah k User. Entita Payment má obsahovat atributy status a dueDate.
+
+Přesuň atribut category z entity Team do entity League a zajisti, že League obsahuje atributy season a category. Uprav model tak, aby jeden tým mohl být rozdělen na více celků (squads), například A-tým, B-tým nebo mládež. Ověř, že entita TeamEvent obsahuje atributy startTime a endTime, entita Announcement atribut createdAt a entita EventParticipation atribut note.
+
+Rozšiř entitu User o atributy age, birthDate, roles, sex a mobile. Pokud je v diagramu entita Venue, uprav kardinality tak, aby jedna hala mohla mít 0..* týmových událostí, zatímco každá týmová událost se koná v jedné hale.

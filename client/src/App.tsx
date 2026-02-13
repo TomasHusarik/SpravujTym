@@ -5,6 +5,7 @@ import Header from './components/layout/Header'
 import Footer from './components/layout/Footer'
 import { useDisclosure } from '@mantine/hooks'
 import Overview from './pages/Overview';
+import Calendar from './pages/Calendar';
 
 const App = () => {
   const [opened, { toggle }] = useDisclosure();
@@ -15,11 +16,6 @@ const App = () => {
         padding="md"
         header={{ height: 100 }}
         footer={{ height: 80 }}
-        navbar={{
-          width: 200,
-          breakpoint: 'sm',
-          collapsed: { mobile: !opened },
-        }}
       >
         <AppShell.Header>
           <Header />
@@ -29,7 +25,7 @@ const App = () => {
           <Routes>
             <Route path="/" element={<Navigate to="/overview" />} />
             <Route path="/overview" element={<Overview />}/>
-            <Route path="/events" />
+            <Route path="/calendar" element={<Calendar />} />
           </Routes>
         </AppShell.Main>
 

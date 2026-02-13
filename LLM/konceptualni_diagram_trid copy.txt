@@ -1,0 +1,75 @@
+@startuml
+hide circle
+
+class User {
+  +name
+  +email
+  +age
+  +birthDate
+  +roles
+  +sex
+  +mobile
+}
+
+class League {
+  +name
+  +season
+  +category
+}
+
+class Team {
+  +name
+}
+
+class Squad {
+  +name
+}
+
+class TeamEvent {
+  +title
+  +eventType
+  +startTime
+  +endTime
+}
+
+class EventParticipation {
+  +status
+  +note
+}
+
+class Venue {
+  +name
+  +location
+}
+
+class Payment {
+  +amount
+  +purpose
+  +status
+  +dueDate
+}
+
+class Announcement {
+  +title
+  +content
+  +visibility
+  +createdAt
+}
+
+League "1" -- "0..*" Team
+Team "1" -- "1..*" Squad
+
+Squad "1" -- "0..*" TeamEvent
+
+User "1" -- "0..*" EventParticipation
+TeamEvent "1" -- "0..*" EventParticipation
+
+Venue "0..*" -- "1" TeamEvent
+
+User "1" -- "0..*" Payment
+
+User "1" -- "0..*" Announcement
+Team "1" -- "0..*" Announcement
+
+User "0..*" -- "0..*" Squad
+@enduml

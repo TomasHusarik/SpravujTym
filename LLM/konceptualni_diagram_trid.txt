@@ -1,0 +1,81 @@
+@startuml
+' =====================
+' CORE ENTITIES
+' =====================
+
+class User {
+  +name: String
+  +email: String
+  +roles: String[*]
+}
+
+class Team {
+  +name: String
+  +category: String
+  +isPublic: Boolean
+}
+
+class League {
+  +name: String
+  +season: String
+}
+
+class TeamEvent {
+  +type: String
+  +startTime: Date
+  +endTime: Date
+  +isPublic: Boolean
+}
+
+class EventParticipation {
+  +status: String
+  +responseNote: String
+}
+
+class Comment {
+  +text: String
+  +createdAt: Date
+}
+
+class Payment {
+  +amount: Number
+  +dueDate: Date
+  +status: String
+}
+
+' =====================
+' ANNOUNCEMENTS
+' =====================
+
+class Announcement {
+  +title: String
+  +content: String
+  +publishedAt: Date
+  +visibility: String
+}
+
+' =====================
+' RELATIONSHIPS
+' =====================
+
+League "1" -- "1..*" Team
+
+Team "1" -- "1..*" User
+Team "1" -- "0..*" TeamEvent
+Team "1" -- "0..*" Announcement
+
+User "1" -- "0..*" TeamEvent : creates
+User "1" -- "0..*" EventParticipation
+TeamEvent "1" -- "0..*" EventParticipation
+
+EventParticipation "*" -- "1" User
+EventParticipation "*" -- "1" TeamEvent
+
+TeamEvent "1" -- "0..*" Comment
+User "1" -- "0..*" Comment
+
+Team "1" -- "0..*" Payment
+User "1" -- "0..*" Payment
+
+User "1" -- "0..*" Announcement : authors
+@enduml

@@ -1,0 +1,98 @@
+@startuml
+hide circle
+
+' =====================
+' CORE DOMAIN ENTITIES
+' =====================
+
+class User {
+  +name
+  +email
+  +mobile
+  +age
+  +sex
+  +address
+  +birthDate
+  +active
+}
+
+class League {
+  +name
+  +season
+  +category
+}
+
+class Team {
+  +name
+  +shortName
+  +homeCity
+  +foundedYear
+}
+
+class Squad {
+  +name
+}
+
+class Membership {
+  +role
+  +active
+}
+
+class TeamEvent {
+  +title
+  +type
+  +opponent?
+  +startTime
+  +endTime
+}
+
+class EventParticipation {
+  +status
+  +note
+  +createdAt
+}
+
+class Venue {
+  +name
+  +address
+  +city
+  +capacity
+}
+
+class Announcement {
+  +title
+  +content
+  +createdAt
+  +visibility
+  +type
+  +pinned
+}
+
+class Payment {
+  +amount
+  +status
+  +dueDate
+  +type
+}
+
+' =====================
+' RELATIONSHIPS
+' =====================
+
+Team "1" -- "1..*" Squad : consists of
+League "1" -- "1..*" Squad : includes
+
+User "1" -- "0..*" Membership : has
+Squad "1" -- "0..*" Membership : groups
+
+Team "1" -- "0..*" TeamEvent : schedules
+Venue "1" -- "0..*" TeamEvent : hosts
+
+User "1" -- "0..*" EventParticipation : responds to
+TeamEvent "1" -- "0..*" EventParticipation : includes
+
+User "1" -- "0..*" Announcement : authors
+Team "1" -- "0..*" Announcement : publishes
+
+User "1" -- "0..*" Payment : pays
+@enduml
