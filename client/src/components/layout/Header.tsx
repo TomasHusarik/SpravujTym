@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import {
   Burger,
   Container,
@@ -11,17 +10,13 @@ import { useDisclosure } from '@mantine/hooks';
 import classes from './Header.module.css';
 import UserMenu from './UserMenu';
 import { useNavigate } from 'react-router';
-
-const user = {
-  name: 'Tomáš Husarik',
-  email: 'malejhusa@gmail.com',
-  image: 'https://raw.githubusercontent.com/mantinedev/mantine/master/.demo/avatars/avatar-5.png',
-};
+import { useAuth } from '@context/AuthContext';
 
 const tabs = [
   {label: 'Přehled', value: 'overview'},
   {label: 'Zeď', value: 'wall'},
   {label: 'Události', value: 'events'},
+  {label: 'Platby', value: 'payments'},
   {label: 'Kalendář', value: 'calendar'},
 ];
 
@@ -29,6 +24,8 @@ const Header = () => {
   const [opened, { toggle }] = useDisclosure(false);
 
   const navigate = useNavigate();
+
+  const { user } = useAuth();
 
   const items = tabs.map((tab) => (
     <Tabs.Tab value={tab.value} key={tab.value} onClick={() => navigate(`/${tab.value}`)}>
@@ -38,12 +35,12 @@ const Header = () => {
 
   return (
     <div className={classes.header}>
-      <Container className={classes.mainSection} size="xl">
+      <Container className={classes.mainSection} size="">
         <Group justify="space-between">
           <div style={{ display: 'flex', alignItems: 'center', gap: '15px', cursor: 'pointer' }} onClick={() => navigate('/')}>
             <Image src="/logo40x40.svg" alt="Bluehorses Logo" w={40} h={40} />
             <Text fw={700} fz="xl" className={classes.logoText}>
-              Blue Horses
+              Blue Horses Stochov
             </Text>
           </div>
 
@@ -60,7 +57,7 @@ const Header = () => {
 
         </Group>
       </Container>
-      <Container size="xl">
+      <Container size="">
         <Tabs
           defaultValue="Home"
           variant="outline"

@@ -8,15 +8,18 @@ import { MantineProvider } from '@mantine/core';
 import { DatesProvider } from '@mantine/dates';
 import 'dayjs/locale/cs';
 import { BrowserRouter } from 'react-router';
+import { AuthProvider } from './context/AuthContext.tsx';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
-      <DatesProvider settings={{ locale: 'ru', firstDayOfWeek: 0, weekendDays: [0] }}>
-        <MantineProvider defaultColorScheme="dark">
-          <App />
-        </MantineProvider>
-      </DatesProvider>
+      <AuthProvider>
+        <DatesProvider settings={{ locale: 'ru', firstDayOfWeek: 0, weekendDays: [0] }}>
+          <MantineProvider defaultColorScheme="dark">
+            <App />
+          </MantineProvider>
+        </DatesProvider>
+      </AuthProvider>
     </BrowserRouter>
   </StrictMode>,
 )

@@ -1,14 +1,20 @@
 @startuml
 hide circle
+skinparam classAttributeIconSize 0
+
+' =====================
+' CORE DOMAIN ENTITIES
+' =====================
 
 class User {
   +name
   +email
-  +age
-  +birthDate
-  +roles
-  +sex
   +mobile
+  +age
+  +sex
+  +address
+  +birthDate
+  +active
 }
 
 class League {
@@ -19,6 +25,9 @@ class League {
 
 class Team {
   +name
+  +shortName
+  +homeCity
+  +foundedYear
 }
 
 class Squad {
@@ -27,7 +36,8 @@ class Squad {
 
 class TeamEvent {
   +title
-  +eventType
+  +type
+  +opponent?
   +startTime
   +endTime
 }
@@ -35,41 +45,70 @@ class TeamEvent {
 class EventParticipation {
   +status
   +note
+  +createdAt
 }
 
 class Venue {
   +name
-  +location
-}
-
-class Payment {
-  +amount
-  +purpose
-  +status
-  +dueDate
+  +address
+  +city
+  +capacity
 }
 
 class Announcement {
   +title
   +content
+  +createdAt
   +visibility
+  +type
+  +pinned
+}
+
+class Payment {
+  +amount
+  +status
+  +dueDate
+  +type
+}
+
+' =====================
+' STRUCTURE
+' =====================
+
+Team "1" -- "1..*" Squad : consists of
+League "1" -- "1..*" Squad : includes
+
+' =====================
+' ASSOCIATION CLASS
+' =====================
+
+User "1" -- "0..*" Squad : member of
+associationClass Membership {
+  +role
+  +active
+}
+
+' =====================
+' EVENTS
+' =====================
+
+Team "1" -- "0..*" TeamEvent : schedules
+Venue "1" -- "0..*" TeamEvent : hosts
+
+User "1" -- "0..*" TeamEvent : participates in
+associationClass EventParticipation {
+  +status
+  +note
   +createdAt
 }
 
-League "1" -- "0..*" Team
-Team "1" -- "1..*" Squad
+' =====================
+' COMMUNICATION & FINANCE
+' =====================
 
-Squad "1" -- "0..*" TeamEvent
+User "1" -- "0..*" Announcement : authors
+Team "1" -- "0..*" Announcement : publishes
 
-User "1" -- "0..*" EventParticipation
-TeamEvent "1" -- "0..*" EventParticipation
+User "1" -- "0..*" Payment : pays
 
-Venue "0..*" -- "1" TeamEvent
-
-User "1" -- "0..*" Payment
-
-User "1" -- "0..*" Announcement
-Team "1" -- "0..*" Announcement
-
-User "0..*" -- "0..*" Squad
 @enduml

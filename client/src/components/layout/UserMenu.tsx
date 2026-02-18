@@ -1,15 +1,15 @@
 import { Avatar, Group, Menu, UnstyledButton, Text, useMantineColorScheme, useComputedColorScheme } from '@mantine/core'
-import { IconChevronDown, IconLogout, IconMoon, IconPlayerPause, IconSettings, IconSun } from '@tabler/icons-react';
+import { IconChevronDown, IconLogout, IconMoon, IconSettings, IconSun } from '@tabler/icons-react';
 import cx from 'clsx';
 import classes from './Header.module.css';
-import React, { useState } from 'react'
+import { useState } from 'react'
+import { useNavigate } from 'react-router';
+import { useAuth } from '../../context/AuthContext';
+import type { User } from '@/types/User';
+import { getFullName } from '@/utils/helpers';
 
 interface IUserMenu {
-    user: {
-        name: string;
-        email: string;
-        image: string;
-    }
+    user: User;
 }
 
 const UserMenu = (props: IUserMenu) => {
@@ -19,10 +19,23 @@ const UserMenu = (props: IUserMenu) => {
     const computedColorScheme = useComputedColorScheme('light', { getInitialValueInEffect: true });
 
     const [userMenuOpened, setUserMenuOpened] = useState(false);
+    const navigate = useNavigate();
+    const { logout } = useAuth();
+
+    const handleLogout = async () => {
+        try {
+            await logout();
+        } catch (error) {
+            console.error('Logout failed:', error);
+        } finally {
+            navigate('/login');
+        }
+    };
 
     return (
         <Menu
             width={260}
+            zIndex={1001}
             position="bottom-end"
             transitionProps={{ transition: 'pop-top-right' }}
             onClose={() => setUserMenuOpened(false)}
@@ -34,9 +47,9 @@ const UserMenu = (props: IUserMenu) => {
                     className={cx(classes.user, { [classes.userActive]: userMenuOpened })}
                 >
                     <Group gap={7}>
-                        <Avatar key={user.name} name={user.name} color="initials" alt="" radius="xl" size={20} />
+                        <Avatar key={user._id} name={getFullName(user)} src={null} color="initials" alt="" radius="xl" size={20} />
                         <Text fw={500} size="sm" lh={1} mr={3}>
-                            {user.name}
+                            {getFullName(user)}
                         </Text>
                         <IconChevronDown size={12} stroke={1.5} />
                     </Group>
@@ -48,7 +61,9 @@ const UserMenu = (props: IUserMenu) => {
                 <Menu.Item leftSection={<IconSettings size={16} stroke={1.5} />}>
                     Nastavení účtu
                 </Menu.Item>
-                <Menu.Item leftSection={<IconLogout size={16} stroke={1.5} />}>Odhlásit</Menu.Item>
+                <Menu.Item leftSection={<IconLogout size={16} stroke={1.5} />} onClick={handleLogout}>
+                    Odhlasit
+                </Menu.Item>
 
                 <Menu.Divider />
 

@@ -1,5 +1,10 @@
+import type { User } from "@/types/User";
 import { EventType } from "./const";
 
+// Get user full name
+export const getFullName = (user: User): string => {
+        return `${user.firstName} ${user.lastName}`;
+}
 
 // Give a date format as "po 9. 2. 2026 19:30 - 21:00"
 export const formatTeamEventDate = (date: Date, startTime: string, endTime: string): string => {
@@ -19,3 +24,4 @@ export const getEventColor = (eventType: string): string => {
             return "blue";
     }
 }
+

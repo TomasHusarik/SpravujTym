@@ -1,98 +1,118 @@
 @startuml
 hide circle
 
-' =====================
-' CORE DOMAIN ENTITIES
-' =====================
-
 class User {
-  +name
-  +email
-  +mobile
-  +age
-  +sex
-  +address
-  +birthDate
-  +active
+  +_id : ObjectId
+  +name : String
+  +email : String
+  +mobile : String
+  +age : Number
+  +sex : String
+  +address : String
+  +birthDate : Date
+  +active : Boolean
+  +createdAt : Date
 }
 
 class League {
-  +name
-  +season
-  +category
+  +_id : ObjectId
+  +name : String
+  +season : String
+  +category : String
 }
 
 class Team {
-  +name
-  +shortName
-  +homeCity
-  +foundedYear
+  +_id : ObjectId
+  +name : String
+  +shortName : String
+  +homeCity : String
+  +foundedYear : Number
 }
 
 class Squad {
-  +name
+  +_id : ObjectId
+  +name : String
+  +teamId : ObjectId
+  +leagueId : ObjectId
 }
 
 class Membership {
-  +role
-  +active
+  +_id : ObjectId
+  +userId : ObjectId
+  +squadId : ObjectId
+  +role : String
+  +active : Boolean
+  +startDate : Date
+  +endDate : Date
 }
 
 class TeamEvent {
-  +title
-  +type
-  +opponent?
-  +startTime
-  +endTime
+  +_id : ObjectId
+  +title : String
+  +type : String
+  +opponent : String
+  +startTime : Date
+  +endTime : Date
+  +squadId : ObjectId
+  +venueId : ObjectId
 }
 
 class EventParticipation {
-  +status
-  +note
-  +createdAt
+  +_id : ObjectId
+  +eventId : ObjectId
+  +userId : ObjectId
+  +status : String
+  +note : String
+  +createdAt : Date
 }
 
 class Venue {
-  +name
-  +address
-  +city
-  +capacity
+  +_id : ObjectId
+  +name : String
+  +address : String
+  +city : String
+  +capacity : Number
 }
 
 class Announcement {
-  +title
-  +content
-  +createdAt
-  +visibility
-  +type
-  +pinned
+  +_id : ObjectId
+  +title : String
+  +content : String
+  +createdAt : Date
+  +visibility : String
+  +type : String
+  +pinned : Boolean
+  +teamId : ObjectId
+  +authorId : ObjectId
 }
 
 class Payment {
-  +amount
-  +status
-  +dueDate
-  +type
+  +_id : ObjectId
+  +userId : ObjectId
+  +amount : Number
+  +status : String
+  +dueDate : Date
+  +type : String
 }
 
 ' =====================
-' RELATIONSHIPS
+' REFERENCES WITH CARDINALITY
 ' =====================
 
-Team "1" -- "1..*" Squad : consists of
-League "1" -- "1..*" Squad : includes
+Squad "0..*" --> "1" Team
+Squad "0..*" --> "1" League
 
-User "1" -- "0..*" Membership : has
-Squad "1" -- "0..*" Membership : groups
+Membership "0..*" --> "1" User
+Membership "0..*" --> "1" Squad
 
-Team "1" -- "0..*" TeamEvent : schedules
-Venue "1" -- "0..*" TeamEvent : hosts
+TeamEvent "0..*" --> "1" Squad
+TeamEvent "0..*" --> "1" Venue
 
-User "1" -- "0..*" EventParticipation : responds to
-TeamEvent "1" -- "0..*" EventParticipation : includes
+EventParticipation "0..*" --> "1" User
+EventParticipation "0..*" --> "1" TeamEvent
 
-User "1" -- "0..*" Announcement : authors
-Team "1" -- "0..*" Announcement : publishes
+Announcement "0..*" --> "1" Team
+Announcement "0..*" --> "1" User
 
-User "1" -- "0..*" Payment : pays
+Payment "0..*" --> "1" User
 @enduml

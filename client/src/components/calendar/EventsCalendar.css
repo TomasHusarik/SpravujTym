@@ -1,0 +1,48 @@
+.fc-theme-standard .fc-list {
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.fc-scrollgrid {
+  border: 1px solid #dcdcdc !important;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.fc-button-primary {
+  background: #f3f5f7 !important;
+  border: 1px solid #dcdcdc !important;
+  color: #1f2933 !important;
+}
+
+.fc-button-primary:focus,
+.fc-button-primary:focus-visible,
+.fc-button-primary:active {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Dark mode styles */
+
+.calendar-dark-mode .fc-cell-shaded {
+  background: #25282c !important;
+  border: none !important;
+}
+
+.calendar-dark-mode .fc-list-event:hover td {
+  background: #2a2d31 !important;
+  color: #fff !important;
+}
+
+.calendar-dark-mode .fc-theme-standard .fc-list {
+  background: #1d2024;
+  border: 1px solid #30343a;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.calendar-dark-mode .fc-button-primary {
+  background: #2a2d31 !important;
+  border: 1px solid #3a3f45 !important;
+  color: #f3f4f6 !important;
+}

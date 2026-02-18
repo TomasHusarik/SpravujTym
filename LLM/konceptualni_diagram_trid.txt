@@ -1,81 +1,110 @@
 @startuml
+hide circle
+
 ' =====================
-' CORE ENTITIES
+' CORE DOMAIN ENTITIES
 ' =====================
 
 class User {
-  +name: String
-  +email: String
-  +roles: String[*]
-}
-
-class Team {
-  +name: String
-  +category: String
-  +isPublic: Boolean
+  +name
+  +email
+  +mobile
+  +age
+  +sex
+  +address
+  +birthDate
+  +active
 }
 
 class League {
-  +name: String
-  +season: String
+  +name
+  +season
+  +category
+}
+
+class Team {
+  +name
+  +shortName
+  +homeCity
+  +foundedYear
+}
+
+class Squad {
+  +name
 }
 
 class TeamEvent {
-  +type: String
-  +startTime: Date
-  +endTime: Date
-  +isPublic: Boolean
+  +title
+  +type
+  +opponent?
+  +startTime
+  +endTime
 }
 
 class EventParticipation {
-  +status: String
-  +responseNote: String
+  +status
+  +note
+  +createdAt
 }
 
-class Comment {
-  +text: String
-  +createdAt: Date
+class Venue {
+  +name
+  +address
+  +city
+  +capacity
+}
+
+class Announcement {
+  +title
+  +content
+  +createdAt
+  +visibility
+  +type
+  +pinned
 }
 
 class Payment {
-  +amount: Number
-  +dueDate: Date
-  +status: String
+  +amount
+  +status
+  +dueDate
+  +type
+}
+
+class Membership {
+  +role
+  +active
 }
 
 ' =====================
-' ANNOUNCEMENTS
+' STRUCTURE
 ' =====================
 
-class Announcement {
-  +title: String
-  +content: String
-  +publishedAt: Date
-  +visibility: String
-}
+Team "1" -- "1..*" Squad : consists of
+League "1" -- "1..*" Squad : includes
 
 ' =====================
-' RELATIONSHIPS
+' ASSOCIATION CLASS (Membership)
 ' =====================
 
-League "1" -- "1..*" Team
+User "1" -- "0..*" Squad : member of
+(User, Squad) .. Membership
 
-Team "1" -- "1..*" User
-Team "1" -- "0..*" TeamEvent
-Team "1" -- "0..*" Announcement
+' =====================
+' EVENTS
+' =====================
 
-User "1" -- "0..*" TeamEvent : creates
-User "1" -- "0..*" EventParticipation
-TeamEvent "1" -- "0..*" EventParticipation
+Team "1" -- "0..*" TeamEvent : schedules
+Venue "1" -- "0..*" TeamEvent : hosts
 
-EventParticipation "*" -- "1" User
-EventParticipation "*" -- "1" TeamEvent
+User "1" -- "0..*" TeamEvent : participates in
+(User, TeamEvent) .. EventParticipation
 
-TeamEvent "1" -- "0..*" Comment
-User "1" -- "0..*" Comment
-
-Team "1" -- "0..*" Payment
-User "1" -- "0..*" Payment
+' =====================
+' COMMUNICATION & FINANCE
+' =====================
 
 User "1" -- "0..*" Announcement : authors
+Team "1" -- "0..*" Announcement : publishes
+
+User "1" -- "0..*" Payment : pays
 @enduml

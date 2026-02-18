@@ -1,10 +1,12 @@
 import type { TeamEvent } from '@/types/TeamEvent';
 import FullCalendar from '@fullcalendar/react'
+import './EventsCalendar.css';
 import csLocale from '@fullcalendar/core/locales/cs'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import timeGridPlugin from '@fullcalendar/timegrid'
 import listPlugin from '@fullcalendar/list';
 import { getEventColor } from '@/utils/helpers';
+import { useComputedColorScheme } from '@mantine/core';
 
 // Mock Data
 export const teamEvents: any[] = [
@@ -207,6 +209,10 @@ export const teamEvents: any[] = [
 
 const EventsCalendar = () => {
 
+    const computedColorScheme = useComputedColorScheme('light', { getInitialValueInEffect: true });
+    console.log('Computed color scheme:', computedColorScheme);
+
+
     const calendarEvents = teamEvents.map(event => ({
         id: event.id,
         title: event.title,
@@ -216,46 +222,48 @@ const EventsCalendar = () => {
     }));
 
     return (
-        <FullCalendar
-            locale={csLocale}
-            plugins={[dayGridPlugin, timeGridPlugin, listPlugin]}
-            initialView="listMonth"
-            initialDate="2026-02-01"
-            headerToolbar={{
-                left: 'prev,next today',
-                center: 'title',
-                right: 'dayGridMonth,timeGridWeek,listMonth'
-            }}
-            events={calendarEvents}
-            eventContent={(arg) => {
-                // Only show the colored dot in dayGridMonth view
-                if (arg.view.type === 'dayGridMonth') {
-                    const dotColor = getEventColor(teamEvents.find(e => e.id === arg.event.id)?.type || 'other');
-                    return (
-                        <div style={{ padding: '2px', fontSize: '0.85em' }}>
-
-                            <span>{arg.event.start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {arg.event.end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                            <span style={{
-                                display: 'inline-block',
-                                width: 7,
-                                height: 7,
-                                borderRadius: '50%',
-                                backgroundColor: dotColor,
-                                marginLeft: 6,
-                                flexShrink: 0
-                            }} /><br />
-                            <strong>{arg.event.title}</strong>
-                        </div>
-                    );
-                } else {
-                    return (
-                        <div style={{ padding: '2px' }}>
-                            <strong style={{ marginLeft: 6, wordBreak: 'break-word' }}>{arg.event.title}</strong>
-                        </div>
-                    );
-                }
-            }}
-        />
+        <div className={computedColorScheme === 'dark' ? 'calendar-dark-mode' : ''}>
+            <FullCalendar
+                locale={csLocale}
+                plugins={[dayGridPlugin, timeGridPlugin, listPlugin]}
+                initialView="listMonth"
+                initialDate={new Date().toISOString().split('T')[0]} // Start from current month
+                allDaySlot={false}
+                headerToolbar={{
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,listMonth'
+                }}
+                events={calendarEvents}
+                eventContent={(arg) => {
+                    // Only show the colored dot in dayGridMonth view
+                    if (arg.view.type === 'dayGridMonth') {
+                        const dotColor = getEventColor(teamEvents.find(e => e.id === arg.event.id)?.type || 'other');
+                        return (
+                            <div style={{ padding: '2px', fontSize: '0.85em', overflow: "", }}>
+                                <span>{arg.event.start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {arg.event.end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                <span style={{
+                                    display: 'inline-block',
+                                    width: 7,
+                                    height: 7,
+                                    borderRadius: '50%',
+                                    backgroundColor: dotColor,
+                                    marginLeft: 6,
+                                    flexShrink: 0
+                                }} /><br />
+                                <strong style={{wordBreak: 'break-word', whiteSpace: 'normal' }}>{arg.event.title}</strong>
+                            </div>
+                        );
+                    } else {
+                        return (
+                            <div style={{ padding: '2px' }}>
+                            <strong style={{ wordBreak: 'break-word' }}>{arg.event.title}</strong>
+                            </div>
+                        );
+                    }
+                }}
+            />
+        </div>
     )
 
 };

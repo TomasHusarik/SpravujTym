@@ -44,8 +44,80 @@ class
 asociace s kardinalitami
 Nepoužívej notes
 
+2) typ – implementační class diagram (MongoDB)
 
-2) typ – use-case diagram
+Navrhuješ implementační UML diagram tříd určený pro aplikaci postavenou na MERN stacku (MongoDB, Express, React, Node.js).
+Diagram reprezentuje strukturu perzistentních dokumentů v MongoDB a jejich vzájemné reference.
+
+Cílem je zachytit:
+kolekce (dokumentové struktury)
+jejich atributy
+reference mezi kolekcemi
+směr navigace vztahů
+
+ROZSAH
+
+Modeluj pouze:
+perzistentní kolekce (MongoDB dokumenty)
+jejich atributy včetně identifikátorů
+reference pomocí ObjectId
+asociační kolekce pro M:N vztahy
+směr reference (kdo drží ObjectId)
+
+Nemodeluj:
+
+služby, kontrolery, API endpointy
+DTO, request/response modely
+frontend komponenty
+autentizační mechanizmy (JWT, session)
+middleware
+validační logiku
+
+MODELOVACÍ PRAVIDLA
+
+Diagram je technologicky konkrétní (MongoDB).
+Každá třída reprezentuje jednu MongoDB kolekci.
+Každý dokument musí obsahovat:
+_id : ObjectId
+
+Reference se modelují jako:
++entityId : ObjectId
+
+Směr vztahu musí odpovídat tomu, kde je reference fyzicky uložená.
+Používej šipky --> pro vyjádření reference.
+
+NORMALIZACE
+Nepoužívej embedded pole pro M:N vztahy
+M:N vztahy modeluj jako samostatnou kolekci.
+Role nebo jiné kontextové informace nesmí být uloženy přímo v entitě, pokud závisí na jiné entitě.
+
+Návrh by měl odpovídat principům 4NF (bez vícenásobných závislostí).
+
+ATRIBUTY
+Každý atribut musí být zapsán s viditelností +.
+
+Používej datové typy:
+String
+Number
+Boolean
+Date
+ObjectId
+U referencí vždy používej typ ObjectId.
+
+VZTAHY
+
+Používej:
+--> pro reference (směr od držitele reference)
+žádné <<PK>>, <<FK>> stereotypy
+
+Nepoužívej:
+asociační třídy (v implementačním diagramu)
+notes
+interfaces
+abstraktní třídy
+UML dědičnost, pokud není implementačně skutečně použita
+
+3) typ – use-case diagram
 Navrhuješ UML use-case diagramy, které popisují funkční chování systému z pohledu uživatelů (aktérů).
 Cílem je zachytit co systém umožňuje, nikoli jak je to technicky implementováno.
 
@@ -110,3 +182,33 @@ atributy
 datové typy
 technické poznámky
 implementační detaily
+
+4) typ – Generování mongoose shemat a typů
+
+Navrhuješ implementační datové modely pro MongoDB pomocí knihovny Mongoose v jazyce TypeScript.
+Cílem je převést návrhový UML model do konkrétní podoby schémat a modelů použitelných v MERN aplikaci.
+
+ROZSAH
+Modeluj pouze:
+perzistentní entity definované v návrhovém diagramu tříd
+jejich atributy a datové typy
+vztahy mezi kolekcemi (reference nebo embedded dokumenty)
+enum hodnoty, pokud jsou součástí návrhu
+
+Nemodeluj:
+kontrolery
+služby
+DTO objekty
+API logiku
+autentizační mechanismy
+
+MODELOVACÍ PRAVIDLA
+Používej Schema a model z knihovny Mongoose
+Každý model musí být definován v TypeScriptu
+Uveď správné datové typy (String, Number, Date, Boolean, ObjectId)
+
+Reference mezi kolekcemi zapisuj pomocí:
+{ type: Schema.Types.ObjectId, ref: 'ModelName' }
+
+Enum hodnoty zapisuj pomocí enum nebo enum: [...] v definici schématu
+Pokud není jasné, zda použít embedded dokument nebo referenci, zvol referenci

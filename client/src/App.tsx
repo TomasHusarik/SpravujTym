@@ -1,37 +1,52 @@
-import React from 'react'
-import { BrowserRouter, Routes, Route, Navigate } from "react-router";
-import { AppShell, Button } from '@mantine/core'
+import { Routes, Route, Navigate, useLocation } from "react-router";
+import { AppShell } from '@mantine/core'
 import Header from './components/layout/Header'
 import Footer from './components/layout/Footer'
-import { useDisclosure } from '@mantine/hooks'
 import Overview from './pages/Overview';
 import Calendar from './pages/Calendar';
+import Payments from './pages/Payments';
+import Login from './pages/Login';
+import { useAuth } from './context/AuthContext';
+import type { JSX } from "react";
 
 const App = () => {
-  const [opened, { toggle }] = useDisclosure();
+  const { isAuthenticated, isLoading } = useAuth();
+
+  if (isLoading) {
+    return null;
+  }
+
+  const requireAuth = (element: JSX.Element) =>
+    isAuthenticated ? element : <Navigate to="/login" replace />;
 
   return (
     <>
       <AppShell
-        padding="md"
-        header={{ height: 100 }}
-        footer={{ height: 80 }}
+        padding={isAuthenticated ? "xl" : 0}
+        header={isAuthenticated ? { height: 100} : undefined }
+        footer={isAuthenticated ? { height: 80 } : undefined }
       >
-        <AppShell.Header>
-          <Header />
-        </AppShell.Header>
+        {isAuthenticated && (
+          <AppShell.Header style={{ zIndex: 1000 }}>
+            <Header />
+          </AppShell.Header>
+        )}
 
         <AppShell.Main>
           <Routes>
-            <Route path="/" element={<Navigate to="/overview" />} />
-            <Route path="/overview" element={<Overview />}/>
-            <Route path="/calendar" element={<Calendar />} />
+            <Route path="/" element={<Navigate to={isAuthenticated ? "/overview" : "/login"} replace />} />
+            <Route path="/login" element={isAuthenticated ? <Navigate to="/overview" replace /> : <Login />} />
+            <Route path="/overview" element={requireAuth(<Overview />)} />
+            <Route path="/calendar" element={requireAuth(<Calendar />)} />
+            <Route path="/payments" element={requireAuth(<Payments />)} />
           </Routes>
         </AppShell.Main>
 
-        <AppShell.Footer>
-          <Footer />
-        </AppShell.Footer>
+        {isAuthenticated && (
+          <AppShell.Footer style={{ zIndex: 1000 }}>
+            <Footer />
+          </AppShell.Footer>
+        )}
       </AppShell >
     </>
   )
