@@ -24,12 +24,14 @@ const App = () => {
     <>
       <AppShell
         padding={isAuthenticated ? "xl" : 0}
-        header={{ height: { base: 50, sm: 100 } }}
+        header={isAuthenticated ? { height: { base: 50, sm: 100 } } : undefined }
         footer={isAuthenticated ? { height: 80 } : undefined }
       >
+        {isAuthenticated && (
           <AppShell.Header style={{ zIndex: 1000 }}>
             <Header />
           </AppShell.Header>
+        )}
 
         <AppShell.Main>
           <Routes>
@@ -43,7 +45,7 @@ const App = () => {
         </AppShell.Main>
 
         {isAuthenticated && (
-          <AppShell.Footer style={{ zIndex: 1000 }}>
+          <AppShell.Footer style={{ zIndex: 1000 }} visibleFrom="sm">
             <Footer />
           </AppShell.Footer>
         )}

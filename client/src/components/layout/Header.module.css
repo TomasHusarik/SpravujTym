@@ -1,7 +1,7 @@
 .header {
   padding-top: var(--mantine-spacing-sm);
-  background-color: light-dark(var(--mantine-color-orange-3), var(--mantine-color-orange-9));
-  border-bottom: 1px solid light-dark(var(--mantine-color-gray-0), transparent);
+  background-color: light-dark(var(--mantine-color-blue-6), var(--mantine-color-blue-8));
+  border-bottom: none;
   margin-bottom: 120px;
 }
 
@@ -10,13 +10,13 @@
 }
 
 .user {
-  color: light-dark(var(--mantine-color-black), var(--mantine-color-dark-0));
+  color: light-dark(var(--mantine-color-white), var(--mantine-color-dark-0));
   padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
   border-radius: var(--mantine-radius-sm);
   transition: background-color 100ms ease;
 
   &:hover {
-    background-color: light-dark(var(--mantine-color-white), var(--mantine-color-dark-8));
+    background-color: light-dark(var(--mantine-color-blue-7), var(--mantine-color-blue-9));
   }
 
   @media (max-width: $mantine-breakpoint-xs) {
@@ -25,38 +25,36 @@
 }
 
 .userActive {
-  background-color: light-dark(var(--mantine-color-white), var(--mantine-color-dark-8));
+  background-color: light-dark(var(--mantine-color-blue-7), var(--mantine-color-blue-9));
 }
 
 .tabsList {
+  gap: var(--mantine-spacing-sm);
+  
   &::before {
     display: none;
   }
 }
 
 .tab {
-  font-weight: 500;
-  height: 38px;
+  font-weight: 600;
+  height: 40px;
   background-color: transparent;
-  position: relative;
-  bottom: -1px;
-
-  &::before,
-  &::after {
-    background-color: light-dark(
-      var(--mantine-color-gray-2),
-      var(--mantine-color-dark-7)
-    ) !important;
-  }
-
+  border: none;
+  color: light-dark(rgba(255, 255, 255, 0.85), var(--mantine-color-gray-3));
+  letter-spacing: 0.4px;
+  transition: all 200ms ease;
+  
   &:hover {
-    background-color: light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-5));
+    background-color: light-dark(var(--mantine-color-blue-7), rgba(255, 255, 255, 0.05));
+    color: light-dark(var(--mantine-color-white), var(--mantine-color-white));
+    transform: translateY(-1px);
   }
 
   &[data-active] {
-    background-color: light-dark(var(--mantine-color-white), var(--mantine-color-dark-7));
-    border-color: light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-7));
-    border-bottom-color: transparent;
+    background-color: light-dark(var(--mantine-color-blue-7), rgba(255, 255, 255, 0.1));
+    color: light-dark(var(--mantine-color-white), var(--mantine-color-white));
+    font-weight: 700;
   }
 }
 

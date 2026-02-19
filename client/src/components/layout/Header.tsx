@@ -29,15 +29,7 @@ const Header = () => {
   const [opened, { toggle }] = useDisclosure(false);
 
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
-
-  // const { user } = useAuth();
-  const user: User = {
-    _id: '123',
-    firstName: 'Jan',
-    lastName: 'Novák',
-    email: 'ADASDASD'
-  };
+  const { isAuthenticated, user } = useAuth();
 
   const items = tabs.map((tab) => (
     <Tabs.Tab value={tab.value} key={tab.value} onClick={() => navigate(`/${tab.value}`)}>

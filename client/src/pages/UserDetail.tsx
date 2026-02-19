@@ -27,10 +27,10 @@ const UserDetail = () => {
 
     return (
         <Grid>
-            <Grid.Col span={12}>
-                <Title order={1} c="var(--mantine-color-blue-light-color)" mb="md">Customer Info</Title>
+            <Grid.Col span={{ base: 12, md: 12 }}>
+                <Title order={1} c="var(--mantine-color-blue-light-color)" mb="md">Detail uživatele</Title>
             </Grid.Col>
-            <Grid.Col span={6}>
+            <Grid.Col span={{ base: 12, md: 6 }}>
                 <TextInput
                     label="Full Name"
                     placeholder="fullName"
@@ -42,7 +42,7 @@ const UserDetail = () => {
                     readOnly
                 />
             </Grid.Col>
-            <Grid.Col span={6}>
+            <Grid.Col span={{ base: 12, md: 6 }}>
                 <TextInput
                     label="Email"
                     placeholder="email"
@@ -54,7 +54,7 @@ const UserDetail = () => {
                     readOnly
                 />
             </Grid.Col>
-            <Grid.Col span={6}>
+            <Grid.Col span={{ base: 12, md: 6 }}>
                 <TextInput
                     label="Phone"
                     placeholder="phone"
@@ -66,6 +66,31 @@ const UserDetail = () => {
                     readOnly
                 />
             </Grid.Col>
+            <Grid.Col span={{ base: 12, md: 6 }}>
+                <TextInput
+                    label="Role"
+                    placeholder="role"
+                    leftSection={<IconUser size={16} />}
+                    radius="md"
+                    size="md"
+                    name="role"
+                    value={user?.roles || ''}
+                    readOnly
+                />
+            </Grid.Col>
+            <Grid.Col span={{ base: 12, md: 6 }}>
+                <TextInput
+                    label="Status"
+                    placeholder="status"
+                    leftSection={<IconUser size={16} />}
+                    radius="md"
+                    size="md"
+                    name="status"
+                    value={user?.active ? 'Active' : 'Inactive'}
+                    readOnly
+                />
+            </Grid.Col>
+            
         </Grid>
     )
 }

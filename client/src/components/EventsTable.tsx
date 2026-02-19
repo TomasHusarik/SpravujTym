@@ -256,7 +256,7 @@ const EventsTable = () => {
                     </Group>
                 </Chip.Group>
             </Grid.Col>
-            <Grid.Col span={{ base: 12, md: 4 }} />
+            
             <Grid.Col span={{ base: 12, md: 8 }}>
                 <Stack gap="md">
                     {filteredTeamEvents.map((event: TeamEvent) => (
@@ -289,7 +289,8 @@ const EventsTable = () => {
                     ))}
                 </Stack>
             </Grid.Col>
-            <Grid.Col span={{ base: 12, md: 4 }}>
+            
+            <Grid.Col span={{ base: 12, md: 4 }} visibleFrom="md">
                 <Group justify="center" mb="md">
                     <Calendar
                         locale="cs"
