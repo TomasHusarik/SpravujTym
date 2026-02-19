@@ -8,12 +8,11 @@ export const generateRandomPassword = (): string => {
     return randomBytes(12).toString('hex');
 };
 
-
 //#region Token and Cookie Helpers
 
 // Token generation
 export const createToken = (payload: object) => {
-    return jwt.sign(payload, env.JWT_SECRET, { expiresIn: '1m' });
+    return jwt.sign(payload, env.JWT_SECRET, { expiresIn: '7d' });
 };
 
 // Helper function to set token cookie
@@ -22,8 +21,7 @@ export const generateTokenCookie = (res: Response, token: string) => {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-        path: '/',
-        maxAge: 60 * 1000, // 24 hours
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 }
 
@@ -33,6 +31,5 @@ export const resetCookie = (res: Response) => {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-        path: '/',
     });
 };

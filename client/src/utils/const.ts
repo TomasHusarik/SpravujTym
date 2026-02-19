@@ -3,3 +3,9 @@ export const EventType = {
     MATCH: "match",
     OTHER: "other"
 }
+
+export const UserRole = {
+    ADMIN: "admin",
+    COACH: "coach",
+    PLAYER: "player"
+}

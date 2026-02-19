@@ -11,7 +11,7 @@ const Footer = () => {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
                     {/* <Image src="/logo40x40.svg" alt="BlueHorses Logo" w={40} h={40} /> */}
                     <Text fw={700} fz="xl" className={classes.logoText}>
-                        Blue Horses
+                        SpravujTym
                     </Text>
                 </div>
                 <Text fw={600} fz="xs" c="dimmed" className={classes.version}>

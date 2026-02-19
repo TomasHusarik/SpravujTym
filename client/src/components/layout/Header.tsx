@@ -1,16 +1,21 @@
 import {
   Burger,
   Container,
+  Divider,
+  Drawer,
   Group,
   Image,
+  Stack,
   Tabs,
   Text,
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import classes from './Header.module.css';
 import UserMenu from './UserMenu';
+import { MenuItems } from './MenuItems';
 import { useNavigate } from 'react-router';
 import { useAuth } from '@context/AuthContext';
+import type { User } from '@/types/User';
 
 const tabs = [
   {label: 'Přehled', value: 'overview'},
@@ -24,8 +29,15 @@ const Header = () => {
   const [opened, { toggle }] = useDisclosure(false);
 
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
 
-  const { user } = useAuth();
+  // const { user } = useAuth();
+  const user: User = {
+    _id: '123',
+    firstName: 'Jan',
+    lastName: 'Novák',
+    email: 'ADASDASD'
+  };
 
   const items = tabs.map((tab) => (
     <Tabs.Tab value={tab.value} key={tab.value} onClick={() => navigate(`/${tab.value}`)}>
@@ -48,12 +60,14 @@ const Header = () => {
           <Burger
             opened={opened}
             onClick={toggle}
-            hiddenFrom="xs"
+            hiddenFrom="sm"
             size="sm"
             aria-label="Toggle navigation"
           />
 
-          <UserMenu user={user} />
+          <Group visibleFrom="sm">
+            <UserMenu user={user} />
+          </Group>
 
         </Group>
       </Container>
@@ -76,6 +90,38 @@ const Header = () => {
           ))}
         </Tabs>
       </Container>
+
+      <Drawer
+        opened={opened}
+        onClose={toggle}
+        title="Menu"
+        hiddenFrom="sm"
+        size="100%"
+      >
+        <Stack gap="md" pt="xl">
+          {tabs.map((tab) => (
+            <Text
+              key={tab.value}
+              fw={500}
+              className={classes.drawerMenuItem}
+              style={{ cursor: 'pointer' }}
+              onClick={() => {
+                navigate(`/${tab.value}`);
+                toggle();
+              }}
+            >
+              {tab.label}
+            </Text>
+          ))}
+          
+          {isAuthenticated && (
+            <>
+              <Divider my="xs" />
+              <MenuItems variant="mobile" onNavigate={toggle} />
+            </>
+          )}
+        </Stack>
+      </Drawer>
     </div>
   );
 }

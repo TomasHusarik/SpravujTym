@@ -8,6 +8,7 @@ import Payments from './pages/Payments';
 import Login from './pages/Login';
 import { useAuth } from './context/AuthContext';
 import type { JSX } from "react";
+import UserDetail from "./pages/UserDetail";
 
 const App = () => {
   const { isAuthenticated, isLoading } = useAuth();
@@ -23,14 +24,12 @@ const App = () => {
     <>
       <AppShell
         padding={isAuthenticated ? "xl" : 0}
-        header={isAuthenticated ? { height: 100} : undefined }
+        header={{ height: { base: 50, sm: 100 } }}
         footer={isAuthenticated ? { height: 80 } : undefined }
       >
-        {isAuthenticated && (
           <AppShell.Header style={{ zIndex: 1000 }}>
             <Header />
           </AppShell.Header>
-        )}
 
         <AppShell.Main>
           <Routes>
@@ -39,6 +38,7 @@ const App = () => {
             <Route path="/overview" element={requireAuth(<Overview />)} />
             <Route path="/calendar" element={requireAuth(<Calendar />)} />
             <Route path="/payments" element={requireAuth(<Payments />)} />
+            <Route path="/userdetail" element={requireAuth(<UserDetail />)} />
           </Routes>
         </AppShell.Main>
 

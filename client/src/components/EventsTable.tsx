@@ -246,7 +246,7 @@ const EventsTable = () => {
 
     return (
         <Grid>
-            <Grid.Col span={8}>
+            <Grid.Col span={{ base: 12, md: 8 }}>
                 <Text fz="xl" fw={700} mb="md">Události</Text>
                 <Chip.Group multiple={false} value={selectedStatus} onChange={(value) => setSelectedStatus(value)}>
                     <Group justify="left" gap="sm" wrap="wrap">
@@ -256,8 +256,8 @@ const EventsTable = () => {
                     </Group>
                 </Chip.Group>
             </Grid.Col>
-            <Grid.Col span={4} />
-            <Grid.Col span={8}>
+            <Grid.Col span={{ base: 12, md: 4 }} />
+            <Grid.Col span={{ base: 12, md: 8 }}>
                 <Stack gap="md">
                     {filteredTeamEvents.map((event: TeamEvent) => (
                         <Paper
@@ -289,7 +289,7 @@ const EventsTable = () => {
                     ))}
                 </Stack>
             </Grid.Col>
-            <Grid.Col span={4}>
+            <Grid.Col span={{ base: 12, md: 4 }}>
                 <Group justify="center" mb="md">
                     <Calendar
                         locale="cs"
