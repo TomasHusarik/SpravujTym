@@ -23,20 +23,19 @@ export const AuthProvider = ({ children }: { children: react.ReactNode }) => {
     const verifyToken = async () => {
         try {
             const storedUser = localStorage.getItem(USER_STORAGE_KEY);
-           if (storedUser) {
-    try {
-        const data = await authUser();
-        if (data?.user) {
-            setUser(data.user);
-        } else {
-            // ❗ NE hned mazat
-            setUser(JSON.parse(storedUser));
-        }
-    } catch {
-        // fallback
-        setUser(JSON.parse(storedUser));
-    }
-}
+            if (storedUser) {
+                try {
+                    const data = await authUser();
+                    if (data?.user) {
+                        setUser(data.user);
+                    } else {
+                        setUser(JSON.parse(storedUser));
+                    }
+                } catch {
+                    // fallback
+                    setUser(JSON.parse(storedUser));
+                }
+            }
         } finally {
             setIsLoading(false);
         }

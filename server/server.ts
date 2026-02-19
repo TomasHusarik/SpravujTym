@@ -10,10 +10,7 @@ import authRoutes from '@routes/user.routes';
 const PORT = env.PORT;
 const app = express();
 
-app.use(cors({ 
-  origin: ['http://localhost:5173', 'http://10.0.0.54:5173', /^http:\/\/.*:\d+$/], 
-  credentials: true 
-}));
+app.use(cors({ origin: 'http://localhost:5173', credentials: true }));
 
 // Middleware
 app.use(cookieParser());
@@ -23,7 +20,7 @@ app.use(express.text());
 // Routes
 app.use('/api/user', authRoutes);
 
-app.listen(PORT, '10.0.0.54', () => {
+app.listen(PORT, () => {
     connectDB();
-    console.log(`Server is running on http://10.0.0.54:${PORT}`);
+    console.log(`Server is running on http://localhost:${PORT}`);
 });

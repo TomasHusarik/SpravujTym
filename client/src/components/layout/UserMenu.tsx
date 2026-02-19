@@ -16,7 +16,6 @@ const UserMenu = (props: IUserMenu) => {
     const { user } = props;
 
     const [userMenuOpened, setUserMenuOpened] = useState(false);
-    const navigate = useNavigate();
 
     return (
         <Menu
@@ -33,7 +32,7 @@ const UserMenu = (props: IUserMenu) => {
                     className={cx(classes.user, { [classes.userActive]: userMenuOpened })}
                 >
                     <Group gap={7}>
-                        <Avatar key={user._id} name={getFullName(user)} src={null} color="initials" alt="" radius="xl" size={20} />
+                        <Avatar key={user._id} name={getFullName(user)} src={user.imageUrl} color="initials" alt="" radius="xl" size={20} />
                         <Text fw={500} size="sm" lh={1} mr={3}>
                             {getFullName(user)}
                         </Text>

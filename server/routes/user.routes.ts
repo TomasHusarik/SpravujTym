@@ -17,6 +17,6 @@ router.post('/sign-up-admin', signUpAdmin);
 router.post('/logout', logout);
 
 // GET /user/me - Get current user (protected)
-router.get('/authUser', authMiddleware, authUser);
+router.get('/auth-user', authMiddleware, authUser);
 
 export default router;

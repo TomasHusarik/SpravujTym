@@ -210,8 +210,6 @@ export const teamEvents: any[] = [
 const EventsCalendar = () => {
 
     const computedColorScheme = useComputedColorScheme('light', { getInitialValueInEffect: true });
-    console.log('Computed color scheme:', computedColorScheme);
-
 
     const calendarEvents = teamEvents.map(event => ({
         id: event.id,

@@ -1,29 +1,19 @@
+import { useAuth } from '@/context/AuthContext'
 import type { User } from '@/types/User'
-    import { authUser } from '@/utils/api'
+import { authUser } from '@/utils/api'
 import { getFullName } from '@/utils/helpers'
 import { Grid, TextInput, Title } from '@mantine/core'
 import { IconAt, IconPhone, IconUser } from '@tabler/icons-react'
 import React from 'react'
 
 const UserDetail = () => {
-    const [user, setUser] = React.useState<User>(null);
+    const { user } = useAuth();
+    const [tmpUser, setTmpUser] = React.useState<User>(user);
 
-    React.useEffect(() => {
-        const getCurrentUser = async () => {
-            try {
-                const data = await authUser();
-                if (data) {
-                    setUser(data.user);
-                } else {
-                    console.error('Failed to fetch user data');
-                }
-            } catch (error) {
-                console.error('Error fetching user data:', error);
-            }   
-        };
+    const handleUserChange = (updatedValues: any) => {
+        setTmpUser(prevUsr => ({ ...prevUsr, ...updatedValues }));
+    }
 
-        getCurrentUser();
-    }, []);
 
     return (
         <Grid>
@@ -32,14 +22,24 @@ const UserDetail = () => {
             </Grid.Col>
             <Grid.Col span={{ base: 12, md: 6 }}>
                 <TextInput
-                    label="Full Name"
-                    placeholder="fullName"
+                    label="First Name"
+                    placeholder="First Name"
                     leftSection={<IconUser size={16} />}
                     radius="md"
                     size="md"
-                    name="fullName"
-                    value={getFullName(user) || ''}
-                    readOnly
+                    value={tmpUser?.firstName || ''}
+                    onChange={(value) => handleUserChange({ firstName: value.currentTarget.value })}
+                />
+            </Grid.Col>
+            <Grid.Col span={{ base: 12, md: 6 }}>
+                <TextInput
+                    label="Last Name"
+                    placeholder="Last Name"
+                    leftSection={<IconUser size={16} />}
+                    radius="md"
+                    size="md"
+                    value={tmpUser?.lastName || ''}
+                    onChange={(value) => handleUserChange({ lastName: value.currentTarget.value })}
                 />
             </Grid.Col>
             <Grid.Col span={{ base: 12, md: 6 }}>
@@ -50,7 +50,7 @@ const UserDetail = () => {
                     radius="md"
                     size="md"
                     name="email"
-                    value={user?.email || ''}
+                    value={tmpUser?.email || ''}
                     readOnly
                 />
             </Grid.Col>
@@ -62,7 +62,7 @@ const UserDetail = () => {
                     radius="md"
                     size="md"
                     name="phone"
-                    value={user?.mobile || ''}
+                    value={tmpUser?.mobile || ''}
                     readOnly
                 />
             </Grid.Col>
@@ -74,7 +74,7 @@ const UserDetail = () => {
                     radius="md"
                     size="md"
                     name="role"
-                    value={user?.roles || ''}
+                    value={tmpUser?.roles || ''}
                     readOnly
                 />
             </Grid.Col>
@@ -86,11 +86,11 @@ const UserDetail = () => {
                     radius="md"
                     size="md"
                     name="status"
-                    value={user?.active ? 'Active' : 'Inactive'}
+                    value={tmpUser?.active ? 'Active' : 'Inactive'}
                     readOnly
                 />
             </Grid.Col>
-            
+
         </Grid>
     )
 }

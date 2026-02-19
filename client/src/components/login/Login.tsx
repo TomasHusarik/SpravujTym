@@ -1,13 +1,14 @@
 import { Button, Text, Paper, PasswordInput, Image, TextInput, Title, Divider } from '@mantine/core';
 import classes from './login.module.css';
-import logo from '../assets/logo40x40.svg';
+import logo from '@assets/logo40x40.svg';
 import { useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router';
-import { useAuth } from '../context/AuthContext';
 import { useForm } from '@mantine/form';
+import { useAuth } from '@/context/AuthContext';
 
 const Login = () => {
-    const [error, setError] = useState<string | null>(null);
+
+     const [error, setError] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const navigate = useNavigate();
@@ -38,8 +39,8 @@ const Login = () => {
         }
     };
 
-    return (
-        <div className={classes.wrapper}>
+  return (
+  <div className={classes.wrapper}>
             <Paper className={classes.form}>
                 <form onSubmit={loginForm.onSubmit(handleSubmit)}>
                     <div>
@@ -92,7 +93,7 @@ const Login = () => {
                 </div>
             </Paper>
         </div>
-    )
+  )
 }
 
 export default Login

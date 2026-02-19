@@ -226,7 +226,7 @@ const statusOptions = [
     { value: 'upcoming', label: 'Nadcházející' },
     { value: 'past', label: 'Minulé' }
 ] as const;
-const EventsTable = () => {
+const Overview = () => {
     const [filteredTeamEvents, setFilterdTeamEvents] = useState<TeamEvent[]>(teamEvents);
     const [selectedStatus, setSelectedStatus] = useState<string>('upcoming');
 
@@ -327,4 +327,4 @@ const EventsTable = () => {
     )
 }
 
-export default EventsTable
+export default Overview

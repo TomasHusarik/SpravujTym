@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Use environment variable or fallback to localhost for development
-const API_BASE_URL = 'http://10.0.0.54:8000/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
 
 const api = axios.create({
     baseURL: API_BASE_URL,
@@ -38,7 +38,7 @@ export const logoutUser = async () => {
 
 export const authUser = async () => {
     try {
-        const response = await api.get('/user/authUser');
+        const response = await api.get('/user/auth-user');
         return response.data;
     } catch (error) {
         if (axios.isAxiosError(error)) {

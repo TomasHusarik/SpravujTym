@@ -90,7 +90,7 @@ export const signUp = async (req: Request, res: Response) => {
     }
 };
 
-// POST /user/sign-up - User registration
+// POST /user/sign-up-admin - Admin registration
 export const signUpAdmin = async (req: Request, res: Response) => {
     const { email, password } = req.body;
 
@@ -137,7 +137,7 @@ export const logout = (req: Request, res: Response) => {
     return res.status(200).json({ message: 'Logged out' });
 };
 
-// GET /user/me - Get current user
+// GET /user/authUser - Get current user
 export const authUser = async (req: Request, res: Response) => {
     try {
         const token = req.cookies.authToken;

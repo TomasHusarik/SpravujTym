@@ -11,6 +11,7 @@ export interface User {
   address?: string;
   birthDate?: Date;
   active?: boolean;
+  imageUrl?: string;
   createdAt?: Date;
   updatedAt?: Date;
 }
