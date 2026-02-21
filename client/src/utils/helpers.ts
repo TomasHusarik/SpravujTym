@@ -1,15 +1,27 @@
 import type { User } from "@/types/User";
 import { EventType } from "./const";
+import ErrorMessages from "./errorMessages";
 
 // Get user full name
 export const getFullName = (user: User): string => {
-        return `${user?.firstName} ${user?.lastName}`;
+    return `${user?.firstName} ${user?.lastName}`;
 }
 
+export const validateString = (val: string) => {
+    return val?.trim() ? null : ErrorMessages.mandatoryField;
+}
+
+export const validateFutureDate = (val: Date | null) => {
+    if (!val) return ErrorMessages.mandatoryField;
+    return val.getTime() > Date.now() ? null : ErrorMessages.futureDate;
+};
+
 // Give a date format as "po 9. 2. 2026 19:30 - 21:00"
-export const formatTeamEventDate = (date: Date, startTime: string, endTime: string): string => {
+export const formatTeamEventDate = (startDate: Date, endDate: Date): string => {
     const options: Intl.DateTimeFormatOptions = { weekday: 'short', day: 'numeric', month: 'numeric', year: 'numeric' };
-    const formattedDate = date.toLocaleDateString('cs-CZ', options);
+    const formattedDate = startDate.toLocaleDateString('cs-CZ', options);
+    const startTime = startDate.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' });
+    const endTime = endDate.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' });
     return `${formattedDate} ${startTime} - ${endTime}`;
 }
 

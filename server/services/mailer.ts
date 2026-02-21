@@ -1,9 +1,9 @@
-import { Email } from '../types/Email';
+import { IEmail } from '../models/Email';
 import { Resend } from 'resend';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-export const mailer = async (emailData: Email) => {
+export const mailer = async (emailData: IEmail) => {
     const { from, to, subject, context } = emailData;
 
     try {

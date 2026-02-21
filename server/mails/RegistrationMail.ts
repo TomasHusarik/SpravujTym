@@ -1,10 +1,10 @@
 import { email } from "envalid";
 import { mailer } from "../services/mailer";
-import { Email } from "../types/Email";
+import { IEmail } from "@models/Email";
 
 export const RegistrationMail = async (email: string, password: string) => {
 
-    const emailcontent: Email = {
+    const emailcontent: IEmail = {
         from: 'BlueHorses <no-reply@spravujtym.cz>',
         to: email,
         subject: 'Welcome to SpravujTym!',

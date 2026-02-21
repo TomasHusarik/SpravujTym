@@ -1,15 +1,13 @@
+import type { User } from "./User";
+
 export interface TeamEvent {
-    id?: string;
+    _id?: string;
     title?: string;
     type?: TeamEventType;
-    date?: Date;
-    startTime?: string;
-    endTime?: string;
+    startDate?: Date;
+    endDate?: Date;
+    participants?: User[];
     location?: string;
-    description?: string;
-    participants?: number;
-    maxParticipants?: number;
-    isRequired?: boolean;
     createdBy?: string;
 }
 

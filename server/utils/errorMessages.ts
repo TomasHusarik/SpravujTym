@@ -16,6 +16,8 @@ const ErrorMessages = {
     notFound: 'Resource not found',
     validationError: 'Validation error',
     mandatoryField: 'This field is mandatory',
+    eventsArrayRequired: 'Events must be a non-empty array',
+    teamEventFieldsRequired: 'Title, type, startDate and endDate are required',
     serverError: 'A server error occurred. Please try again later.',
 };
 

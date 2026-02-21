@@ -4,6 +4,8 @@ import cookieParser from 'cookie-parser';
 import env from '@utils/validateEnv';
 import { connectDB } from '@db/connection';
 import authRoutes from '@routes/user.routes';
+import teamEventsRoutes from '@routes/team-events.routes';
+import venueRoutes from '@routes/venue.routes';
 
 // import vehicleRoutes from '@routes/vehicles.routes';
 
@@ -19,6 +21,8 @@ app.use(express.text());
 
 // Routes
 app.use('/api/user', authRoutes);
+app.use('/api/team-event', teamEventsRoutes);
+app.use('/api/venue', venueRoutes);
 
 app.listen(PORT, () => {
     connectDB();
