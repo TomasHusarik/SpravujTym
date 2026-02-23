@@ -9,6 +9,7 @@ import OverviewPage from "./pages/OverviewPage";
 import CalendarPage from "./pages/CalendarPage";
 import PaymentsPage from "./pages/PaymentsPage";
 import UserDetailPage from "./pages/UserDetailPage";
+import EventDetailPage from "./pages/EventDetailPage";
 
 const App = () => {
   const { isAuthenticated, isLoading } = useAuth();
@@ -40,7 +41,8 @@ const App = () => {
             <Route path="/overview" element={requireAuth(<OverviewPage />)} />
             <Route path="/calendar" element={requireAuth(<CalendarPage />)} />
             <Route path="/payments" element={requireAuth(<PaymentsPage />)} />
-            <Route path="/userdetail" element={requireAuth(<UserDetailPage />)} />
+            <Route path="/user-detail/:id" element={requireAuth(<UserDetailPage />)} />
+            <Route path="/event-detail/:id" element={requireAuth(<EventDetailPage />)} />
           </Routes>
         </AppShell.Main>
 

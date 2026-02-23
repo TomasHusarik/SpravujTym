@@ -1,26 +1,27 @@
 import mongoose, { Types } from "mongoose";
 
-export interface IParticipation {
-    id?: Types.ObjectId;
+export interface IEventParticipation {
+    _id?: Types.ObjectId;
     eventId?: Types.ObjectId;
     userId?: Types.ObjectId;
-    status?: ParticipationStatus;
+    status?: EventParticipationStatus;
     createdAt?: Date;
     updatedAt?: Date;
 }
 
-export enum ParticipationStatus {
+export enum EventParticipationStatus {
     Confirmed = 'confirmed',
     Declined = 'declined',
     Pending = 'pending'
 }
 
-const ParticipationSchema = new mongoose.Schema<IParticipation>({
+const ParticipationSchema = new mongoose.Schema<IEventParticipation>({
     eventId: { type: mongoose.Schema.Types.ObjectId, ref: 'TeamEvent', required: true },
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    status: { type: String, enum: Object.values(ParticipationStatus), default: ParticipationStatus.Pending }
+    status: { type: String, enum: Object.values(EventParticipationStatus), default: EventParticipationStatus.Pending }
 }, {
-    timestamps: true
+    timestamps: true,
+    versionKey: false
 });
 
 ParticipationSchema.index(
@@ -29,4 +30,4 @@ ParticipationSchema.index(
 );
 
 
-export default mongoose.model<IParticipation>('Participation', ParticipationSchema);
+export default mongoose.model<IEventParticipation>('EventParticipation', ParticipationSchema);

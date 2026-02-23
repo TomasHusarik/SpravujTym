@@ -2,6 +2,15 @@ import Venue from '@models/Venue';
 import ErrorMessages from '@utils/errorMessages';
 import { Request, Response } from 'express';
 
+// GET /venues/get-venue - Get all venues
+export const getVenues = async (req: Request, res: Response) => {
+    try {
+        const venues = await Venue.find().lean();
+        return res.status(200).json(venues);
+    } catch (error) {
+        return res.status(500).json({ error: ErrorMessages.internalServerError });
+    }
+};
 
 //POST /venues/add-venue - Create a new venue
 export const addVenue = async (req: Request, res: Response) => {

@@ -1,7 +1,8 @@
-import { Types } from "mongoose";
+import mongoose, { Types } from "mongoose";
 
 export interface IPayment { 
-    id?: Types.ObjectId;
+    _id?: Types.ObjectId;
+    userId?: Types.ObjectId;
     amount?: number;
     status?: PaymentStatus;
     dueDate?: Date;
@@ -21,3 +22,17 @@ export enum PaymentType {
     Fines = "fines",
     Other = "other"
 }
+
+const paymentSchema = new mongoose.Schema<IPayment>({
+    amount: { type: Number, required: true },
+    status: { type: String, enum: Object.values(PaymentStatus), required: true },
+    dueDate: { type: Date, required: true },
+    type: { type: String, enum: Object.values(PaymentType), required: true },
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }
+}, {
+    timestamps: true,
+    versionKey: false
+});
+
+const Payment = mongoose.model("Payment", paymentSchema);
+export default Payment;

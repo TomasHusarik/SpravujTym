@@ -1,5 +1,7 @@
 import mongoose, { Types } from "mongoose";
-import { IParticipation } from "./Participation";
+import { IEventParticipation } from "./EventParticipation";
+import Team from "./Team";
+import { ISquad } from "./Squad";
 
 export interface ITeamEvent {
     _id?: Types.ObjectId;
@@ -7,9 +9,10 @@ export interface ITeamEvent {
     type: TeamEventType;
     startDate: Date;
     endDate: Date;
-    venueId?: Types.ObjectId;
+    venue?: Types.ObjectId;
     createdBy?: Types.ObjectId;
-    participation?: IParticipation[];
+    participation?: IEventParticipation[];
+    squad?: ISquad;
     createdAt?: Date;
     updatedAt?: Date;
 }
@@ -25,19 +28,22 @@ const TeamEventSchema = new mongoose.Schema<ITeamEvent>({
     type: { type: String, enum: Object.values(TeamEventType), required: true },
     startDate: { type: Date, required: true },
     endDate: { type: Date, required: true },
-    venueId: { type: mongoose.Schema.Types.ObjectId, ref: 'Venue' },
+    venue: { type: mongoose.Schema.Types.ObjectId, ref: 'Venue' },
+    squad: { type: mongoose.Schema.Types.ObjectId, ref: 'Squad' },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
 }, { 
     timestamps: true,
+    versionKey: false,
     toObject: { virtuals: true },
     toJSON: { virtuals: true }
 });
 
 // Virtual relationship
-TeamEventSchema.virtual('participation', {
-    ref: 'Participation',
-    localField: '_id',
-    foreignField: 'eventId',
+TeamEventSchema.virtual('eventParticipations', {
+  ref: 'EventParticipation',
+  localField: '_id',
+  foreignField: 'eventId'
 });
 
-export default mongoose.model<ITeamEvent>('TeamEvent', TeamEventSchema);
+const TeamEvent = mongoose.model("TeamEvent", TeamEventSchema);
+export default TeamEvent;

@@ -1,7 +1,7 @@
 import mongoose, { Types } from "mongoose";
 
 export interface ILeague { 
-    id?: Types.ObjectId;
+    _id?: Types.ObjectId;
     name?: string;
     season?: string;
     category?: string;
@@ -26,4 +26,5 @@ const LeagueSchema = new mongoose.Schema<ILeague>(
     timestamps: true
 });
 
-export default mongoose.model("League", LeagueSchema);
+const League = mongoose.model<ILeague>("League", LeagueSchema);
+export default League;

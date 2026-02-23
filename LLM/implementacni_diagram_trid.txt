@@ -3,15 +3,20 @@ hide circle
 
 class User {
   +_id : ObjectId
-  +name : String
+  +firstName : String
+  +lastName : String
   +email : String
+  +password : String
+  +roles : String[]
   +mobile : String
   +age : Number
   +sex : String
   +address : String
   +birthDate : Date
   +active : Boolean
+  +imageUrl : String
   +createdAt : Date
+  +updatedAt : Date
 }
 
 class League {
@@ -19,6 +24,8 @@ class League {
   +name : String
   +season : String
   +category : String
+  +createdAt : Date
+  +updatedAt : Date
 }
 
 class Team {
@@ -26,35 +33,43 @@ class Team {
   +name : String
   +shortName : String
   +homeCity : String
+  +venue : ObjectId
   +foundedYear : Number
+  +bankAccount : String
+  +createdAt : Date
+  +updatedAt : Date
 }
 
 class Squad {
   +_id : ObjectId
   +name : String
-  +teamId : ObjectId
-  +leagueId : ObjectId
+  +league : ObjectId
+  +team : ObjectId
+  +createdAt : Date
+  +updatedAt : Date
 }
 
-class Membership {
+class SquadMembership {
   +_id : ObjectId
-  +userId : ObjectId
   +squadId : ObjectId
-  +role : String
+  +userId : ObjectId
+  +roles : String[]
   +active : Boolean
-  +startDate : Date
-  +endDate : Date
+  +createdAt : Date
+  +updatedAt : Date
 }
 
 class TeamEvent {
   +_id : ObjectId
   +title : String
   +type : String
-  +opponent : String
-  +startTime : Date
-  +endTime : Date
-  +squadId : ObjectId
-  +venueId : ObjectId
+  +startDate : Date
+  +endDate : Date
+  +venue : ObjectId
+  +squad : ObjectId
+  +createdBy : ObjectId
+  +createdAt : Date
+  +updatedAt : Date
 }
 
 class EventParticipation {
@@ -62,28 +77,30 @@ class EventParticipation {
   +eventId : ObjectId
   +userId : ObjectId
   +status : String
-  +note : String
   +createdAt : Date
+  +updatedAt : Date
 }
 
 class Venue {
   +_id : ObjectId
   +name : String
-  +address : String
   +city : String
+  +address : String
   +capacity : Number
+  +createdAt : Date
+  +updatedAt : Date
 }
 
 class Announcement {
   +_id : ObjectId
-  +title : String
-  +content : String
-  +createdAt : Date
-  +visibility : String
-  +type : String
-  +pinned : Boolean
   +teamId : ObjectId
   +authorId : ObjectId
+  +title : String
+  +content : String
+  +visibility : String
+  +pinned : Boolean
+  +createdAt : Date
+  +updatedAt : Date
 }
 
 class Payment {
@@ -93,20 +110,25 @@ class Payment {
   +status : String
   +dueDate : Date
   +type : String
+  +createdAt : Date
+  +updatedAt : Date
 }
 
 ' =====================
 ' REFERENCES WITH CARDINALITY
 ' =====================
 
-Squad "0..*" --> "1" Team
+Team "0..*" --> "1" Venue
+
 Squad "0..*" --> "1" League
+Squad "0..*" --> "1" Team
 
-Membership "0..*" --> "1" User
-Membership "0..*" --> "1" Squad
+SquadMembership "0..*" --> "1" User
+SquadMembership "0..*" --> "1" Squad
 
+TeamEvent "0..*" --> "0..1" Venue
 TeamEvent "0..*" --> "1" Squad
-TeamEvent "0..*" --> "1" Venue
+TeamEvent "0..*" --> "1" User
 
 EventParticipation "0..*" --> "1" User
 EventParticipation "0..*" --> "1" TeamEvent

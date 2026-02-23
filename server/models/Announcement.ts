@@ -1,7 +1,7 @@
 import mongoose, { Types } from "mongoose";
 
 export interface IAnnouncement {
-    id?: Types.ObjectId;
+    _id?: Types.ObjectId;
     teamId?: Types.ObjectId;
     authorId?: Types.ObjectId;
     title?: string;

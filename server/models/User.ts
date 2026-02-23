@@ -6,12 +6,6 @@ export enum UserRole {
   Admin = "admin"
 }
 
-export enum UserSex {
-  Male = "male",
-  Female = "female",
-  Other = "other"
-}
-
 export interface IUser {
   _id: Types.ObjectId;
   firstName: string;
@@ -20,9 +14,6 @@ export interface IUser {
   password: string;
   roles?: UserRole[];
   mobile?: string;
-  age?: number;
-  sex?: UserSex;
-  address?: string;
   birthDate?: Date;
   active: boolean;
   imageUrl?: string;
@@ -38,9 +29,6 @@ const UserSchema = new mongoose.Schema<IUser>(
     password: { type: String, required: true, select: false },
     roles: [{ type: String, enum: Object.values(UserRole) }],
     mobile: { type: String },
-    age: { type: Number, min: 0 },
-    sex: { type: String, enum: Object.values(UserSex) },
-    address: { type: String },
     birthDate: { type: Date },
     active: { type: Boolean, default: true },
     imageUrl: { type: String },
@@ -48,4 +36,5 @@ const UserSchema = new mongoose.Schema<IUser>(
   { timestamps: true }
 );
 
-export default mongoose.model<IUser>("User", UserSchema);
+const User = mongoose.model<IUser>("User", UserSchema);
+export default User;

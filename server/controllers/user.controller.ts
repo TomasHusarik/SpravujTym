@@ -8,6 +8,54 @@ import ErrorMessages from '@utils/errorMessages';
 import User from '@models/User';
 import { createToken, generateRandomPassword, generateTokenCookie, resetCookie } from '@utils/helpers';
 import { RegistrationMail } from '@mails/RegistrationMail';
+import SquadMembership from '@models/SquadMembership';
+
+
+// GET /user/get-user/:id - Get user by ID
+export const getUser = async (req: Request, res: Response) => {
+    try {
+        const user = await User.findById(req.params.userId).select('-password').lean();
+        if (!user) {
+            return res.status(404).json({ error: ErrorMessages.notFound });
+        }
+        return res.status(200).json(user);
+    } catch (error) {
+        return res.status(500).json({ error: ErrorMessages.internalServerError });
+    }
+};
+
+// GET /user/get-users - Get all users
+export const getUsers = async (req: Request, res: Response) => {
+    try {
+        const users = await User.find().lean();
+        return res.status(200).json(users);
+    } catch (error) {
+        return res.status(500).json({ error: ErrorMessages.internalServerError });
+    }
+};
+
+// POST /user/update-user/:id - Edit user by ID
+export const updateUser = async (req: Request, res: Response) => {
+    const { _id, ...updateData } = req.body;
+
+    try {
+        const user = await User.findById(_id);
+        if (!user) {
+            return res.status(404).json({ error: ErrorMessages.notFound });
+        }
+
+        // Update fields
+        Object.assign(user, updateData);
+
+        await user.save();
+
+        const { password: _, ...userData } = user.toObject();
+
+        return res.status(200).json(userData);
+    } catch (error) {
+        return res.status(500).json({ error: ErrorMessages.internalServerError });
+    } 
+};
 
 // POST /user/login - User login
 export const login = async (req: Request, res: Response) => {
@@ -47,7 +95,7 @@ export const login = async (req: Request, res: Response) => {
 
 // POST /user/sign-up - User registration
 export const signUp = async (req: Request, res: Response) => {
-    const { email } = req.body;
+    const { email, roles, squadId } = req.body;
 
     // Input validation
     if (!email) {
@@ -72,10 +120,8 @@ export const signUp = async (req: Request, res: Response) => {
         const salt = await bcrypt.genSalt(10);
         const hash = await bcrypt.hash(pass, salt);
 
-        const newUser = await User.create({ ...req.body, password: hash });
-
-        // Generate token for the new user
-        // const token = createToken({ userId: newUser._id.toString() });
+        const newUser = await User.create({ email, password: hash });
+        const newSquadMembership = await SquadMembership.create({ userId: newUser._id, squadId: squadId, roles: roles   });
 
         // Send email with generated password
         await RegistrationMail(email, pass);

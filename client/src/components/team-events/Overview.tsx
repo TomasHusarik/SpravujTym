@@ -7,7 +7,7 @@ import { Calendar } from '@mantine/dates';
 import { EventType } from '@/utils/const';
 import dayjs from 'dayjs';
 import EventsTable from './EventsTable';
-import { mockTeamEvents } from '@/mock/TeamEventsMock';
+import { getParticipantTeamEvents, updateParticipationStatus } from '@/utils/api';
 
 // Skončené a neskončené události
 const statusOptions = [
@@ -16,23 +16,46 @@ const statusOptions = [
 ] as const;
 
 const Overview = () => {
-    const [teamEvents, setTeamEvents] = useState<TeamEvent[]>(mockTeamEvents);
-    const [filteredTeamEvents, setFilterdTeamEvents] = useState<TeamEvent[]>(teamEvents);
+    const [teamEvents, setTeamEvents] = useState<TeamEvent[]>([]);
+    const [filteredTeamEvents, setFilterdTeamEvents] = useState<TeamEvent[]>([]);
     const [selectedStatus, setSelectedStatus] = useState<string>('upcoming');
 
     const isEventUpcoming = (date: Date): boolean => date >= new Date();
+
+    const handleStatusChange = async (eventId: string | undefined, newStatus: string) => {
+        try {
+            await updateParticipationStatus(eventId, newStatus);
+            loadData(); 
+        } catch (error) {
+            console.error('Error updating participation status:', error);
+        }
+    };
+
+    const loadData = async () => {
+        try {
+            const data = await getParticipantTeamEvents();
+            setTeamEvents(data);
+        } catch (error) {
+            console.error('Error fetching participant team events:', error);
+        }
+    };
+
+    useEffect(() => {
+        loadData();
+    }, []);
 
     useEffect(() => {
         const filtered = teamEvents
             .filter(event =>
                 selectedStatus === 'upcoming'
-                    ? isEventUpcoming(event.startDate!)
-                    : !isEventUpcoming(event.startDate!)
+                    ? isEventUpcoming(event.startDate)
+                    : !isEventUpcoming(event.startDate)
             )
-            .sort((a, b) => a.startDate!.getTime() - b.startDate!.getTime());
+            .sort((a, b) => a.startDate.getTime() - b.startDate.getTime());
 
         setFilterdTeamEvents(filtered);
     }, [selectedStatus, teamEvents]);
+
 
     return (
         <Grid>
@@ -46,11 +69,11 @@ const Overview = () => {
                     </Group>
                 </Chip.Group>
             </Grid.Col>
-            
+
             <Grid.Col span={{ base: 12, md: 8 }} order={{ base: 3, md: 2 }}>
-               <EventsTable filteredTeamEvents={filteredTeamEvents} />
+                <EventsTable filteredTeamEvents={filteredTeamEvents} handleStatusChange={handleStatusChange} />
             </Grid.Col>
-            
+
             <Grid.Col span={{ base: 12, md: 4 }} order={{ base: 2, md: 3 }}>
                 <Grid>
                     <Grid.Col span={12} visibleFrom="md">

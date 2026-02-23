@@ -1,14 +1,19 @@
+import type { EventParticipation } from "./EventParticipation";
 import type { User } from "./User";
+import type { Venue } from "./Venue";
 
 export interface TeamEvent {
     _id?: string;
-    title?: string;
-    type?: TeamEventType;
-    startDate?: Date;
-    endDate?: Date;
-    participants?: User[];
-    location?: string;
-    createdBy?: string;
+    title: string;
+    type: TeamEventType;
+    startDate: Date;
+    endDate: Date;
+    participants: User[];
+    venue?: Venue;
+    createdBy?: User;
+    participations?: EventParticipation[];
+    createdAt?: Date;
+    updatedAt?: Date;
 }
 
 export type TeamEventType = 'training' | 'match' | 'other';

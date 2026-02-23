@@ -16,6 +16,10 @@ export const validateFutureDate = (val: Date | null) => {
     return val.getTime() > Date.now() ? null : ErrorMessages.futureDate;
 };
 
+export const validateObject = (val: object) => {
+    return Object.keys(val).length > 0 ? null : ErrorMessages.mandatoryField;
+}
+
 // Give a date format as "po 9. 2. 2026 19:30 - 21:00"
 export const formatTeamEventDate = (startDate: Date, endDate: Date): string => {
     const options: Intl.DateTimeFormatOptions = { weekday: 'short', day: 'numeric', month: 'numeric', year: 'numeric' };
@@ -28,12 +32,24 @@ export const formatTeamEventDate = (startDate: Date, endDate: Date): string => {
 // Returns event color based on event type
 export const getEventColor = (eventType: string): string => {
     switch (eventType) {
-        case EventType.TRAINING:
+        case EventType.TRAINING.value:
             return "green";
-        case EventType.MATCH:
+        case EventType.MATCH.value:
             return "red";
         default:
             return "blue";
+    }
+}
+
+// Returns participation status color
+export const getParticipationStatusColor = (status?: string): string => {
+    switch (status) {
+        case 'confirmed':
+            return "green";
+        case 'declined':
+            return "red";
+        default:
+            return "yellow";
     }
 }
 
@@ -43,3 +59,16 @@ export const authorizeUser = (user: User | null, allowedRoles: string[]): boolea
     return user.roles.some(role => allowedRoles.includes(role));
 }
 
+
+
+export const combinateDateAndTime = (date: Date | null, time: string | null) => {
+  if (!date || !time) return null;
+
+  const [hours, minutes] = time.split(':').map(Number);
+
+  const result = new Date(date);
+  result.setHours(hours);
+  result.setMinutes(minutes);
+
+  return result;
+};

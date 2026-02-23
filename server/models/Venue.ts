@@ -1,7 +1,7 @@
 import mongoose, { Types } from "mongoose";
 
 export interface IVenue { 
-    id?: Types.ObjectId;
+    _id?: Types.ObjectId;
     name?: string;
     city?: string;
     address?: string;

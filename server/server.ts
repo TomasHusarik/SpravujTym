@@ -6,6 +6,9 @@ import { connectDB } from '@db/connection';
 import authRoutes from '@routes/user.routes';
 import teamEventsRoutes from '@routes/team-events.routes';
 import venueRoutes from '@routes/venue.routes';
+import teamRoutes from '@routes/team.routes';
+import squadRoutes from '@routes/squad.routes';
+import leagueRoutes from '@routes/league.routes';
 
 // import vehicleRoutes from '@routes/vehicles.routes';
 
@@ -23,6 +26,9 @@ app.use(express.text());
 app.use('/api/user', authRoutes);
 app.use('/api/team-event', teamEventsRoutes);
 app.use('/api/venue', venueRoutes);
+app.use('/api/team', teamRoutes);
+app.use('/api/squad', squadRoutes);
+app.use('/api/league', leagueRoutes);
 
 app.listen(PORT, () => {
     connectDB();

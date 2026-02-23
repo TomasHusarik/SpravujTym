@@ -1,5 +1,5 @@
 export interface Payment {
-    id?: string;
+    _id?: string;
     userId?: string;
     amount?: number;
     status?: PaymentStatus;

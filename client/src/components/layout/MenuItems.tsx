@@ -13,7 +13,7 @@ export const MenuItems = ({ variant, onNavigate }: MenuItemsProps) => {
   const { setColorScheme } = useMantineColorScheme();
   const computedColorScheme = useComputedColorScheme('light', { getInitialValueInEffect: true });
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
 
   const handleLogout = async () => {
     try {
@@ -26,7 +26,7 @@ export const MenuItems = ({ variant, onNavigate }: MenuItemsProps) => {
   };
 
   const handleSettingsClick = () => {
-    navigate("/userdetail");
+    navigate(`/user-detail/${user._id}`);
     onNavigate?.();
   };
 
