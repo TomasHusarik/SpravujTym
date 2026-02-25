@@ -4,6 +4,9 @@ export interface Payment {
     amount?: number;
     status?: PaymentStatus;
     dueDate?: Date;
+    type?: PaymentType;
+
 }
 
 export type PaymentStatus = 'pending' | 'completed' | 'failed';
+export type PaymentType = 'membership' | 'fines' | 'other';

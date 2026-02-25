@@ -7,9 +7,8 @@ import type { JSX } from "react";
 import LoginPage from "./pages/LoginPage";
 import OverviewPage from "./pages/OverviewPage";
 import CalendarPage from "./pages/CalendarPage";
-import PaymentsPage from "./pages/PaymentsPage";
-import UserDetailPage from "./pages/UserDetailPage";
 import EventDetailPage from "./pages/EventDetailPage";
+import UserPage from "./pages/UserPage";
 
 const App = () => {
   const { isAuthenticated, isLoading } = useAuth();
@@ -40,8 +39,7 @@ const App = () => {
             <Route path="/login" element={isAuthenticated ? <Navigate to="/overview" replace /> : <LoginPage />} />
             <Route path="/overview" element={requireAuth(<OverviewPage />)} />
             <Route path="/calendar" element={requireAuth(<CalendarPage />)} />
-            <Route path="/payments" element={requireAuth(<PaymentsPage />)} />
-            <Route path="/user-detail/:id" element={requireAuth(<UserDetailPage />)} />
+            <Route path="/user/:id" element={requireAuth(<UserPage />)} />
             <Route path="/event-detail/:id" element={requireAuth(<EventDetailPage />)} />
           </Routes>
         </AppShell.Main>

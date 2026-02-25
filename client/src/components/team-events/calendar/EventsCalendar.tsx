@@ -7,10 +7,11 @@ import timeGridPlugin from '@fullcalendar/timegrid'
 import listPlugin from '@fullcalendar/list';
 import { getEventColor } from '@/utils/helpers';
 import { useComputedColorScheme } from '@mantine/core';
-import { mockTeamEvents } from '@/mock/TeamEventsMock';
+import { useEffect, useState } from 'react';
+import { getParticipantTeamEvents } from '@/utils/api';
 
 const EventsCalendar = () => {
-    const teamEvents: TeamEvent[] = mockTeamEvents; // Replace with actual data fetching logic
+    const [teamEvents, setTeamEvents] = useState<TeamEvent[]>([]);
     const computedColorScheme = useComputedColorScheme('light', { getInitialValueInEffect: true });
 
     const calendarEvents = teamEvents.map(event => ({
@@ -20,6 +21,19 @@ const EventsCalendar = () => {
         end: event.endDate,
         color: getEventColor(event.type)
     }));
+
+    const loadData = async () => {
+        try {
+            const events = await getParticipantTeamEvents();
+            setTeamEvents(events);
+        } catch (error) {
+            console.error('Error fetching team events:', error);
+        }
+    };
+
+    useEffect(() => {
+      loadData();
+    }, []);
 
     return (
         <div className={computedColorScheme === 'dark' ? 'calendar-dark-mode' : ''}>

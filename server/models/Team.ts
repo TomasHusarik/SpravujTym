@@ -7,8 +7,8 @@ export interface ITeam {
     shortName?: string;
     city?: string;
     venue?: IVenue;
-    foundedYear?: number;
-    bankAccount?: string;
+    iban?: string;
+    currency?: string;
     createdAt?: Date;
     updatedAt?: Date;
 }
@@ -18,8 +18,8 @@ const TeamSchema = new mongoose.Schema<ITeam>({
     shortName: { type: String, required: true },
     city: { type: String, required: true },
     venue: { type: mongoose.Schema.Types.ObjectId, ref: 'Venue', required: true },
-    foundedYear: { type: Number },
-    bankAccount: { type: String }
+    iban: { type: String },
+    currency: { type: String }
 }, {
     timestamps: true
 });

@@ -1,5 +1,6 @@
 import type { User } from '@/types/User';
 import axios from 'axios';
+import { use } from 'react';
 
 // Use environment variable or fallback to localhost for development
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
@@ -8,7 +9,22 @@ const api = axios.create({
     baseURL: API_BASE_URL,
     withCredentials: true,
 });
-
+// #region Payment APIs
+export const getPayments = async (userId: string) => {
+    try {
+        const response = await api.get(`/payment/get-payments/${userId}`);
+        const payments = response.data.map((payment: any) => ({
+            ...payment,
+            dueDate: payment.dueDate ? new Date(payment.dueDate) : undefined,
+        }));
+        return payments;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            throw new Error(error.response?.data?.error || 'Failed to fetch payments');
+        }
+        throw error;
+    }
+}
 // #region Venue APIs
 export const getVenues = async () => {
     try {
@@ -17,6 +33,18 @@ export const getVenues = async () => {
     } catch (error) {
         if (axios.isAxiosError(error)) {
             throw new Error(error.response?.data?.error || 'Failed to fetch venues');
+        }
+        throw error;
+    }
+}
+
+export const getTeam = async (teamId: string) => {
+    try {
+        const response = await api.get(`/team/get-team/${teamId}`);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            throw new Error(error.response?.data?.error || 'Failed to fetch team');
         }
         throw error;
     }

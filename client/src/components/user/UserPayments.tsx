@@ -1,64 +1,65 @@
 import type { Payment } from '@/types/Payment';
-import { Paper } from '@mantine/core';
-import React, { useEffect, useState } from 'react';
+import { Alert, Badge, Group, Image, Paper, Stack, Text } from '@mantine/core';
+import { useEffect, useState } from 'react';
 import QRCode from 'qrcode';
+import { useApp } from '@/context/AppContext';
+import { getPayments } from '@/utils/api';
+import { PaymentStatus as PaymentStatusConst, PaymentType as PaymentTypeConst } from '@/utils/const';
 
-export const paymentsMock: Payment[] = [
-    {
-        id: 'contrib-2026-02',
-        amount: 500,
-        status: 'pending',
-        dueDate: new Date('2026-02-25'),
-    },
-    {
-        id: 'fine-2026-01-late',
-        amount: 150,
-        status: 'completed',
-        dueDate: new Date('2026-01-20'),
-    },
-    {
-        id: 'contrib-2026-03',
-        amount: 500,
-        status: 'failed',
-        dueDate: new Date('2026-03-05'),
-    },
-];
+interface IUserPayments {
+  userId: string;
+}
 
-const buildSpayd = (payment: Payment) => {
-  const amount = (payment.amount ?? 0).toFixed(2);
-  const dueDate = payment.dueDate
-    ? payment.dueDate.toISOString().slice(0, 10).replace(/-/g, '')
-    : undefined;
-
-  const parts = [
-    'SPD*1.0',
-    `ACC:${QR_IBAN}`,
-    `AM:${amount}`,
-    'CC:CZK',
-    QR_BIC ? `BIC:${QR_BIC}` : '',
-    dueDate ? `DT:${dueDate}` : '',
-    `MSG:${QR_MESSAGE_PREFIX} ${payment.id ?? ''}`,
-  ];
-
-  return parts.filter(Boolean).join('*');
-};
-
-const QR_IBAN = 'CZ6508000000192000145399';
-const QR_BIC = 'GIBACZPX';
-const QR_MESSAGE_PREFIX = 'Prispevek';
-
-const UserPayments = () => {
+const UserPayments = ({ userId }: IUserPayments) => {
+  const { team } = useApp();
+  const [payments, setPayments] = useState<Payment[]>([]);
   const [qrMap, setQrMap] = useState<Record<string, string>>({});
+
+  const getStatusColor = (status?: string) => {
+    if (status === PaymentStatusConst.COMPLETED.value) return 'green';
+    if (status === PaymentStatusConst.FAILED.value) return 'red';
+    return 'yellow';
+  };
+
+  const getStatusLabel = (status?: string) => {
+    if (status === PaymentStatusConst.COMPLETED.value) return PaymentStatusConst.COMPLETED.label;
+    if (status === PaymentStatusConst.FAILED.value) return PaymentStatusConst.FAILED.label;
+    return PaymentStatusConst.PENDING.label;
+  };
+
+  const buildSpayd = (payment: Payment) => {
+    const amount = (payment.amount ?? 0).toFixed(2);
+    const dueDate = payment.dueDate;
+    const iban = team?.iban;
+
+    const parts = [
+      'SPD*1.0',
+      iban ? `ACC:${iban}` : '',
+      `AM:${amount}`,
+      `CC:${team?.currency || 'CZK'}`,
+      dueDate ? `DT:${dueDate}` : '',
+      payment._id ? `MSG:Platba ${payment._id}` : '',
+    ];
+
+    return parts.filter(Boolean).join('*');
+  };
 
   useEffect(() => {
     let cancelled = false;
 
     const generate = async () => {
+      if (!team?.iban) {
+        setQrMap({});
+        return;
+      }
+
+      const pendingPayments = payments.filter((payment) => payment.status === PaymentStatusConst.PENDING.value && payment._id);
+
       const entries = await Promise.all(
-        paymentsMock.map(async (payment) => {
+        pendingPayments.map(async (payment) => {
           const spayd = buildSpayd(payment);
           const url = await QRCode.toDataURL(spayd, { width: 160, margin: 1 });
-          return [payment.id ?? '', url] as const;
+          return [payment._id ?? '', url] as const;
         })
       );
 
@@ -72,46 +73,80 @@ const UserPayments = () => {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [payments, team?.iban, team?.currency]);
+
+
+  const loadData = async () => {
+    try {
+      const pay = await getPayments(userId);
+      setPayments(pay ?? []);
+    } catch (error) {
+      console.error('Error fetching payments:', error);
+    }
+  };
+
+  useEffect(() => {
+    loadData();
+  }, [userId]);
 
   return (
-    <>
-      <h2>Moje platby</h2>
-      <div style={{ display: 'grid', gap: '12px', marginTop: '12px' }}>
-        {paymentsMock.map((payment) => (
+    <Stack gap="md" mt="md">
+      {!team?.iban && (
+        <Alert color="yellow" variant="light" title="QR platba není dostupná">
+          Tým nemá nastavený IBAN, proto nelze vygenerovat QR kód.
+        </Alert>
+      )}
+
+      {payments.length === 0 && (
+        <Paper withBorder radius="md" p="md" bg="light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-6))">
+          <Text c="dimmed">Uživatel zatím nemá žádné platby.</Text>
+        </Paper>
+      )}
+
+      {payments.map((payment) => {
+        const parsedDueDate = payment.dueDate
+        const paymentTypeLabel = Object.values(PaymentTypeConst).find((type) => type.value === payment.type)?.label ?? 'N/A';
+
+        return (
           <Paper
-            key={payment.id}
+            key={payment._id}
             withBorder
             radius="md"
             p="md"
             bg="light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-6))"
           >
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                gap: '12px',
-              }}
-            >
-              <div style={{ padding: '10px', borderBottom: '1px solid #eee', flex: 1 }}>
-                <p><strong>Částka:</strong> {payment.amount} Kč</p>
-                <p><strong>Status:</strong> {payment.status}</p>
-                <p><strong>Datum splatnosti:</strong> {payment.dueDate?.toLocaleDateString()}</p>
-              </div>
+            <Group align="flex-start" justify="space-between" wrap="nowrap" gap="md">
+              <Stack gap={4} flex={1}>
+                <Group gap="xs">
+                  <Text fw={700} fz="lg">{payment.amount ?? 0} Kč</Text>
+                  <Badge color={getStatusColor(payment.status)} variant="light">
+                    {getStatusLabel(payment.status)}
+                  </Badge>
+                </Group>
 
-              {payment.status === 'pending' && payment.id && qrMap[payment.id] && (
-                <img
-                  src={qrMap[payment.id]}
+                <Text fz="sm" c="dimmed">
+                  {paymentTypeLabel}
+                </Text>
+
+                <Text fz="sm" c="dimmed">
+                  Splatnost: {parsedDueDate ? parsedDueDate.toLocaleDateString('cs-CZ') : 'N/A'}
+                </Text>
+              </Stack>
+
+              {payment.status === PaymentStatusConst.PENDING.value && payment._id && qrMap[payment._id] && (
+                <Image
+                  src={qrMap[payment._id]}
                   alt="QR platba"
-                  style={{ width: 140, height: 140 }}
+                  w={140}
+                  h={140}
+                  radius="md"
                 />
               )}
-            </div>
+            </Group>
           </Paper>
-        ))}
-      </div>
-    </>
+        );
+      })}
+    </Stack>
   );
 };
 

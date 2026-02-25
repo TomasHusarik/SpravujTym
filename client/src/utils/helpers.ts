@@ -1,6 +1,8 @@
 import type { User } from "@/types/User";
 import { EventType } from "./const";
 import ErrorMessages from "./errorMessages";
+import { notifications } from "@mantine/notifications";
+
 
 // Get user full name
 export const getFullName = (user: User): string => {
@@ -53,14 +55,6 @@ export const getParticipationStatusColor = (status?: string): string => {
     }
 }
 
-// Authorize user based on role
-export const authorizeUser = (user: User | null, allowedRoles: string[]): boolean => {
-    if (!user || !user.roles) return false;
-    return user.roles.some(role => allowedRoles.includes(role));
-}
-
-
-
 export const combinateDateAndTime = (date: Date | null, time: string | null) => {
   if (!date || !time) return null;
 
@@ -72,3 +66,23 @@ export const combinateDateAndTime = (date: Date | null, time: string | null) => 
 
   return result;
 };
+
+export const showSuccessNotification = (message: string) => {
+                notifications.show({
+                    title: 'Success',
+                    message: message,
+                    color: 'green',
+                });
+}
+
+export const showErrorNotification = (message: string) => {
+                notifications.show({
+                    title: 'Error',
+                    message: message,
+                    color: 'red',
+                });
+}
+
+export const adminPermissions = (user: User) => {
+    return user.isAdmin;
+}

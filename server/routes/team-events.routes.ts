@@ -4,6 +4,8 @@ import { authMiddleware } from '@middleware/auth.middleware';
 
 const router = express.Router();
 
+router.use(authMiddleware);
+
 // GET /team-event/:id - Get team event by ID
 router.get('/get-team-event/:_id', getTeamEventById);
 
@@ -17,5 +19,6 @@ router.post('/add-event', addEvent);
 router.post('/add-events', addEvents);
 
 // PUT /team-event/update-participation-status - Update participation status
-router.post('/update-participation-status', authMiddleware, updateParticapationStatus);
+router.post('/update-participation-status', updateParticapationStatus);
+
 export default router;

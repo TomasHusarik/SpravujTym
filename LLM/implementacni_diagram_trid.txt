@@ -7,11 +7,8 @@ class User {
   +lastName : String
   +email : String
   +password : String
-  +roles : String[]
+  +isAdmin : Boolean
   +mobile : String
-  +age : Number
-  +sex : String
-  +address : String
   +birthDate : Date
   +active : Boolean
   +imageUrl : String
@@ -32,10 +29,10 @@ class Team {
   +_id : ObjectId
   +name : String
   +shortName : String
-  +homeCity : String
+  +city : String
   +venue : ObjectId
-  +foundedYear : Number
-  +bankAccount : String
+  +iban : String
+  +currency : String
   +createdAt : Date
   +updatedAt : Date
 }
@@ -66,7 +63,7 @@ class TeamEvent {
   +startDate : Date
   +endDate : Date
   +venue : ObjectId
-  +squad : ObjectId
+  +squads : ObjectId[]
   +createdBy : ObjectId
   +createdAt : Date
   +updatedAt : Date
@@ -114,6 +111,13 @@ class Payment {
   +updatedAt : Date
 }
 
+class Email {
+  +from : String
+  +to : String
+  +subject : String
+  +context : String
+}
+
 ' =====================
 ' REFERENCES WITH CARDINALITY
 ' =====================
@@ -127,8 +131,8 @@ SquadMembership "0..*" --> "1" User
 SquadMembership "0..*" --> "1" Squad
 
 TeamEvent "0..*" --> "0..1" Venue
-TeamEvent "0..*" --> "1" Squad
-TeamEvent "0..*" --> "1" User
+TeamEvent "0..*" --> "0..*" Squad
+TeamEvent "0..*" --> "0..1" User
 
 EventParticipation "0..*" --> "1" User
 EventParticipation "0..*" --> "1" TeamEvent

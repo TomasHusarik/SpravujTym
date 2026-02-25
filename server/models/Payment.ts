@@ -25,7 +25,7 @@ export enum PaymentType {
 
 const paymentSchema = new mongoose.Schema<IPayment>({
     amount: { type: Number, required: true },
-    status: { type: String, enum: Object.values(PaymentStatus), required: true },
+    status: { type: String, enum: Object.values(PaymentStatus), default: PaymentStatus.Pending, required: true },
     dueDate: { type: Date, required: true },
     type: { type: String, enum: Object.values(PaymentType), required: true },
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }

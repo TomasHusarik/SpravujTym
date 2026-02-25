@@ -1,18 +1,12 @@
 import mongoose, { Types } from "mongoose";
 
-export enum UserRole {
-  Player = "player",
-  Coach = "coach",
-  Admin = "admin"
-}
-
 export interface IUser {
   _id: Types.ObjectId;
   firstName: string;
   lastName: string;
   email: string;
   password: string;
-  roles?: UserRole[];
+  isAdmin: boolean;
   mobile?: string;
   birthDate?: Date;
   active: boolean;
@@ -27,7 +21,7 @@ const UserSchema = new mongoose.Schema<IUser>(
     lastName: { type: String, trim: true },
     email: { type: String, required: true, unique: true, lowercase: true, index: true },
     password: { type: String, required: true, select: false },
-    roles: [{ type: String, enum: Object.values(UserRole) }],
+    isAdmin: { type: Boolean, default: false },
     mobile: { type: String },
     birthDate: { type: Date },
     active: { type: Boolean, default: true },

@@ -4,11 +4,8 @@ export interface User {
   lastName?: string;
   email?: string;
   password?: string;
-  roles?: string[];
   mobile?: string;
-  age?: number;
-  sex?: "male" | "female" | "other";
-  address?: string;
+  isAdmin?: boolean;
   birthDate?: Date;
   active?: boolean;
   imageUrl?: string;

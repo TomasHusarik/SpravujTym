@@ -26,7 +26,7 @@ export const MenuItems = ({ variant, onNavigate }: MenuItemsProps) => {
   };
 
   const handleSettingsClick = () => {
-    navigate(`/user-detail/${user._id}`);
+    navigate(`/user/${user._id}`);
     onNavigate?.();
   };
 

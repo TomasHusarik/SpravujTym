@@ -20,7 +20,6 @@ import type { User } from '@/types/User';
 const tabs = [
   {label: 'Přehled', value: 'overview'},
   {label: 'Zeď', value: 'wall'},
-  {label: 'Platby', value: 'payments'},
   {label: 'Kalendář', value: 'calendar'},
 ];
 

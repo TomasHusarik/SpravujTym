@@ -22,7 +22,7 @@ export const getTeamEventById = async (req: Request, res: Response) => {
 
 // GET /get-participant-events - Get all participant team events
 export const getParticipantEvents = async (req: Request, res: Response) => {
-    const userId = "6996f39ada959122aab1ecb8"
+    const userId = req.loggedUser?.id;
 
     if (!userId) {
         return res.status(401).json({ error: 'Not authenticated' });
@@ -34,7 +34,7 @@ export const getParticipantEvents = async (req: Request, res: Response) => {
             .lean();
 
         if (myParticipations.length === 0) {
-            return res.status(200).json({ teamEvents: [] });
+            return res.status(200).json([]); // Return empty array if no participations found
         }
 
         const eventIds = myParticipations.map(p => p.eventId);

@@ -1,62 +1,33 @@
-// import { createContext, useContext, useState, type ReactNode } from 'react';
-// import type { League } from '@/types/League';
-// import type { Squad } from '@/types/Squad';
-// import type { TeamEvent } from '@/types/TeamEvent';
+import { createContext, useContext, useState, type ReactNode } from 'react';
+import type { Squad } from '@/types/Squad';
+import type { Team } from '@/types/Team';
 
-// type AppContextValue = {
-//     leagues: League[];
-//     squads: Squad[];
-//     events: TeamEvent[];
-//     setLeagues: (leagues: League[]) => void;
-//     setSquads: (squads: Squad[]) => void;
-//     setEvents: (events: TeamEvent[]) => void;
-//     selectedLeague: League | null;
-//     selectedSquad: Squad | null;
-//     selectLeague: (league: League | null) => void;
-//     selectSquad: (squad: Squad | null) => void;
-// };
+type AppContextValue = {
+    team: Team;
+    setTeam: (teams: Team) => void;
+};
 
-// const AppContext = createContext<AppContextValue | undefined>(undefined);
+const AppContext = createContext<AppContextValue | undefined>(undefined);
 
-// export const AppProvider = ({ children }: { children: ReactNode }) => {
-//     const [leagues, setLeagues] = useState<League[]>([]);
-//     const [squads, setSquads] = useState<Squad[]>([]);
-//     const [events, setEvents] = useState<TeamEvent[]>([]);
-//     const [selectedLeague, setSelectedLeague] = useState<League | null>(null);
-//     const [selectedSquad, setSelectedSquad] = useState<Squad | null>(null);
+export const AppProvider = ({ children }: { children: ReactNode }) => {
+    const [team, setTeam] = useState<Team>();
 
-//     const selectLeague = (league: League | null) => {
-//         setSelectedLeague(league);
-//     };
+    return (
+        <AppContext.Provider
+            value={{
+                team,
+                setTeam,
+            }}
+        >
+            {children}
+        </AppContext.Provider>
+    );
+};
 
-//     const selectSquad = (squad: Squad | null) => {
-//         setSelectedSquad(squad);
-//     };
-
-//     return (
-//         <AppContext.Provider
-//             value={{
-//                 leagues,
-//                 squads,
-//                 events,
-//                 setLeagues,
-//                 setSquads,
-//                 setEvents,
-//                 selectedLeague,
-//                 selectedSquad,
-//                 selectLeague,
-//                 selectSquad,
-//             }}
-//         >
-//             {children}
-//         </AppContext.Provider>
-//     );
-// };
-
-// export const useApp = () => {
-//     const context = useContext(AppContext);
-//     if (!context) {
-//         throw new Error('useApp must be used within an AppProvider');
-//     }
-//     return context;
-// };
+export const useApp = () => {
+    const context = useContext(AppContext);
+    if (!context) {
+        throw new Error('useApp must be used within an AppProvider');
+    }
+    return context;
+};

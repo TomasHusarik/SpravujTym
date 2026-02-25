@@ -12,7 +12,7 @@ export interface ITeamEvent {
     venue?: Types.ObjectId;
     createdBy?: Types.ObjectId;
     participation?: IEventParticipation[];
-    squad?: ISquad;
+    squads?: ISquad[];
     createdAt?: Date;
     updatedAt?: Date;
 }
@@ -29,7 +29,7 @@ const TeamEventSchema = new mongoose.Schema<ITeamEvent>({
     startDate: { type: Date, required: true },
     endDate: { type: Date, required: true },
     venue: { type: mongoose.Schema.Types.ObjectId, ref: 'Venue' },
-    squad: { type: mongoose.Schema.Types.ObjectId, ref: 'Squad' },
+    squads: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Squad' }],
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
 }, { 
     timestamps: true,
