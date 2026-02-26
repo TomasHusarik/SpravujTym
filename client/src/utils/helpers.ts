@@ -1,5 +1,5 @@
 import type { User } from "@/types/User";
-import { EventType } from "./const";
+import { EventType, LeagueCategory } from "./const";
 import ErrorMessages from "./errorMessages";
 import { notifications } from "@mantine/notifications";
 
@@ -56,33 +56,39 @@ export const getParticipationStatusColor = (status?: string): string => {
 }
 
 export const combinateDateAndTime = (date: Date | null, time: string | null) => {
-  if (!date || !time) return null;
+    if (!date || !time) return null;
 
-  const [hours, minutes] = time.split(':').map(Number);
+    const [hours, minutes] = time.split(':').map(Number);
 
-  const result = new Date(date);
-  result.setHours(hours);
-  result.setMinutes(minutes);
+    const result = new Date(date);
+    result.setHours(hours);
+    result.setMinutes(minutes);
 
-  return result;
+    return result;
 };
 
 export const showSuccessNotification = (message: string) => {
-                notifications.show({
-                    title: 'Success',
-                    message: message,
-                    color: 'green',
-                });
+    notifications.show({
+        title: 'Success',
+        message: message,
+        color: 'green',
+    });
 }
 
 export const showErrorNotification = (message: string) => {
-                notifications.show({
-                    title: 'Error',
-                    message: message,
-                    color: 'red',
-                });
+    notifications.show({
+        title: 'Error',
+        message: message,
+        color: 'red',
+    });
 }
 
 export const adminPermissions = (user: User) => {
     return user.isAdmin;
 }
+
+export const getCategoryLabel = (category?: string) => {
+    return (
+        Object.values(LeagueCategory).find((item) => item.value === category)?.label || 'N/A'
+    );
+};

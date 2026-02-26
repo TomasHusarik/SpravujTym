@@ -26,3 +26,16 @@ export const PaymentStatus = {
     COMPLETED: {value: "completed", label: "Dokončeno"},
     FAILED: {value: "failed", label: "Neúspěšné"}
 }
+
+export const LeagueCategory = {
+    JUNIORS: {value: 'juniors', label: 'Junioři'},
+    CADETS: {value: 'cadets', label: 'Kadeti'},
+    MEN: {value: 'men', label: 'Muži'},
+    OLDER_PUPILS: {value: 'older_pupils', label: 'Starší žáci'},
+    YOUNGER_PUPILS: {value: 'younger_pupils', label: 'Mladší žáci'}
+}
+
+export const SquadRole = {
+    PLAYER: {value: 'player', label: 'Hráč'},
+    COACH: {value: 'coach', label: 'Trenér'}
+}

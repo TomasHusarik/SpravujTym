@@ -18,9 +18,10 @@ import { useAuth } from '@context/AuthContext';
 import type { User } from '@/types/User';
 
 const tabs = [
-  {label: 'Přehled', value: 'overview'},
-  {label: 'Zeď', value: 'wall'},
-  {label: 'Kalendář', value: 'calendar'},
+  { label: 'Přehled', value: 'overview' },
+  { label: 'Zeď', value: 'wall' },
+  { label: 'Kalendář', value: 'calendar' },
+  { label: 'Celky', value: 'squads' },
 ];
 
 const Header = () => {
@@ -103,7 +104,7 @@ const Header = () => {
               {tab.label}
             </Text>
           ))}
-          
+
           {isAuthenticated && (
             <>
               <Divider my="xs" />

@@ -20,7 +20,6 @@ const UserMenu = (props: IUserMenu) => {
     return (
         <Menu
             width={260}
-            zIndex={1001}
             position="bottom-end"
             transitionProps={{ transition: 'pop-top-right' }}
             onClose={() => setUserMenuOpened(false)}

@@ -21,7 +21,10 @@ createRoot(document.getElementById('root')!).render(
         <AuthProvider>
           <DatesProvider settings={{ locale: 'cs', firstDayOfWeek: 0, weekendDays: [0] }}>
             <MantineProvider defaultColorScheme="light">
-              <Notifications position="bottom-center" style={{paddingBottom: "100px"}} />
+              <Notifications
+                position="bottom-center"
+                zIndex={400}
+              />
               <App />
             </MantineProvider>
           </DatesProvider>

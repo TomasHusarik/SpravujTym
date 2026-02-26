@@ -36,10 +36,15 @@ export const getUsers = async (req: Request, res: Response) => {
 
 // POST /user/update-user/:id - Edit user by ID
 export const updateUser = async (req: Request, res: Response) => {
+    const userId = req.params.userId;
     const { _id, ...updateData } = req.body;
 
+    if (!userId) {
+        return res.status(400).json({ error: ErrorMessages.mandatoryField });
+    }
+
     try {
-        const user = await User.findById(_id);
+        const user = await User.findById(userId);
         if (!user) {
             return res.status(404).json({ error: ErrorMessages.notFound });
         }
@@ -121,7 +126,6 @@ export const signUp = async (req: Request, res: Response) => {
         const hash = await bcrypt.hash(pass, salt);
 
         const newUser = await User.create({ email, password: hash });
-        const newSquadMembership = await SquadMembership.create({ userId: newUser._id, squadId: squadId, roles: roles   });
 
         // Send email with generated password
         await RegistrationMail(email, pass);

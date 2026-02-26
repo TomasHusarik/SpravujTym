@@ -1,12 +1,12 @@
 import mongoose, { Types } from "mongoose";
 import { ILeague } from "./League";
-import { ITeam } from "./Team";
 
-export interface ISquad { 
+
+export interface ISquad {
     _id?: Types.ObjectId;
     name?: string;
     league?: ILeague;
-    team?: ITeam;
+    teamId?: Types.ObjectId;
     createdAt?: Date;
     updatedAt?: Date;
 }
@@ -14,7 +14,7 @@ export interface ISquad {
 const squadSchema = new mongoose.Schema<ISquad>({
     name: { type: String, required: true },
     league: { type: mongoose.Schema.Types.ObjectId, ref: 'League', required: true },
-    team: { type: mongoose.Schema.Types.ObjectId, ref: 'Team', required: true }
+    teamId: { type: mongoose.Schema.Types.ObjectId, ref: 'Team', required: true },
 }, {
     timestamps: true
 });

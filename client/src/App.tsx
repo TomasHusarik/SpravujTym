@@ -9,6 +9,8 @@ import OverviewPage from "./pages/OverviewPage";
 import CalendarPage from "./pages/CalendarPage";
 import EventDetailPage from "./pages/EventDetailPage";
 import UserPage from "./pages/UserPage";
+import SquadsPage from "./pages/SquadsPage";
+import SquadPage from "./pages/SquadPage";
 
 const App = () => {
   const { isAuthenticated, isLoading } = useAuth();
@@ -28,7 +30,7 @@ const App = () => {
         footer={isAuthenticated ? { height: 80 } : undefined }
       >
         {isAuthenticated && (
-          <AppShell.Header style={{ zIndex: 1000 }}>
+          <AppShell.Header>
             <Header />
           </AppShell.Header>
         )}
@@ -38,6 +40,8 @@ const App = () => {
             <Route path="/" element={<Navigate to={isAuthenticated ? "/overview" : "/login"} replace />} />
             <Route path="/login" element={isAuthenticated ? <Navigate to="/overview" replace /> : <LoginPage />} />
             <Route path="/overview" element={requireAuth(<OverviewPage />)} />
+            <Route path="/squads" element={requireAuth(<SquadsPage />)} />
+            <Route path="/squad/:id" element={requireAuth(<SquadPage />)} />
             <Route path="/calendar" element={requireAuth(<CalendarPage />)} />
             <Route path="/user/:id" element={requireAuth(<UserPage />)} />
             <Route path="/event-detail/:id" element={requireAuth(<EventDetailPage />)} />
@@ -45,7 +49,7 @@ const App = () => {
         </AppShell.Main>
 
         {isAuthenticated && (
-          <AppShell.Footer style={{ zIndex: 1000 }} visibleFrom="sm">
+          <AppShell.Footer visibleFrom="sm">
             <Footer />
           </AppShell.Footer>
         )}

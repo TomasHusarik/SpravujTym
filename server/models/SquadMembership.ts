@@ -1,4 +1,6 @@
 import mongoose, { Types } from "mongoose";
+import { IUser } from "./User";
+import { ISquad } from "./Squad";
 
 export enum SquadRole {
     Player = "player",
@@ -7,8 +9,8 @@ export enum SquadRole {
 
 export interface ISquadMembership {
     _id?: Types.ObjectId;
-    squadId?: Types.ObjectId;
-    userId?: Types.ObjectId;
+    squad?: Types.ObjectId;
+    user?: Types.ObjectId;
     roles?: SquadRole[];
     active: boolean;
     createdAt?: Date;
@@ -16,8 +18,8 @@ export interface ISquadMembership {
 }
 
 const SquadMembershipSchema = new mongoose.Schema<ISquadMembership>({
-    squadId: { type: mongoose.Schema.Types.ObjectId, ref: 'Squad', required: true },
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    squad: { type: mongoose.Schema.Types.ObjectId, ref: 'Squad', required: true },
+    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     roles: [{ type: String, enum: Object.values(SquadRole) }],
     active: { type: Boolean, default: true, required: true }
 }, {

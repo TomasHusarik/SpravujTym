@@ -1,4 +1,6 @@
 import type { User } from '@/types/User';
+import type { Squad } from '@/types/Squad';
+import type { SquadMembership } from '@/types/SquadMembership';
 import axios from 'axios';
 import { use } from 'react';
 
@@ -45,6 +47,84 @@ export const getTeam = async (teamId: string) => {
     } catch (error) {
         if (axios.isAxiosError(error)) {
             throw new Error(error.response?.data?.error || 'Failed to fetch team');
+        }
+        throw error;
+    }
+}
+
+// #region Squad APIs
+export const getSquads = async () => {
+    try {
+        const response = await api.get('/squad/get-squads');
+        return response.data as Squad[];
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            throw new Error(error.response?.data?.error || 'Failed to fetch squads');
+        }
+        throw error;
+    }
+}
+
+export const getSquad = async (squadId: string) => {
+    try {
+        const response = await api.get(`/squad/get-squad/${squadId}`);
+        return response.data as Squad;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            throw new Error(error.response?.data?.error || 'Failed to fetch squad');
+        }
+        throw error;
+    }
+}
+
+export const getSquadMembers = async (squadId: string) => {
+    try {
+        const response = await api.get(`/squad/get-squad-members/${squadId}`);
+        return response.data as SquadMembership[];
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            throw new Error(error.response?.data?.error || 'Failed to fetch squad members');
+        }
+        throw error;
+    }
+}
+
+export const addSquadMembers = async (squadId: string, userIds: string[], roles: string[]) => {
+    try {
+        const response = await api.post(`/squad/add-squad-members/${squadId}`, {
+            userIds,
+            roles,
+        });
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            throw new Error(error.response?.data?.error || 'Failed to add squad members');
+        }
+        throw error;
+    }
+}
+
+export const updateSquadMemberRoles = async (membershipId: string, roles: string[]) => {
+    try {
+        const response = await api.put(`/squad/update-squad-member-roles/${membershipId}`, {
+            roles,
+        });
+        return response.data as SquadMembership;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            throw new Error(error.response?.data?.error || 'Failed to update squad member roles');
+        }
+        throw error;
+    }
+}
+
+export const deleteSquadMember = async (membershipId: string) => {
+    try {
+        const response = await api.delete(`/squad/delete-squad-member/${membershipId}`);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            throw new Error(error.response?.data?.error || 'Failed to delete squad member');
         }
         throw error;
     }

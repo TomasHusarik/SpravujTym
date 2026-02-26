@@ -178,6 +178,7 @@ const UserDetail = (props: IUserDetail) => {
                         name="status"
                         data={Object.values(UserStatus)}
                         value={form.values?.active ? UserStatus.ACTIVE.value : UserStatus.INACTIVE.value}
+                        onChange={(value) => form.setFieldValue('active', value === UserStatus.ACTIVE.value)}
                         disabled={!editMode}
                     />
                 </Grid.Col>
