@@ -53,14 +53,14 @@ const EventsTable = (props: IEventsTable) => {
 
                         <Group gap="xs">
                             <Badge
-                                color={getParticipationStatusColor(event.participations?.[0]?.status)}
+                                color={getParticipationStatusColor(event.eventParticipations?.[0]?.status)}
                                 variant="dot"
                                 size="lg"
                             />
                             <Select
                                 placeholder="Status"
                                 data={Object.values(ParticipationStatus)}
-                                value={event.participations?.[0]?.status || ParticipationStatus.PENDING.value}
+                                value={event.eventParticipations?.[0]?.status || ParticipationStatus.PENDING.value}
                                 onChange={(value) => handleStatusChange(event._id, value)}
                                 w={150}
                                 size="sm"

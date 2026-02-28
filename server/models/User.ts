@@ -6,6 +6,7 @@ export interface IUser {
   lastName: string;
   email: string;
   password: string;
+  new: boolean;
   isAdmin: boolean;
   mobile?: string;
   birthDate?: Date;
@@ -21,6 +22,7 @@ const UserSchema = new mongoose.Schema<IUser>(
     lastName: { type: String, trim: true },
     email: { type: String, required: true, unique: true, lowercase: true, index: true },
     password: { type: String, required: true, select: false },
+    new: { type: Boolean, default: true },
     isAdmin: { type: Boolean, default: false },
     mobile: { type: String },
     birthDate: { type: Date },

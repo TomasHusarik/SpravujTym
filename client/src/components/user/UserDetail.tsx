@@ -2,12 +2,13 @@ import { useAuth } from '@/context/AuthContext'
 import type { User } from '@/types/User'
 import { getUser, updateUser } from '@/utils/api'
 import { UserStatus } from '@/utils/const'
-import { adminPermissions, showErrorNotification, showSuccessNotification } from '@/utils/helpers'
+import { adminPermissions, playerPermissions, showErrorNotification, showSuccessNotification } from '@/utils/helpers'
 import { Button, Checkbox, Grid, MultiSelect, NumberInput, Select, TextInput, Title } from '@mantine/core'
 import { DatePickerInput } from '@mantine/dates'
 import { useForm } from '@mantine/form'
-import { IconAt, IconDeviceFloppy, IconPhone, IconUser, IconMail, IconCalendar, IconShieldCheck, IconToggleRight } from '@tabler/icons-react'
+import { IconDeviceFloppy, IconPhone, IconUser, IconMail, IconCalendar, IconShieldCheck, IconToggleRight, IconPencil } from '@tabler/icons-react'
 import React, { useEffect, useState } from 'react'
+import ChangePasswordModal from '../modals/ChangePasswordModal'
 
 interface IUserDetail {
     userId: string;
@@ -16,10 +17,9 @@ interface IUserDetail {
 const UserDetail = (props: IUserDetail) => {
     const { userId } = props;
 
-    const { user } = useAuth();
-
     const [isSaving, setIsSaving] = useState(false);
     const [editMode, setEditMode] = useState(false);
+    const [user, setUser] = useState<User>(null);
 
     const form = useForm({
         initialValues: {
@@ -51,7 +51,7 @@ const UserDetail = (props: IUserDetail) => {
         }
     };
 
-    const handleSave = async (values: typeof form.values) => {
+    const handleSave = form.onSubmit(async (values) => {
         try {
             setIsSaving(true);
             await updateUser(values);
@@ -64,12 +64,16 @@ const UserDetail = (props: IUserDetail) => {
             setEditMode(false);
             loadData();
         }
-    };
+    });
 
     const loadData = async () => {
         try {
             const userData = await getUser(userId);
             form.setValues(userData);
+            setUser(userData);
+            if (userData.new) {
+                setEditMode(true);
+            }
         } catch (error) {
             console.error('Error fetching user data:', error);
         }
@@ -77,10 +81,15 @@ const UserDetail = (props: IUserDetail) => {
 
     useEffect(() => {
         loadData();
-    }, []);
+    }, [userId]);
+
 
     return (
-        <form onSubmit={form.onSubmit((values) => handleSave(values))}>
+             <form onSubmit={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleSave(e);
+                }}>
             <Grid>
                 <Grid.Col span={{ base: 12, md: 6 }}>
                     <TextInput
@@ -105,7 +114,7 @@ const UserDetail = (props: IUserDetail) => {
                         value={form.values?.lastName || ''}
                         onChange={(value) => form.setFieldValue('lastName', value.currentTarget.value)}
                         error={form.errors.lastName}
-                        readOnly={!editMode}
+                        readOnly={!editMode && adminPermissions()}
                     />
                 </Grid.Col>
                 <Grid.Col span={{ base: 12, md: 6 }}>
@@ -165,7 +174,7 @@ const UserDetail = (props: IUserDetail) => {
                         value={form.values?.isAdmin ? 'true' : 'false'}
                         onChange={(value) => form.setFieldValue('isAdmin', value === 'true')}
                         error={form.errors.isAdmin}
-                        disabled={!editMode}
+                        disabled={!editMode && adminPermissions()}
                     />
                 </Grid.Col>
                 <Grid.Col span={{ base: 12, md: 6 }}>
@@ -176,25 +185,33 @@ const UserDetail = (props: IUserDetail) => {
                         radius="md"
                         size="md"
                         name="status"
-                        data={Object.values(UserStatus)}
-                        value={form.values?.active ? UserStatus.ACTIVE.value : UserStatus.INACTIVE.value}
-                        onChange={(value) => form.setFieldValue('active', value === UserStatus.ACTIVE.value)}
-                        disabled={!editMode}
+                        data={[
+                            { value: 'true', label: 'Aktivní' },
+                            { value: 'false', label: 'Neaktivní' },
+                        ]}
+                        value={form.values?.active ? 'true' : 'false'}
+                        onChange={(value) => form.setFieldValue('active', value === 'true')}
+                        error={form.errors.active}
+                        disabled={!editMode && adminPermissions()}
                     />
                 </Grid.Col>
 
-                {adminPermissions(user) &&
+                {playerPermissions(user) &&
                     <Grid.Col span={12} style={{ display: 'flex', justifyContent: 'space-between' }}>
                         <Button
                             variant="light"
                             radius="md"
                             leftSection={
-                                <IconDeviceFloppy stroke={1.5} size={20} />
+                                <IconPencil stroke={1.5} size={20} />
                             }
                             onClick={() => handleEditMode()}
                         >
                             {editMode ? 'Zrušit' : 'Upravit'}
                         </Button>
+
+                        {!editMode && (
+                            <ChangePasswordModal />
+                        )}
 
                         {editMode && (
                             <Button

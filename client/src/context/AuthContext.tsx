@@ -1,10 +1,12 @@
 import react, { createContext, useContext, useEffect, useMemo, useState } from 'react';
-import { loginUser, logoutUser, authUser, getTeam } from '@utils/api';
+import { loginUser, logoutUser, authUser, getTeam, getMyPermissions } from '@utils/api';
 import type { User } from '@/types/User';
+import type { UserPermissions } from '@/types/Permissions';
 import { useApp } from './AppContext';
 
 type AuthContextValue = {
     user: User | null;
+    permissions: UserPermissions | null;
     isAuthenticated: boolean;
     isLoading: boolean;
     login: (email: string, password: string) => Promise<void>;
@@ -20,7 +22,7 @@ export const AuthProvider = ({ children }: { children: react.ReactNode }) => {
 
     const [user, setUser] = useState<User | null>(null);
     const [isLoading, setIsLoading] = useState(true);
-    const { setTeam } = useApp();
+    const { team, setTeam, permissions, setPermissions } = useApp();
 
     const syncTeamContext = async () => {
         const teamId = DEFAULT_TEAM_ID;
@@ -47,17 +49,26 @@ export const AuthProvider = ({ children }: { children: react.ReactNode }) => {
                     const data = await authUser();
                     if (data?.user) {
                         setUser(data.user);
+                        if (data.user.new) {
+                            setPermissions(null);
+                        } else {
+                            const permissionsData = await getMyPermissions();
+                            setPermissions(permissionsData);
+                        }
                         await syncTeamContext();
                     } else {
                         setUser(JSON.parse(storedUser));
+                        setPermissions(null);
                         await syncTeamContext();
                     }
                 } catch {
                     // fallback
                     setUser(JSON.parse(storedUser));
+                    setPermissions(null);
                     await syncTeamContext();
                 }
             } else {
+                setPermissions(null);
                 setTeam(null);
             }
         } finally {
@@ -74,9 +85,17 @@ export const AuthProvider = ({ children }: { children: react.ReactNode }) => {
         if (data?.user) {
             setUser(data.user);
             localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(data.user));
-            await syncTeamContext();
+            if (data.user.new) {
+                setPermissions(null);
+                setTeam(null);
+            } else {
+                const permissionsData = await getMyPermissions();
+                setPermissions(permissionsData);
+                await syncTeamContext();
+            }
         } else {
             setUser(null);
+            setPermissions(null);
             localStorage.removeItem(USER_STORAGE_KEY);
             setTeam(null);
         }
@@ -87,6 +106,7 @@ export const AuthProvider = ({ children }: { children: react.ReactNode }) => {
             await logoutUser();
         } finally {
             setUser(null);
+            setPermissions(null);
             localStorage.removeItem(USER_STORAGE_KEY);
             setTeam(null);
         }
@@ -95,12 +115,14 @@ export const AuthProvider = ({ children }: { children: react.ReactNode }) => {
     const value = useMemo<AuthContextValue>(
         () => ({
             user,
+            permissions,
+            team,
             isAuthenticated: Boolean(user),
             isLoading,
             login,
             logout,
         }),
-        [user, isLoading]
+        [user, permissions, isLoading, team]
     );
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

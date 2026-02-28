@@ -22,6 +22,7 @@ const tabs = [
   { label: 'Zeď', value: 'wall' },
   { label: 'Kalendář', value: 'calendar' },
   { label: 'Celky', value: 'squads' },
+  { label: 'Uživatelé', value: 'users' },
 ];
 
 const Header = () => {
@@ -47,7 +48,6 @@ const Header = () => {
             </Text>
           </div>
 
-
           <Burger
             opened={opened}
             onClick={toggle}
@@ -55,13 +55,14 @@ const Header = () => {
             size="sm"
             aria-label="Toggle navigation"
           />
-
+          
           <Group visibleFrom="sm">
             <UserMenu user={user} />
           </Group>
 
         </Group>
       </Container>
+
       <Container size="">
         <Tabs
           defaultValue="Home"

@@ -1,11 +1,11 @@
 import type { Venue } from '@/types/Venue';
 import { getTeamEvent, getUsers, getVenues } from '@/utils/api';
 import { EventType } from '@/utils/const';
-import { combinateDateAndTime, validateFutureDate, validateString } from '@/utils/helpers';
-import { Button, Grid, Select, TextInput, Title } from '@mantine/core'
+import { combinateDateAndTime, getFullName, validateFutureDate, validateString } from '@/utils/helpers';
+import { Button, Grid, Select, Stack, Table, TextInput, Title, Text, ActionIcon } from '@mantine/core'
 import { DatePickerInput, TimePicker } from '@mantine/dates';
 import { useForm } from '@mantine/form';
-import { IconDeviceFloppy, IconMapPin, IconUser } from '@tabler/icons-react'
+import { IconDeviceFloppy, IconMapPin, IconTrash, IconUser } from '@tabler/icons-react'
 import React, { useEffect, useState } from 'react'
 
 interface IEventDetail {
@@ -28,6 +28,7 @@ const eventDetail = (props: IEventDetail) => {
             startTime: '',
             endTime: '',
             venue: null,
+            eventParticipations: [],
         },
 
         validate: {
@@ -38,6 +39,11 @@ const eventDetail = (props: IEventDetail) => {
             date: (val: Date) => validateFutureDate(val),
         },
     });
+    
+    const handleDelete = async (participationId: string) => {
+        // Implementace mazání účastníka z události
+        // Po úspěšném smazání načíst znovu data události, aby se aktualizoval seznam účastníků
+    };
 
     const handleSave = async (values: typeof form.values) => {
         const { startTime, endTime, date, ...restValues } = values;
@@ -48,17 +54,14 @@ const eventDetail = (props: IEventDetail) => {
             endDate: combinateDateAndTime(values.date, endTime),
         };
 
-        console.log('Saving event with payload:', payload);
-
         setIsSaving(true);
     };
 
     const loadData = async () => {
         try {
             const event = await getTeamEvent(eventId);
+            console.log('Loaded event data:', event);
             const venues = await getVenues();
-            const users = await getUsers();
-            console.log(users);
 
             // Pre-fill form with existing event data
             const start = new Date(event.startDate);
@@ -165,21 +168,52 @@ const eventDetail = (props: IEventDetail) => {
                     />
                 </Grid.Col>
 
-                <Grid.Col span={12} style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                    <Button
-                        type="submit"
-                        variant="light"
-                        radius="md"
-                        loading={isSaving}
-                        leftSection={
-                            <IconDeviceFloppy stroke={1.5} size={20} />
-                        }
-                    >
-                        Save
-                    </Button>
-                </Grid.Col>
-            </Grid>
-        </form>
+                <Stack gap="xs">
+                    {form.values.eventParticipations.length === 0 ? (
+                        <Text c="dimmed">Zatím nejsou přiřazeni žádní členové.</Text>
+                    ) : (
+                        <Table striped highlightOnHover>
+                            <Table.Thead>
+                                <Table.Tr>
+                                    <Table.Th>Uživatel</Table.Th>
+                                    <Table.Th>E-mail</Table.Th>
+                                    <Table.Th>Delete</Table.Th>
+                                </Table.Tr>
+                            </Table.Thead>
+                            <Table.Tbody>
+                                {form.values.eventParticipations.map((part) => {
+                                    return (
+                                        <Table.Tr key={part._id}>
+                                            <Table.Td>{getFullName(part.user)}</Table.Td>
+                                            <Table.Td>{part.user?.email}</Table.Td>
+                                            <Table.Td>
+                                                <ActionIcon size={32} radius="xl" variant="subtle" onClick={(e) => { e.stopPropagation(); handleDelete(part._id); }}>
+                                                    <IconTrash stroke={1.5} />
+                                                </ActionIcon>
+                                            </Table.Td>
+                                        </Table.Tr>
+                                    );
+                                })}
+                            </Table.Tbody>
+                        </Table>
+                    )}
+                </Stack>
+
+            <Grid.Col span={12} style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <Button
+                    type="submit"
+                    variant="light"
+                    radius="md"
+                    loading={isSaving}
+                    leftSection={
+                        <IconDeviceFloppy stroke={1.5} size={20} />
+                    }
+                >
+                    Save
+                </Button>
+            </Grid.Col>
+        </Grid>
+        </form >
     )
 }
 

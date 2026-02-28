@@ -1,6 +1,6 @@
 import { email } from "envalid";
 import { mailer } from "../services/mailer";
-import { IEmail } from "@models/Email";
+import { IEmail } from "@utils/specialTypes";
 
 export const RegistrationMail = async (email: string, password: string) => {
 

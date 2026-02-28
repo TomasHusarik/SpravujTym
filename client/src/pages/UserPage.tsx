@@ -2,11 +2,14 @@ import UserDetail from "@/components/user/UserDetail"
 import UserPayments from "@/components/user/UserPayments";
 import { Tabs } from '@mantine/core';
 import { useParams } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
 
 const UserPage = () => {
-    const { id } = useParams<{ id: string }>();
+    const { id } = useParams<{ id?: string }>();
+    const { user } = useAuth();
+    const userId = id ?? user?._id;
 
-    if (!id) {
+    if (!userId) {
         return null;
     }
 
@@ -22,10 +25,10 @@ const UserPage = () => {
             </Tabs.List>
 
             <Tabs.Panel value="detail" pt="md">
-                <UserDetail userId={id} />
+                <UserDetail userId={userId} />
             </Tabs.Panel>
             <Tabs.Panel value="payments" pt="md">
-                <UserPayments userId={id} />
+                <UserPayments userId={userId} />
             </Tabs.Panel>
 
         </Tabs>

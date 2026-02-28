@@ -8,7 +8,7 @@ import EventParticipation, { IEventParticipation } from '@models/EventParticipat
 export const getTeamEventById = async (req: Request, res: Response) => {
 
     try {
-        const teamEvent = await TeamEvent.findById({ _id: req.params._id }).populate('eventParticipations').populate('venue', 'name').lean();
+        const teamEvent = await TeamEvent.findById({ _id: req.params._id }).populate({path: 'eventParticipations', populate: { path: 'userId' }}).populate('venue', 'name').lean();
 
         if (!teamEvent) {
             return res.status(404).json({ error: ErrorMessages.notFound });
@@ -22,10 +22,10 @@ export const getTeamEventById = async (req: Request, res: Response) => {
 
 // GET /get-participant-events - Get all participant team events
 export const getParticipantEvents = async (req: Request, res: Response) => {
-    const userId = req.loggedUser?.id;
+    const userId = req.loggedUser?._id.toString();
 
     if (!userId) {
-        return res.status(401).json({ error: 'Not authenticated' });
+        return res.status(401).json({ error: ErrorMessages.notAuthenticated });
     }
 
     try {
@@ -50,7 +50,7 @@ export const getParticipantEvents = async (req: Request, res: Response) => {
 
         const result = events.map(event => ({
             ...event,
-            participations: [
+            eventParticipations: [
                 participationMap.get(event._id.toString())
             ]
         }));
@@ -64,10 +64,10 @@ export const getParticipantEvents = async (req: Request, res: Response) => {
 // PUT /team-event/update-participation-status - Update participation status
 export const updateParticapationStatus = async (req: Request, res: Response) => {
     const { eventId, status } = req.body;
-    const userId = req.loggedUser?.id;
+    const userId = req.loggedUser?._id.toString();
 
     if (!userId) {
-        return res.status(401).json({ error: 'Not authenticated' });
+        return res.status(401).json({ error: ErrorMessages.notAuthenticated });
     }
 
     if (!eventId || !status) {
@@ -103,18 +103,18 @@ export const addEvent = async (req: Request, res: Response) => {
     session.startTransaction();
 
     try {
-        // const userId = req.loggedUser?.id;
+        const userId = req.loggedUser?._id.toString();
 
-        // if (!userId) {
-        //     return res.status(401).json({ error: 'Not authenticated' });
-        // }
+        if (!userId) {
+            return res.status(401).json({ error: ErrorMessages.notAuthenticated });
+        }
 
         const newTeamEvent = new TeamEvent({
             title,
             type,
             startDate,
             endDate,
-            createdBy: "6996f39ada959122aab1ecb8",
+            createdBy: userId,
             venue
         });
         await newTeamEvent.save({ session });
@@ -145,6 +145,11 @@ export const addEvent = async (req: Request, res: Response) => {
 // POST /team-events/add-events - Create multiple team events
 export const addEvents = async (req: Request, res: Response) => {
     const events = req.body;
+    const userId = req.loggedUser?._id.toString();
+
+    if (!userId) {
+        return res.status(401).json({ error: ErrorMessages.notAuthenticated });
+    }
 
     // Input validation
     if (!Array.isArray(events) || events.length === 0) {
@@ -167,7 +172,7 @@ export const addEvents = async (req: Request, res: Response) => {
             type: event.type,
             startDate: event.startDate,
             endDate: event.endDate,
-            createdBy: "6996f39ada959122aab1ecb8",
+            createdBy: userId,
             venue: event.venue
         }));
 

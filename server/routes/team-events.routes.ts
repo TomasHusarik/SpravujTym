@@ -1,6 +1,7 @@
 import express from 'express';
 import { addEvent, addEvents, getParticipantEvents, getTeamEventById, updateParticapationStatus } from '@controllers/team-events.controller';
 import { authMiddleware } from '@middleware/auth.middleware';
+import { requireCanCreateEvent } from '@middleware/permission.rules';
 
 const router = express.Router();
 
@@ -13,10 +14,10 @@ router.get('/get-team-event/:_id', getTeamEventById);
 router.get('/get-participant-events', getParticipantEvents);
 
 // POST /team-events/add-event - Create a new team event
-router.post('/add-event', addEvent);
+router.post('/add-event', requireCanCreateEvent, addEvent);
 
 // POST /team-events/add-events - Create multiple team events
-router.post('/add-events', addEvents);
+router.post('/add-events', requireCanCreateEvent, addEvents);
 
 // PUT /team-event/update-participation-status - Update participation status
 router.post('/update-participation-status', updateParticapationStatus);

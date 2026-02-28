@@ -9,6 +9,7 @@ import User from '@models/User';
 import { createToken, generateRandomPassword, generateTokenCookie, resetCookie } from '@utils/helpers';
 import { RegistrationMail } from '@mails/RegistrationMail';
 import SquadMembership from '@models/SquadMembership';
+import { resolveUserPermissions } from '@middleware/permission.middleware';
 
 
 // GET /user/get-user/:id - Get user by ID
@@ -27,7 +28,7 @@ export const getUser = async (req: Request, res: Response) => {
 // GET /user/get-users - Get all users
 export const getUsers = async (req: Request, res: Response) => {
     try {
-        const users = await User.find().lean();
+        const users = await User.find({ new: false }).select('-password').lean();
         return res.status(200).json(users);
     } catch (error) {
         return res.status(500).json({ error: ErrorMessages.internalServerError });
@@ -49,8 +50,21 @@ export const updateUser = async (req: Request, res: Response) => {
             return res.status(404).json({ error: ErrorMessages.notFound });
         }
 
+        // Only admin can update isAdmin field
+        if (!req.loggedUser.isAdmin) {
+            delete updateData.isAdmin;
+            delete updateData.new;
+            delete updateData.email;
+            delete updateData.active;
+        }
+
         // Update fields
         Object.assign(user, updateData);
+
+        const isOwnProfile = req.loggedUser?._id.toString() === userId;
+        if (isOwnProfile && user.new) {
+            user.new = false;
+        }
 
         await user.save();
 
@@ -100,7 +114,7 @@ export const login = async (req: Request, res: Response) => {
 
 // POST /user/sign-up - User registration
 export const signUp = async (req: Request, res: Response) => {
-    const { email, roles, squadId } = req.body;
+    const {email} = req.body;
 
     // Input validation
     if (!email) {
@@ -166,7 +180,7 @@ export const signUpAdmin = async (req: Request, res: Response) => {
         const salt = await bcrypt.genSalt(10);
         const hash = await bcrypt.hash(password, salt);
 
-        const newUser = await User.create({ ...req.body, password: hash });
+        const newUser = await User.create({ ...req.body, password: hash, new: false });
 
         // Generate token for the new user
         // const token = createToken({ userId: newUser._id.toString() });
@@ -181,6 +195,45 @@ export const signUpAdmin = async (req: Request, res: Response) => {
     }
 };
 
+// PUT /user/update-password - Update user password
+export const updatePassword = async (req: Request, res: Response) => {
+    const userId = req.loggedUser?._id.toString();
+    const { currentPassword, newPassword, confirmPassword } = req.body;
+
+    if (!userId) {
+        return res.status(401).json({ error: ErrorMessages.notAuthenticated });
+    }
+
+    if (!currentPassword || !newPassword || !confirmPassword) {
+        return res.status(400).json({ error: ErrorMessages.emailPasswordRequired });
+    }
+
+    if (newPassword !== confirmPassword) {
+        return res.status(400).json({ error: ErrorMessages.passwordConfirmationMismatch });
+    }
+
+    try {
+        const user = await User.findById(userId).select('+password');
+        if (!user) {
+            return res.status(404).json({ error: ErrorMessages.notFound });
+        }
+
+        const isMatch = await bcrypt.compare(currentPassword, user.password);
+        if (!isMatch) {
+            return res.status(401).json({ error: ErrorMessages.passwordSameAsCurrent });
+        }
+
+        const salt = await bcrypt.genSalt(10);
+        const hash = await bcrypt.hash(newPassword, salt);
+        user.password = hash;
+        await user.save();
+
+        return res.status(200).json({ message: 'Password updated successfully' });
+    } catch (error) {
+        return res.status(500).json({ error: ErrorMessages.internalServerError });
+    }
+}
+
 // POST /user/logout - User logout
 export const logout = (req: Request, res: Response) => {
     resetCookie(res);
@@ -193,7 +246,7 @@ export const authUser = async (req: Request, res: Response) => {
         const token = req.cookies.authToken;
 
         if (!token) {
-            return res.status(401).json({ error: 'Not authenticated' });
+            return res.status(401).json({ error: ErrorMessages.notAuthenticated });
         }
 
         const decoded = jwt.verify(token, env.JWT_SECRET) as { userId: string };
@@ -206,5 +259,24 @@ export const authUser = async (req: Request, res: Response) => {
         return res.status(200).json({ user });
     } catch (error) {
         return res.status(401).json({ error: 'Invalid or expired token' });
+    }
+};
+
+// GET /user/permissions - Get current user permissions
+export const getPermissions = async (req: Request, res: Response) => {
+    try {
+        if (req.permissions) {
+            return res.status(200).json(req.permissions);
+        }
+
+        const userId = req.loggedUser?._id.toString();
+        if (!userId) {
+            return res.status(401).json({ error: ErrorMessages.notAuthenticated });
+        }
+
+        const permissions = await resolveUserPermissions(userId.toString());
+        return res.status(200).json(permissions);
+    } catch (error) {
+        return res.status(500).json({ error: ErrorMessages.internalServerError });
     }
 };

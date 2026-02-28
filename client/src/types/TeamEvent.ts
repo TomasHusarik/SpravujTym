@@ -11,7 +11,7 @@ export interface TeamEvent {
     participants: User[];
     venue?: Venue;
     createdBy?: User;
-    participations?: EventParticipation[];
+    eventParticipations?: EventParticipation[];
     createdAt?: Date;
     updatedAt?: Date;
 }

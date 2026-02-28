@@ -1,4 +1,5 @@
 import { email } from "envalid";
+import { match } from "node:assert";
 
 const ErrorMessages = {
     // Authentication errors
@@ -9,6 +10,11 @@ const ErrorMessages = {
     phoneAlreadyInUse: 'Phone number already in use',
     invalidEmailFormat: 'Invalid email format',
     weakPassword: 'Password is too weak.',
+    forbidden: 'Forbidden',
+    passwordSameAsCurrent: 'The new password must be different from the current password.',
+    passwordConfirmationMismatch: 'New password and confirmation do not match',
+    notAuthenticated: 'Not authenticated',
+    
     
     // General errors
     internalServerError: 'Internal server error',

@@ -1,6 +1,7 @@
 import type { User } from '@/types/User';
 import type { Squad } from '@/types/Squad';
 import type { SquadMembership } from '@/types/SquadMembership';
+import type { UserPermissions } from '@/types/Permissions';
 import axios from 'axios';
 import { use } from 'react';
 
@@ -150,13 +151,13 @@ export const getTeamEvent = async (eventId: string) => {
 export const getParticipantTeamEvents = async () => {
     try {
         const response = await api.get('/team-event/get-participant-events');
-        
+
         const teamEvents = response.data.map((event: any) => ({
             ...event,
             startDate: new Date(event.startDate),
             endDate: new Date(event.endDate),
         }));
-        
+
         return teamEvents;
     } catch (error) {
         if (axios.isAxiosError(error)) {
@@ -179,6 +180,30 @@ export const updateParticipationStatus = async (eventId: string, newStatus: stri
 }
 
 // #region User APIs
+export const updatePassword = async (values: any) => {
+    try {
+        const response = await api.put('/user/update-password', values);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            throw new Error(error.response?.data?.error || 'Failed to update password');
+        }
+        throw error;
+    }
+};
+
+export const signUpUser = async (email: string) => {
+    try {
+        const response = await api.post('/user/sign-up', { email });
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            throw new Error(error.response?.data?.error || 'Sign-up failed');
+        }
+        throw error;
+    }
+};
+
 export const getUser = async (userId: string) => {
     try {
         const response = await api.get(`/user/get-user/${userId}`);
@@ -249,6 +274,18 @@ export const authUser = async () => {
     } catch (error) {
         if (axios.isAxiosError(error)) {
             throw new Error(error.response?.data?.error || 'Authentication failed');
+        }
+        throw error;
+    }
+};
+
+export const getMyPermissions = async () => {
+    try {
+        const response = await api.get('/user/permissions');
+        return response.data as UserPermissions;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            throw new Error(error.response?.data?.error || 'Failed to fetch user permissions');
         }
         throw error;
     }

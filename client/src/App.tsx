@@ -11,9 +11,11 @@ import EventDetailPage from "./pages/EventDetailPage";
 import UserPage from "./pages/UserPage";
 import SquadsPage from "./pages/SquadsPage";
 import SquadPage from "./pages/SquadPage";
+import UsersPage from "./pages/UsersPage";
 
 const App = () => {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
+  const isNewUser = Boolean(user?.new);
 
   if (isLoading) {
     return null;
@@ -26,10 +28,10 @@ const App = () => {
     <>
       <AppShell
         padding={isAuthenticated ? "xl" : 0}
-        header={isAuthenticated ? { height: { base: 50, sm: 100 } } : undefined }
-        footer={isAuthenticated ? { height: 80 } : undefined }
+        header={isAuthenticated ? { height: { base: 50, sm: 100 } } : undefined}
+        footer={isAuthenticated ? { height: 80 } : undefined}
       >
-        {isAuthenticated && (
+        {isAuthenticated  && (
           <AppShell.Header>
             <Header />
           </AppShell.Header>
@@ -37,14 +39,26 @@ const App = () => {
 
         <AppShell.Main>
           <Routes>
-            <Route path="/" element={<Navigate to={isAuthenticated ? "/overview" : "/login"} replace />} />
-            <Route path="/login" element={isAuthenticated ? <Navigate to="/overview" replace /> : <LoginPage />} />
-            <Route path="/overview" element={requireAuth(<OverviewPage />)} />
-            <Route path="/squads" element={requireAuth(<SquadsPage />)} />
-            <Route path="/squad/:id" element={requireAuth(<SquadPage />)} />
-            <Route path="/calendar" element={requireAuth(<CalendarPage />)} />
-            <Route path="/user/:id" element={requireAuth(<UserPage />)} />
-            <Route path="/event-detail/:id" element={requireAuth(<EventDetailPage />)} />
+            {
+              user?.new ? (
+                <>
+                  <Route path="/user" element={requireAuth(<UserPage />)} />
+                  <Route path="*" element={<Navigate to="/user" replace />} />
+                </>
+              ) : (
+                <>
+                  <Route path="/" element={<Navigate to={isAuthenticated ? "/overview" : "/login"} replace />} />
+                  <Route path="/login" element={isAuthenticated ? <Navigate to="/overview" replace /> : <LoginPage />} />
+                  <Route path="/overview" element={requireAuth(<OverviewPage />)} />
+                  <Route path="/squads" element={requireAuth(<SquadsPage />)} />
+                  <Route path="/squad/:id" element={requireAuth(<SquadPage />)} />
+                  <Route path="/calendar" element={requireAuth(<CalendarPage />)} />
+                  <Route path="/user/:id" element={requireAuth(<UserPage />)} />
+                  <Route path="/event-detail/:id" element={requireAuth(<EventDetailPage />)} />
+                  <Route path="/users" element={requireAuth(<UsersPage />)} />
+                </>
+              )
+            }
           </Routes>
         </AppShell.Main>
 

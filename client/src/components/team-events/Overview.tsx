@@ -8,6 +8,8 @@ import { EventType } from '@/utils/const';
 import dayjs from 'dayjs';
 import EventsTable from './EventsTable';
 import { getParticipantTeamEvents, updateParticipationStatus } from '@/utils/api';
+import { permission } from 'process';
+import { useApp } from '@/context/AppContext';
 
 // Skončené a neskončené události
 const statusOptions = [
@@ -16,6 +18,7 @@ const statusOptions = [
 ] as const;
 
 const Overview = () => {
+    const { permissions } = useApp();
     const [teamEvents, setTeamEvents] = useState<TeamEvent[]>([]);
     const [filteredTeamEvents, setFilterdTeamEvents] = useState<TeamEvent[]>([]);
     const [selectedStatus, setSelectedStatus] = useState<string>('upcoming');
@@ -55,7 +58,6 @@ const Overview = () => {
 
         setFilterdTeamEvents(filtered);
     }, [selectedStatus, teamEvents]);
-
 
     return (
         <Grid>
