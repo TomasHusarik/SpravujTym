@@ -1,4 +1,4 @@
-import e, { Request, Response } from 'express';
+import { Request, Response } from 'express';
 import ErrorMessages from '@utils/errorMessages';
 import TeamEvent from '@models/TeamEvent';
 import mongoose from 'mongoose';
@@ -8,7 +8,13 @@ import EventParticipation, { IEventParticipation } from '@models/EventParticipat
 export const getTeamEventById = async (req: Request, res: Response) => {
 
     try {
-        const teamEvent = await TeamEvent.findById({ _id: req.params._id }).populate({path: 'eventParticipations', populate: { path: 'userId' }}).populate('venue', 'name').lean();
+        const teamEvent = await TeamEvent.findById(req.params._id)
+            .populate({
+                path: 'eventParticipations',
+                populate: { path: 'user' }
+            })
+            .populate('venue', 'name')
+            .lean();
 
         if (!teamEvent) {
             return res.status(404).json({ error: ErrorMessages.notFound });
@@ -22,22 +28,22 @@ export const getTeamEventById = async (req: Request, res: Response) => {
 
 // GET /get-participant-events - Get all participant team events
 export const getParticipantEvents = async (req: Request, res: Response) => {
-    const userId = req.loggedUser?._id.toString();
+    const user = req.loggedUser?._id.toString();
 
-    if (!userId) {
+    if (!user) {
         return res.status(401).json({ error: ErrorMessages.notAuthenticated });
     }
 
     try {
         const myParticipations = await EventParticipation
-            .find({ userId })
+            .find({ user })
             .lean();
 
         if (myParticipations.length === 0) {
             return res.status(200).json([]); // Return empty array if no participations found
         }
 
-        const eventIds = myParticipations.map(p => p.eventId);
+        const eventIds = myParticipations.map(p => p.event);
 
         const events = await TeamEvent
             .find({ _id: { $in: eventIds } })
@@ -45,7 +51,7 @@ export const getParticipantEvents = async (req: Request, res: Response) => {
             .lean();
 
         const participationMap = new Map(
-            myParticipations.map(p => [p.eventId.toString(), p])
+            myParticipations.map(p => [p.event.toString(), p])
         );
 
         const result = events.map(event => ({
@@ -63,19 +69,20 @@ export const getParticipantEvents = async (req: Request, res: Response) => {
 
 // PUT /team-event/update-participation-status - Update participation status
 export const updateParticapationStatus = async (req: Request, res: Response) => {
-    const { eventId, status } = req.body;
+    const { status } = req.body;
+    const event = req.body.event || req.body.eventId;
     const userId = req.loggedUser?._id.toString();
 
     if (!userId) {
         return res.status(401).json({ error: ErrorMessages.notAuthenticated });
     }
 
-    if (!eventId || !status) {
+    if (!event || !status) {
         return res.status(400).json({ error: 'Event ID and status are required' });
     }
 
     try {
-        const participation = await EventParticipation.findOne({ eventId, userId });
+        const participation = await EventParticipation.findOne({ event, user: userId });
 
         if (!participation) {
             return res.status(404).json({ error: 'Participation not found' });
@@ -122,9 +129,9 @@ export const addEvent = async (req: Request, res: Response) => {
         if (Array.isArray(participants) && participants.length > 0) {
             const uniqueParticipants = [...new Set(participants)];
 
-            const newParticipations = uniqueParticipants.map((userId) => ({
-                userId,
-                eventId: newTeamEvent._id,
+            const newParticipations = uniqueParticipants.map((participantId) => ({
+                user: participantId,
+                event: newTeamEvent._id,
             }));
 
             await EventParticipation.insertMany(newParticipations, { session });
@@ -145,7 +152,7 @@ export const addEvent = async (req: Request, res: Response) => {
 // POST /team-events/add-events - Create multiple team events
 export const addEvents = async (req: Request, res: Response) => {
     const events = req.body;
-    const userId = req.loggedUser?._id.toString();
+    const userId = req.loggedUser?._id.toString() || "699ecd6c9a3aebfee8e290f6";
 
     if (!userId) {
         return res.status(401).json({ error: ErrorMessages.notAuthenticated });
@@ -187,9 +194,9 @@ export const addEvents = async (req: Request, res: Response) => {
             if (Array.isArray(eventParticipants) && eventParticipants.length > 0) {
                 const uniqueParticipants = [...new Set(eventParticipants)];
 
-                const participationsForEvent = uniqueParticipants.map((userId) => ({
-                    userId,
-                    eventId: createdEvent._id,
+                const participationsForEvent = uniqueParticipants.map((user) => ({
+                    user,
+                    event: createdEvent._id,
                 }));
                 allParticipations.push(...participationsForEvent);
             }
@@ -224,34 +231,30 @@ export const updateParticipants = async (req: Request, res: Response) => {
   session.startTransaction();
 
   try {
-    // 1️⃣ Načti aktuální participace
     const existing = await EventParticipation
-      .find({ eventId })
-      .select('userId')
+            .find({ event: eventId })
+      .select('user')
       .lean();
 
-    const existingIds = existing.map(p => p.userId.toString());
+    const existingIds = existing.map(p => p.user.toString());
     const newIds = participants.map((id: string) => id.toString());
 
-    // 2️⃣ Spočítej rozdíl
     const toAdd = newIds.filter(id => !existingIds.includes(id));
     const toRemove = existingIds.filter(id => !newIds.includes(id));
 
-    // 3️⃣ Přidání nových
     if (toAdd.length > 0) {
       await EventParticipation.insertMany(
-        toAdd.map(userId => ({
-          eventId,
-          userId
+        toAdd.map(user => ({
+                    event: eventId,
+          user
         })),
         { session }
       );
     }
 
-    // 4️⃣ Odebrání
     if (toRemove.length > 0) {
       await EventParticipation.deleteMany(
-        { eventId, userId: { $in: toRemove } },
+                { event: eventId, user: { $in: toRemove } },
         { session }
       );
     }

@@ -4,7 +4,7 @@ import { deleteSquadMember, getSquad, getSquadMembers, updateSquadMemberRoles } 
 import { SquadRole } from '@/utils/const';
 import { getCategoryLabel, getFullName, showErrorNotification, showSuccessNotification } from '@/utils/helpers';
 import { ActionIcon, Badge, Box, Button, Divider, Group, MultiSelect, Stack, Table, Text, Title } from '@mantine/core';
-import { IconPlus, IconTrash } from '@tabler/icons-react';
+import { IconPlus, IconTrash, IconUserPlus } from '@tabler/icons-react';
 import { useEffect, useState } from 'react';
 import SquadDrawer from '../drawers/SquadDrawer';
 
@@ -116,9 +116,9 @@ const SquadDetail = ({ squadId }: ISquadDetail) => {
 
           <Group justify="space-between" align="center">
             <Title order={5}>Členové soupisky</Title>
-            <Button variant="light" leftSection={<IconPlus size={16} />} onClick={() => setIsDrawerOpen(true)}>
-              Přidat člena
-            </Button>
+            <ActionIcon variant="light" color="blue" radius="xl" size={32} onClick={() => setIsDrawerOpen(true)}>
+              <IconUserPlus size={16} />
+            </ActionIcon>
           </Group>
 
           <Stack gap="xs">

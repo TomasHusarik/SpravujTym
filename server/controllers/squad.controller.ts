@@ -7,7 +7,10 @@ import ErrorMessages from "@utils/errorMessages";
 // GET /squad/get-squads - Get all squads
 export const getSquads = async (_req: Request, res: Response) => {
     try {
-        const squads = await Squad.find().populate('league').lean();
+        const squads = await Squad.find().populate({
+            path: 'memberships',
+            populate: { path: 'user' }
+        }).populate('league').lean();
         return res.status(200).json(squads);
     } catch (error) {
         return res.status(500).json({ error: ErrorMessages.internalServerError });
@@ -74,7 +77,7 @@ export const getSquadMembers = async (req: Request, res: Response) => {
 export const addSquadMembers = async (req: Request, res: Response) => {
     const squadId = req.params.squadId;
     const { userIds = [], roles = [] } = req.body;
-    
+
 
     if (!squadId || !Array.isArray(userIds) || !Array.isArray(roles)) {
         return res.status(400).json({ error: ErrorMessages.mandatoryField });
@@ -102,7 +105,7 @@ export const addSquadMembers = async (req: Request, res: Response) => {
         if (uniqueRoles.includes(SquadRole.Player)) {
             const otherPlayerMemberships = await SquadMembership.find({
                 user: { $in: uniqueUserIds },
-                squad: { $ne: squadId as string},
+                squad: { $ne: squadId as string },
                 roles: SquadRole.Player,
                 active: true,
             });

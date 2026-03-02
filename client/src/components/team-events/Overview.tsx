@@ -97,6 +97,7 @@ const Overview = () => {
                                                         size={6}
                                                         color={getEventColor(event.type)}
                                                         offset={-2}
+                                                        style={{zIndex: 1}}
                                                     >
                                                         <div>{day}</div>
                                                     </Indicator>

@@ -42,7 +42,7 @@ const TeamEventSchema = new mongoose.Schema<ITeamEvent>({
 TeamEventSchema.virtual('eventParticipations', {
   ref: 'EventParticipation',
   localField: '_id',
-  foreignField: 'eventId'
+    foreignField: 'event'
 });
 
 const TeamEvent = mongoose.model("TeamEvent", TeamEventSchema);

@@ -46,11 +46,11 @@ const UserSearch = () => {
                     <TextInput
                         radius="md"
                         size="md"
-                        placeholder="Search User"
+                        placeholder="Vyhledat uživatele..."
                         value={searchValue}
                         onChange={(e) => setSearchValue(e.target.value)}
                         rightSection={
-                            <Tooltip label="Create new user" withArrow>
+                            <Tooltip label="Vytvořit uživatele" withArrow>
                                 <ActionIcon size={32} radius="xl" variant="subtle" onClick={() => setIsDrawerOpen(true)} >
                                     <IconUserPlus stroke={1.5} />
                                 </ActionIcon>
