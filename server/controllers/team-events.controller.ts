@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import e, { Request, Response } from 'express';
 import ErrorMessages from '@utils/errorMessages';
 import TeamEvent from '@models/TeamEvent';
 import mongoose from 'mongoose';
@@ -94,7 +94,7 @@ export const updateParticapationStatus = async (req: Request, res: Response) => 
         return res.status(200).json({ message: 'Participation status updated' });
     } catch (error) {
         return res.status(500).json({ error: ErrorMessages.internalServerError });
-    } 
+    }
 };
 
 // POST /team-events/add-event - Create a new team event
@@ -220,53 +220,149 @@ export const addEvents = async (req: Request, res: Response) => {
 
 // PUT /team-events/:eventId/participants - Update participants of a team event
 export const updateParticipants = async (req: Request, res: Response) => {
-  const { eventId } = req.params;
-  const { participants } = req.body;
+    const { eventId } = req.params;
+    const { participants } = req.body;
 
-  if (!Array.isArray(participants)) {
-    return res.status(400).json({ error: "Participants must be an array" });
-  }
+    if (!Array.isArray(participants)) {
+        return res.status(400).json({ error: "Participants must be an array" });
+    }
 
-  const session = await mongoose.startSession();
-  session.startTransaction();
+    const session = await mongoose.startSession();
+    session.startTransaction();
 
-  try {
-    const existing = await EventParticipation
+    try {
+        const existing = await EventParticipation
             .find({ event: eventId })
-      .select('user')
-      .lean();
+            .select('user')
+            .lean();
 
-    const existingIds = existing.map(p => p.user.toString());
-    const newIds = participants.map((id: string) => id.toString());
+        const existingIds = existing.map(p => p.user.toString());
+        const newIds = participants.map((id: string) => id.toString());
 
-    const toAdd = newIds.filter(id => !existingIds.includes(id));
-    const toRemove = existingIds.filter(id => !newIds.includes(id));
+        const toAdd = newIds.filter(id => !existingIds.includes(id));
+        const toRemove = existingIds.filter(id => !newIds.includes(id));
 
-    if (toAdd.length > 0) {
-      await EventParticipation.insertMany(
-        toAdd.map(user => ({
+        if (toAdd.length > 0) {
+            await EventParticipation.insertMany(
+                toAdd.map(user => ({
                     event: eventId,
-          user
-        })),
-        { session }
-      );
-    }
+                    user
+                })),
+                { session }
+            );
+        }
 
-    if (toRemove.length > 0) {
-      await EventParticipation.deleteMany(
+        if (toRemove.length > 0) {
+            await EventParticipation.deleteMany(
                 { event: eventId, user: { $in: toRemove } },
-        { session }
-      );
+                { session }
+            );
+        }
+
+        await session.commitTransaction();
+        session.endSession();
+
+        return res.status(200).json({ message: "Participants updated" });
+
+    } catch (error) {
+        await session.abortTransaction();
+        session.endSession();
+        return res.status(500).json({ error: "Internal server error" });
+    }
+};
+
+// PUT /team-events/update-event/:eventId - Update team event details
+export const updateTeamEvent = async (req: Request, res: Response) => {
+    const eventId = req.params;
+    const { title, type, startDate, endDate, venue, participations } = req.body;
+
+    if (!eventId) {
+        return res.status(400).json({ error: ErrorMessages.mandatoryField });
     }
 
-    await session.commitTransaction();
-    session.endSession();
+    if (!title || !type || !startDate || !endDate) {
+        return res.status(400).json({ error: ErrorMessages.mandatoryField });
+    }
 
-    return res.status(200).json({ message: "Participants updated" });
+    const session = await mongoose.startSession();
+    session.startTransaction();
 
-  } catch (error) {
-    await session.abortTransaction();
-    session.endSession();
-    return res.status(500).json({ error: "Internal server error" });
-  }
-};
+    try {
+        const teamEvent = await TeamEvent.findById(eventId).session(session);
+
+        if (!teamEvent) {
+            await session.abortTransaction();
+            session.endSession();
+            return res.status(404).json({ error: ErrorMessages.notFound });
+        }
+
+        // Update fields
+        teamEvent.title = title;
+        teamEvent.type = type;
+        teamEvent.startDate = new Date(startDate);
+        teamEvent.endDate = new Date(endDate);
+        teamEvent.venue = venue;
+
+        await teamEvent.save({ session });
+
+        // Load participations
+        const existingParticipations = await EventParticipation.find({ event: eventId }).session(session);
+        const existingMap = new Map(
+            existingParticipations.map((p) => [
+                String(p.user),
+                p,
+            ])
+        );
+
+        const incomingMap = new Map(
+            participations.map((p: any) => [
+                String(p.userId),
+                p,
+            ])
+        );
+
+        // Update existing participations
+        for (const [userId, incoming] of incomingMap) {
+            const existing = existingMap.get(userId.toString());
+
+            if (existing) {
+                // Update status if changed
+                if (existing.status !== (incoming as any).status) {
+                    existing.status = (incoming as any).status;
+                    await existing.save({ session });
+                }
+            } else {
+                // Create new participation
+                await EventParticipation.create(
+                    [
+                        {
+                            event: eventId,
+                            user: userId,
+                            status: (incoming as any).status,
+                        },
+                    ],
+                    { session }
+                );
+            }
+        }
+
+        // Remove participations that are no longer present
+        for (const [userId, existing] of existingMap) {
+            if (!incomingMap.has(userId)) {
+                await EventParticipation.deleteOne(
+                    { _id: existing._id },
+                    { session }
+                );
+            }
+        }
+
+        await session.commitTransaction();
+        session.endSession();
+
+        return res.status(200).json({ message: "Team event updated" });
+    } catch (error) {
+        await session.abortTransaction();
+        session.endSession();
+        return res.status(500).json({ error: ErrorMessages.internalServerError });
+    }
+}

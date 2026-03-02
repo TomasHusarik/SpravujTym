@@ -1,7 +1,7 @@
-import { Drawer, Checkbox, Stack, Group, Text, Divider, ActionIcon, Collapse, Paper, TextInput, Button } from '@mantine/core';
+import { Drawer, Checkbox, Stack, Group, Text, Divider, ActionIcon, Collapse, Paper, TextInput, Button, Loader, Badge } from '@mantine/core';
 import { IconChevronDown, IconChevronRight } from '@tabler/icons-react';
 import { getFullName, showErrorNotification } from '@/utils/helpers';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { getSquads } from '@/utils/api';
 import type { User } from '@/types/User';
 import { get } from 'http';
@@ -13,55 +13,68 @@ interface IMembershipsDrawer {
     eventParticipations: EventParticipation[];
     isDrawerOpen: boolean;
     setIsDrawerOpen: (open: boolean) => void;
+    onSave: (users: User[]) => void;
 }
 
 const MembershipsDrawer = (props: IMembershipsDrawer) => {
-    const { isDrawerOpen, setIsDrawerOpen } = props;
+    const { eventParticipations, isDrawerOpen, setIsDrawerOpen, onSave } = props;
 
     const [squads, setSquads] = useState<Squad[]>([]);
-    const [filteredSquads, setFilteredSquads] = useState<Squad[]>([]);
-    const [loading, setLoading] = useState<Boolean>(false);
-    const [selectedMemberships, setSelectedMemberships] = useState<string[]>([]);
+    const [loading, setLoading] = useState(false);
+    const [selectedUsers, setSelectedUsers] = useState<User[]>([]);
     const [openSquads, setOpenSquads] = useState<string[]>([]);
-    const [search, setSearch] = useState('');
+    const [search, setSearch] = useState("");
+
+    const existingUserIds = useMemo(
+        () => eventParticipations.map((p) => p.user._id),
+        [eventParticipations]
+    );
 
     const loadData = async () => {
         setLoading(true);
         try {
-            const squads = await getSquads();
-            console.log('Loaded squads:', squads);
-            setSquads(squads);
+            const data = await getSquads();
+            setSquads(data);
         } catch (error) {
-            console.error('Error loading squads:', error);
-            showErrorNotification('Chyba při načítání soupisky');
+            showErrorNotification("Chyba při načítání soupisky");
         } finally {
             setLoading(false);
         }
     };
 
-    // Helper: get all member IDs for a squad
-    const getSquadMemberIds = (squad: Squad) => squad.memberships.map((p) => p._id);
-
-    // Handler: toggle squad selection
-    const handleSquadToggle = (squadId: string, memberIds: string[]) => {
-        const allSelected = memberIds.every((id) => selectedMemberships.includes(id));
-        if (allSelected) {
-            setSelectedMemberships(selectedMemberships.filter((id) => !memberIds.includes(id)));
-        } else {
-            setSelectedMemberships([...new Set([...selectedMemberships, ...memberIds])]);
+    useEffect(() => {
+        if (isDrawerOpen) {
+            loadData();
+            setSelectedUsers([]);
         }
+    }, [isDrawerOpen]);
+
+    const filteredSquads = useMemo(() => {
+        const normalizedSearch = search.trim().toLowerCase();
+
+        return squads
+            .map((squad) => {
+                const filteredMembers = (squad.memberships ?? []).filter((member) => {
+                    const isPlayer = member.roles?.includes('player');
+                    const fullName = getFullName(member.user).toLowerCase();
+                    return isPlayer && fullName.includes(normalizedSearch);
+                });
+
+                return { ...squad, memberships: filteredMembers };
+            })
+            .filter((squad) => squad.memberships.length > 0);
+    }, [squads, search]);
+
+    const handleMemberToggle = (user: User) => {
+        if (existingUserIds.includes(user._id)) return;
+
+        setSelectedUsers((prev) =>
+            prev.some((u) => u._id === user._id)
+                ? prev.filter((u) => u._id !== user._id)
+                : [...prev, user]
+        );
     };
 
-    // Handler: toggle individual member
-    const handleMemberToggle = (memberId: string) => {
-        if (selectedMemberships.includes(memberId)) {
-            setSelectedMemberships(selectedMemberships.filter((id) => id !== memberId));
-        } else {
-            setSelectedMemberships([...selectedMemberships, memberId]);
-        }
-    };
-
-    // Handler: toggle squad collapse
     const handleSquadCollapse = (squadId: string) => {
         setOpenSquads((prev) =>
             prev.includes(squadId)
@@ -70,37 +83,11 @@ const MembershipsDrawer = (props: IMembershipsDrawer) => {
         );
     };
 
-
-
-    const handleSave = async () => {
-        try {
-            setIsDrawerOpen(false);
-        } catch (error) {
-            console.error('Error saving memberships:', error);
-            showErrorNotification('Chyba při ukládání členů');
-        }
+    const handleSave = () => {
+        onSave(selectedUsers);
+        setSelectedUsers([]);
+        setIsDrawerOpen(false);
     };
-
-    // Filter squads and members based on search
-    useEffect(() => {
-        const normalizedSearch = search.trim().toLowerCase();
-
-        const filteredSquads = squads.map((squad: Squad) => {
-            const filteredMembers = (squad.memberships ?? []).filter((member) => {
-                const fullName = getFullName(member.user as User).toLowerCase();
-                const isPlayer = member.roles?.some((role) => role === SquadRole.PLAYER.value);
-                return isPlayer && fullName.includes(normalizedSearch);
-            });
-            return { ...squad, memberships: filteredMembers };
-        }).filter((squad: Squad) => squad.memberships.length > 0);
-
-        setFilteredSquads(filteredSquads);
-    }, [search, squads]);
-
-
-    useEffect(() => {
-        if (isDrawerOpen) loadData();
-    }, [isDrawerOpen]);
 
     return (
         <Drawer
@@ -117,58 +104,81 @@ const MembershipsDrawer = (props: IMembershipsDrawer) => {
                     value={search}
                     onChange={(e) => setSearch(e.currentTarget.value)}
                 />
+
                 {loading ? (
-                    <Text c="dimmed">Načítám...</Text>
+                    <Group justify="center">
+                        <Loader size="sm" />
+                    </Group>
                 ) : filteredSquads.length === 0 ? (
-                    <Text c="dimmed">Žádní hráči odpovídají hledání.</Text>
+                    <Text c="dimmed">Žádní hráči nenalezeni.</Text>
                 ) : (
-                    filteredSquads.map((squad: Squad) => {
-                        const memberIds = getSquadMemberIds(squad);
-                        const allSelected = memberIds.every((id) => selectedMemberships.includes(id));
-                        const someSelected = memberIds.some((id) => selectedMemberships.includes(id));
+                    filteredSquads.map((squad) => {
                         const isOpen = openSquads.includes(squad._id);
+
                         return (
                             <Paper key={squad._id} withBorder radius="md" p="xs">
                                 <Group justify="space-between">
                                     <Group>
-                                        <ActionIcon variant="subtle" onClick={() => handleSquadCollapse(squad._id)}>
-                                            {isOpen ? <IconChevronDown size={18} /> : <IconChevronRight size={18} />}
+                                        <ActionIcon
+                                            variant="subtle"
+                                            onClick={() => handleSquadCollapse(squad._id)}
+                                        >
+                                            {isOpen ? (
+                                                <IconChevronDown size={18} />
+                                            ) : (
+                                                <IconChevronRight size={18} />
+                                            )}
                                         </ActionIcon>
-                                        <Checkbox
-                                            checked={allSelected}
-                                            indeterminate={!allSelected && someSelected}
-                                            label={<Text fw={500}>{squad.name}</Text>}
-                                            onChange={() => handleSquadToggle(squad._id, memberIds)}
-                                        />
+                                        <Text fw={500}>{squad.name}</Text>
                                     </Group>
                                 </Group>
-                                <Collapse in={isOpen} transitionDuration={150}>
+
+                                <Collapse in={isOpen}>
                                     <Divider my={4} />
-                                    <Stack gap={2} pl={24}>
-                                        {squad.memberships.map((member) => (
-                                            <Checkbox
-                                                key={member.user._id}
-                                                checked={selectedMemberships.includes(member.user._id)}
-                                                label={getFullName(member.user)}
-                                                onChange={() => handleMemberToggle(member.user._id)}
-                                            />
-                                        ))}
+                                    <Stack gap={4} pl={24}>
+                                        {squad.memberships.map((member) => {
+                                            const user = member.user as User;
+                                            const userId = user._id;
+
+                                            const isExisting = existingUserIds.includes(userId);
+                                            const isSelected = selectedUsers.some(u => u._id === userId);
+
+                                            return (
+                                                <Checkbox
+                                                    key={userId}
+                                                    checked={isExisting || isSelected}
+                                                    disabled={isExisting}
+                                                    label={
+                                                        <Group gap={6}>
+                                                            <Text>{getFullName(user)}</Text>
+                                                            {isExisting && (
+                                                                <Badge size="xs" variant="light" color="gray">
+                                                                    již přidán
+                                                                </Badge>
+                                                            )}
+                                                        </Group>
+                                                    }
+                                                    onChange={() => handleMemberToggle(user)}
+                                                />
+                                            );
+                                        })}
                                     </Stack>
                                 </Collapse>
                             </Paper>
                         );
                     })
                 )}
+
                 <Button
                     fullWidth
-                    onClick={() => handleSave()}
-                    disabled={selectedMemberships.length === 0}
+                    onClick={handleSave}
+                    disabled={selectedUsers.length === 0}
                 >
                     Přidat vybrané hráče
                 </Button>
             </Stack>
         </Drawer>
     );
-}
+};
 
-export default MembershipsDrawer
+export default MembershipsDrawer;

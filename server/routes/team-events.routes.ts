@@ -1,5 +1,5 @@
 import express from 'express';
-import { addEvent, addEvents, getParticipantEvents, getTeamEventById, updateParticapationStatus } from '@controllers/team-events.controller';
+import { addEvent, addEvents, getParticipantEvents, getTeamEventById, updateParticapationStatus, updateTeamEvent } from '@controllers/team-events.controller';
 import { authMiddleware } from '@middleware/auth.middleware';
 import { requireCanCreateEvent } from '@middleware/permission.rules';
 
@@ -21,5 +21,8 @@ router.post('/add-events', requireCanCreateEvent, addEvents);
 
 // PUT /team-event/update-participation-status - Update participation status
 router.post('/update-participation-status', updateParticapationStatus);
+
+// PUT /team-event/update-event/:id - Update team event by ID
+router.put('/update-event/:_id', requireCanCreateEvent, updateTeamEvent);
 
 export default router;

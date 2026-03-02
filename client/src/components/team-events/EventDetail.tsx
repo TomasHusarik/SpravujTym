@@ -1,13 +1,14 @@
 import type { Venue } from '@/types/Venue';
-import { getTeamEvent, getVenues } from '@/utils/api';
+import { getTeamEvent, getVenues, updateTeamEvent } from '@/utils/api';
 import { EventType, ParticipationStatus } from '@/utils/const';
-import { combinateDateAndTime, getFullName, getParticipationStatusColor, validateFutureDate, validateString } from '@/utils/helpers';
-import { ActionIcon, Badge, Button, Card, Group, Indicator, Paper, Select, SimpleGrid, Stack, Table, Text, TextInput, Title, Tooltip } from '@mantine/core';
+import { combinateDateAndTime, formatDate, getFullName, getParticipationStatusColor, showErrorNotification, showSuccessNotification, validateFutureDate, validateString } from '@/utils/helpers';
+import { ActionIcon, Badge, Button, Card, Divider, Drawer, Group, Indicator, Paper, Select, SimpleGrid, Stack, Table, Text, TextInput, Title, Tooltip } from '@mantine/core';
 import { DatePickerInput, TimePicker } from '@mantine/dates';
 import { useForm } from '@mantine/form';
 import { IconCalendar, IconClockHour1, IconDeviceFloppy, IconMapPin, IconPencil, IconPlus, IconTrash, IconUser, IconUserPlus } from '@tabler/icons-react';
 import { useEffect, useState } from 'react';
 import MembershipsDrawer from '../drawers/MembershipsDrawer';
+import type { User } from '@/types/User';
 
 interface IEventDetail {
     eventId: string;
@@ -42,27 +43,71 @@ const EventDetail = (props: IEventDetail) => {
         },
     });
 
-    const handleDelete = async (participationId: string) => {
-        // Implementace mazání účastníka z události
-        // Po úspěšném smazání načíst znovu data události, aby se aktualizoval seznam účastníků
+    const handleDelete = (userId: string) => {
+        const filtered = form.values.eventParticipations.filter(
+            (p) => p.user._id !== userId
+        );
+        form.setFieldValue("eventParticipations", filtered);
+    };
+
+    const handleParticipantsAdd = (newUsers: User[]) => {
+        const existing = form.values.eventParticipations;
+
+        const newParticipations = newUsers.map((user) => ({
+            tempId: crypto.randomUUID(),   // temporary id for frontend management
+            user,
+            status: ParticipationStatus.PENDING.value,
+        }));
+
+        form.setFieldValue("eventParticipations", [
+            ...existing,
+            ...newParticipations,
+        ]);
     };
 
     const handleSave = async (values: typeof form.values) => {
-        const { startTime, endTime, date, ...restValues } = values;
+        setIsSaving(true);
+
+        const startDate = combinateDateAndTime(values.date, values.startTime);
+        const endDate = combinateDateAndTime(values.date, values.endTime);
 
         const payload = {
-            ...restValues,
-            startDate: combinateDateAndTime(values.date, startTime),
-            endDate: combinateDateAndTime(values.date, endTime),
+            title: values.title,
+            type: values.type,
+            startDate,
+            endDate,
+            venue: values.venue?._id ?? null,
+            participations: values.eventParticipations.map((p) => ({
+                userId: p.user._id,
+                status: p.status,
+            })),
         };
 
-        setIsSaving(true);
+        console.log('Payload pro uložení události:', payload);
+        try {
+            if (values._id) {
+                await updateTeamEvent(values._id, payload);
+                showSuccessNotification('Událost úspěšně aktualizována');
+            } else {
+                // await createTeamEvent(payload);
+                showSuccessNotification('Událost úspěšně vytvořena');
+            }
+        } catch (error) {
+            console.error('Error saving event data:', error);
+            showErrorNotification('Chyba při ukládání události');
+        } finally {
+            setIsSaving(false);
+            setEditMode(false);
+            loadData();
+        }
     };
 
     const loadData = async () => {
         try {
             const event = await getTeamEvent(eventId);
             const venues = await getVenues();
+
+            console.log('Načtená data události:', event);
 
             // Pre-fill form with existing event data
             const start = new Date(event.startDate);
@@ -97,6 +142,8 @@ const EventDetail = (props: IEventDetail) => {
                                 <Text size="sm" c="dimmed">Informace o události a účásti</Text>
                             </div>
                         </Group>
+
+                        <Divider />
 
                         <SimpleGrid cols={{ base: 1, md: 2 }} spacing="md">
                             <TextInput
@@ -147,10 +194,7 @@ const EventDetail = (props: IEventDetail) => {
                                 value={form.values.venue?._id || null}
                                 onChange={(value) => {
                                     const selectedVenue = venues.find((venue) => venue._id === value);
-                                    form.setFieldValue(
-                                        'venue',
-                                        selectedVenue ? { _id: selectedVenue._id, name: selectedVenue.name } : null
-                                    );
+                                    form.setFieldValue('venue', selectedVenue ? { _id: selectedVenue._id, name: selectedVenue.name } : null);
                                 }}
                                 error={form.errors.venue}
                                 readOnly={!editMode}
@@ -207,7 +251,7 @@ const EventDetail = (props: IEventDetail) => {
                                         </Table.Thead>
                                         <Table.Tbody>
                                             {form.values.eventParticipations.map((part) => (
-                                                <Table.Tr key={part._id}>
+                                                <Table.Tr key={part.user._id}>
                                                     <Table.Td>
                                                         <Indicator
                                                             color={getParticipationStatusColor(part.status)}
@@ -222,7 +266,15 @@ const EventDetail = (props: IEventDetail) => {
                                                                 <Select
                                                                     data={Object.values(ParticipationStatus)}
                                                                     value={part.status || ''}
+                                                                    onChange={(value) => {
+                                                                        const updated = form.values.eventParticipations.map((p) =>
+                                                                            p.user._id === part.user._id
+                                                                                ? { ...p, status: value || '' }
+                                                                                : p
+                                                                        );
 
+                                                                        form.setFieldValue('eventParticipations', updated);
+                                                                    }}
                                                                     clearable={false}
                                                                     searchable={false}
                                                                     w={200}
@@ -234,13 +286,13 @@ const EventDetail = (props: IEventDetail) => {
                                                         )}
                                                     </Table.Td>
                                                     <Table.Td>
-                                                        {editMode &&
 
+                                                        {editMode ?
                                                             <Tooltip label="Odstranit" withArrow>
-                                                                <ActionIcon size={32} radius="xl" variant="subtle" onClick={(e) => { e.stopPropagation(); handleDelete(part._id); }}>
+                                                                <ActionIcon size={32} radius="xl" variant="subtle" onClick={(e) => { e.stopPropagation(); handleDelete(part.user._id); }}>
                                                                     <IconTrash size={20} />
                                                                 </ActionIcon>
-                                                            </Tooltip>
+                                                            </Tooltip> : formatDate(new Date(part.createdAt))
                                                         }
                                                     </Table.Td>
                                                 </Table.Tr>
@@ -252,7 +304,7 @@ const EventDetail = (props: IEventDetail) => {
                         </Card>
 
                         <Group justify="space-between">
-                             <Button
+                            <Button
                                 variant="light"
                                 radius="md"
                                 onClick={() => setEditMode(!editMode)}
@@ -260,20 +312,22 @@ const EventDetail = (props: IEventDetail) => {
                             >
                                 {editMode ? 'Zrušit' : 'Upravit'}
                             </Button>
-                            <Button
-                                type="submit"
-                                variant="light"
-                                radius="md"
-                                loading={isSaving}
-                                leftSection={<IconDeviceFloppy stroke={1.5} size={20} />}
-                            >
-                                Save
-                            </Button>
+                            {editMode && (
+                                <Button
+                                    type="submit"
+                                    variant="light"
+                                    radius="md"
+                                    loading={isSaving}
+                                    leftSection={<IconDeviceFloppy stroke={1.5} size={20} />}
+                                >
+                                    Save
+                                </Button>
+                            )}
                         </Group>
                     </Stack>
                 </Paper >
             </form >
-            <MembershipsDrawer isDrawerOpen={isDrawerOpen} setIsDrawerOpen={setIsDrawerOpen} eventParticipations={form.values.eventParticipations}/>
+            <MembershipsDrawer isDrawerOpen={isDrawerOpen} setIsDrawerOpen={setIsDrawerOpen} eventParticipations={form.values.eventParticipations} onSave={handleParticipantsAdd} />
         </>
     );
 };

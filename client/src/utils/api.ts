@@ -179,6 +179,18 @@ export const updateParticipationStatus = async (eventId: string, newStatus: stri
     }
 }
 
+export const updateTeamEvent = async (eventId: string, eventData: any) => {
+    try {
+        const response = await api.put(`/team-event/update-event/${eventId}`, eventData);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            throw new Error(error.response?.data?.error || 'Failed to update team event');
+        }
+        throw error;
+    }
+}
+
 // #region User APIs
 export const updatePassword = async (values: any) => {
     try {
