@@ -31,7 +31,7 @@ const App = () => {
         header={isAuthenticated ? { height: { base: 50, sm: 100 } } : undefined}
         footer={isAuthenticated ? { height: 80 } : undefined}
       >
-        {isAuthenticated  && (
+        {isAuthenticated && (
           <AppShell.Header>
             <Header />
           </AppShell.Header>
@@ -54,7 +54,10 @@ const App = () => {
                   <Route path="/squad/:id" element={requireAuth(<SquadPage />)} />
                   <Route path="/calendar" element={requireAuth(<CalendarPage />)} />
                   <Route path="/user/:id" element={requireAuth(<UserPage />)} />
-                  <Route path="/event-detail/:id" element={requireAuth(<EventDetailPage />)} />
+                  <Route element={requireAuth(<EventDetailPage />)}>
+                    <Route path="/event-detail" element={<EventDetailPage />} />
+                    <Route path="/event-detail/:id" element={<EventDetailPage />} />
+                  </Route>
                   <Route path="/users" element={requireAuth(<UsersPage />)} />
                 </>
               )

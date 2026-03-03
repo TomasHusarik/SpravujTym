@@ -14,6 +14,7 @@ export const getTeamEventById = async (req: Request, res: Response) => {
                 populate: { path: 'user' }
             })
             .populate('venue', 'name')
+            .populate('squads', 'name')
             .lean();
 
         if (!teamEvent) {
@@ -97,13 +98,12 @@ export const updateParticapationStatus = async (req: Request, res: Response) => 
     }
 };
 
-// POST /team-events/add-event - Create a new team event
-export const addEvent = async (req: Request, res: Response) => {
-    const { title, type, startDate, endDate, venue, participants } = req.body;
+// POST /team-event/create-team-event - Create a new team event
+export const createTeamEvent = async (req: Request, res: Response) => {
+    const { title, type, startDate, endDate, venue, participations, squads } = req.body;
 
-    // Input validation
     if (!title || !type || !startDate || !endDate) {
-        return res.status(400).json({ error: ErrorMessages.teamEventFieldsRequired });
+        return res.status(400).json({ error: ErrorMessages.mandatoryField });
     }
 
     const session = await mongoose.startSession();
@@ -113,46 +113,50 @@ export const addEvent = async (req: Request, res: Response) => {
         const userId = req.loggedUser?._id.toString();
 
         if (!userId) {
+            await session.abortTransaction();
+            session.endSession();
             return res.status(401).json({ error: ErrorMessages.notAuthenticated });
         }
 
-        const newTeamEvent = new TeamEvent({
-            title,
-            type,
-            startDate,
-            endDate,
-            createdBy: userId,
-            venue
-        });
-        await newTeamEvent.save({ session });
+        const newTeamEvent = await TeamEvent.create(
+            [
+                {
+                    title,
+                    type,
+                    startDate,
+                    endDate,
+                    createdBy: userId,
+                    venue,
+                    squads
+                },
+            ],
+            { session }
+        );
 
-        if (Array.isArray(participants) && participants.length > 0) {
-            const uniqueParticipants = [...new Set(participants)];
-
-            const newParticipations = uniqueParticipants.map((participantId) => ({
-                user: participantId,
-                event: newTeamEvent._id,
+        if (Array.isArray(participations) && participations.length > 0) {
+            const participationDocs = participations.map((p: any) => ({
+                event: newTeamEvent[0]._id,
+                user: p.userId,
+                status: p.status || 'pending',
             }));
-
-            await EventParticipation.insertMany(newParticipations, { session });
+            await EventParticipation.insertMany(participationDocs, { session });
         }
 
         await session.commitTransaction();
         session.endSession();
 
-        return res.status(201).json({ event: newTeamEvent });
+        return res.status(201).json({ eventId: newTeamEvent[0]._id });
     } catch (error) {
         await session.abortTransaction();
         session.endSession();
-
         return res.status(500).json({ error: ErrorMessages.internalServerError });
     }
-}
+};
 
 // POST /team-events/add-events - Create multiple team events
 export const addEvents = async (req: Request, res: Response) => {
     const events = req.body;
-    const userId = req.loggedUser?._id.toString() || "699ecd6c9a3aebfee8e290f6";
+    const userId = req.loggedUser?._id.toString();
 
     if (!userId) {
         return res.status(401).json({ error: ErrorMessages.notAuthenticated });
@@ -274,7 +278,7 @@ export const updateParticipants = async (req: Request, res: Response) => {
 // PUT /team-events/update-event/:eventId - Update team event details
 export const updateTeamEvent = async (req: Request, res: Response) => {
     const eventId = req.params;
-    const { title, type, startDate, endDate, venue, participations } = req.body;
+    const { title, type, startDate, endDate, venue, participations, squads } = req.body;
 
     if (!eventId) {
         return res.status(400).json({ error: ErrorMessages.mandatoryField });
@@ -302,6 +306,7 @@ export const updateTeamEvent = async (req: Request, res: Response) => {
         teamEvent.startDate = new Date(startDate);
         teamEvent.endDate = new Date(endDate);
         teamEvent.venue = venue;
+        teamEvent.squads = squads;
 
         await teamEvent.save({ session });
 

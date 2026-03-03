@@ -4,9 +4,7 @@ import { getFullName, showErrorNotification } from '@/utils/helpers';
 import React, { useEffect, useMemo, useState } from 'react';
 import { getSquads } from '@/utils/api';
 import type { User } from '@/types/User';
-import { get } from 'http';
 import type { Squad } from '@/types/Squad';
-import { SquadRole } from '@/utils/const';
 import type { EventParticipation } from '@/types/EventParticipation';
 
 interface IMembershipsDrawer {
@@ -75,6 +73,29 @@ const MembershipsDrawer = (props: IMembershipsDrawer) => {
         );
     };
 
+    const handleSquadToggle = (users: User[]) => {
+        if (users.length === 0) return;
+
+        setSelectedUsers((prev) => {
+            const allSelected = users.every((user) =>
+                prev.some((selected) => selected._id === user._id)
+            );
+
+            if (allSelected) {
+                const userIds = new Set(users.map((user) => user._id));
+                return prev.filter((user) => !userIds.has(user._id));
+            }
+
+            const mergedUsers = [...prev, ...users];
+            return Object.values(
+                mergedUsers.reduce<Record<string, User>>((acc, user) => {
+                    acc[user._id] = user;
+                    return acc;
+                }, {})
+            );
+        });
+    };
+
     const handleSquadCollapse = (squadId: string) => {
         setOpenSquads((prev) =>
             prev.includes(squadId)
@@ -114,6 +135,20 @@ const MembershipsDrawer = (props: IMembershipsDrawer) => {
                 ) : (
                     filteredSquads.map((squad) => {
                         const isOpen = openSquads.includes(squad._id);
+                        const squadUsers = (squad.memberships ?? [])
+                            .map((member) => member.user as User)
+                            .filter((user): user is User => Boolean(user?._id));
+                        const selectableUsers = squadUsers.filter(
+                            (user) => !existingUserIds.includes(user._id)
+                        );
+                        const selectedInSquadCount = selectableUsers.filter((user) =>
+                            selectedUsers.some((selected) => selected._id === user._id)
+                        ).length;
+                        const allSelected =
+                            selectableUsers.length > 0 &&
+                            selectedInSquadCount === selectableUsers.length;
+                        const someSelected =
+                            selectedInSquadCount > 0 && !allSelected;
 
                         return (
                             <Paper key={squad._id} withBorder radius="md" p="xs">
@@ -131,6 +166,14 @@ const MembershipsDrawer = (props: IMembershipsDrawer) => {
                                         </ActionIcon>
                                         <Text fw={500}>{squad.name}</Text>
                                     </Group>
+                                    <Checkbox
+                                        size="xs"
+                                        label="Vše"
+                                        checked={allSelected}
+                                        indeterminate={someSelected}
+                                        disabled={selectableUsers.length === 0}
+                                        onChange={() => handleSquadToggle(selectableUsers)}
+                                    />
                                 </Group>
 
                                 <Collapse in={isOpen}>

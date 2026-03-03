@@ -167,6 +167,18 @@ export const getParticipantTeamEvents = async () => {
     }
 };
 
+export const createTeamEvent = async (eventData: any) => {
+    try {
+        const response = await api.post('/team-event/create-team-event', eventData);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            throw new Error(error.response?.data?.error || 'Failed to create team event');
+        }
+        throw error;
+    }
+};
+
 export const updateParticipationStatus = async (eventId: string, newStatus: string) => {
     try {
         const response = await api.post('/team-event/update-participation-status', {

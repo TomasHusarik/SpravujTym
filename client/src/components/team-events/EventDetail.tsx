@@ -1,26 +1,30 @@
 import type { Venue } from '@/types/Venue';
-import { getTeamEvent, getVenues, updateTeamEvent } from '@/utils/api';
+import { createTeamEvent, getSquads, getTeamEvent, getVenues, updateTeamEvent } from '@/utils/api';
 import { EventType, ParticipationStatus } from '@/utils/const';
 import { combinateDateAndTime, formatDate, getFullName, getParticipationStatusColor, showErrorNotification, showSuccessNotification, validateFutureDate, validateString } from '@/utils/helpers';
-import { ActionIcon, Badge, Button, Card, Divider, Drawer, Group, Indicator, Paper, Select, SimpleGrid, Stack, Table, Text, TextInput, Title, Tooltip } from '@mantine/core';
+import { ActionIcon, Badge, Button, Card, Divider, Drawer, Group, Indicator, MultiSelect, Paper, Select, SimpleGrid, Stack, Table, Text, TextInput, Title, Tooltip } from '@mantine/core';
 import { DatePickerInput, TimePicker } from '@mantine/dates';
 import { useForm } from '@mantine/form';
 import { IconCalendar, IconClockHour1, IconDeviceFloppy, IconMapPin, IconPencil, IconPlus, IconTrash, IconUser, IconUserPlus } from '@tabler/icons-react';
 import { useEffect, useState } from 'react';
 import MembershipsDrawer from '../drawers/MembershipsDrawer';
 import type { User } from '@/types/User';
+import { useNavigate } from 'react-router';
+import type { Squad } from '@/types/Squad';
 
 interface IEventDetail {
-    eventId: string;
+    eventId?: string;
 }
 
 const EventDetail = (props: IEventDetail) => {
     const { eventId } = props;
+    const navigate = useNavigate();
 
     const [isSaving, setIsSaving] = useState(false);
     const [venues, setVenues] = useState<Venue[]>([]);
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const [editMode, setEditMode] = useState(false);
+    const [squads, setSquads] = useState<Squad[]>([]);
 
     const form = useForm({
         initialValues: {
@@ -32,6 +36,7 @@ const EventDetail = (props: IEventDetail) => {
             endTime: '',
             venue: null,
             eventParticipations: [],
+            squads: [],
         },
 
         validate: {
@@ -81,16 +86,18 @@ const EventDetail = (props: IEventDetail) => {
                 userId: p.user._id,
                 status: p.status,
             })),
+            squads: values.squads.map((s) => s._id),
         };
+        console.log('Payload for saving:', payload);
 
-        console.log('Payload pro uložení události:', payload);
         try {
             if (values._id) {
                 await updateTeamEvent(values._id, payload);
                 showSuccessNotification('Událost úspěšně aktualizována');
             } else {
-                // await createTeamEvent(payload);
+                const response = await createTeamEvent(payload);
                 showSuccessNotification('Událost úspěšně vytvořena');
+                navigate(`/event-detail/${response.eventId}`);
             }
         } catch (error) {
             console.error('Error saving event data:', error);
@@ -98,16 +105,13 @@ const EventDetail = (props: IEventDetail) => {
         } finally {
             setIsSaving(false);
             setEditMode(false);
-            loadData();
         }
     };
 
     const loadData = async () => {
         try {
             const event = await getTeamEvent(eventId);
-            const venues = await getVenues();
-
-            console.log('Načtená data události:', event);
+            console.log('Loaded event data:', event);
 
             // Pre-fill form with existing event data
             const start = new Date(event.startDate);
@@ -119,17 +123,32 @@ const EventDetail = (props: IEventDetail) => {
                 startTime: start.toTimeString().slice(0, 5),
                 endTime: end.toTimeString().slice(0, 5),
                 venue: event.venue ? { _id: event.venue._id, name: event.venue.name } : null,
+                squads: event.squads || [],
                 eventParticipations: event.eventParticipations || [],
             });
-            setVenues(venues);
+            loadVenuesAndSquads();
         } catch (error) {
             console.error('Error loading event data:', error);
         }
     };
 
+    const loadVenuesAndSquads = async () => {
+        try {
+            const [venues, squads] = await Promise.all([getVenues(), getSquads()]);
+            setVenues(venues);
+            setSquads(squads);
+        } catch (error) {
+            console.error('Error loading venues:', error);
+        }
+    };
+
     useEffect(() => {
-        loadData();
-    }, []);
+        if (eventId) {
+            loadData();
+        } else {
+            loadVenuesAndSquads();
+        }
+    }, [eventId]);
 
     return (
         <>
@@ -183,22 +202,7 @@ const EventDetail = (props: IEventDetail) => {
                                 readOnly={!editMode}
                             />
 
-                            <Select
-                                label="Hala"
-                                placeholder="Venue"
-                                leftSection={<IconMapPin size={16} />}
-                                radius="md"
-                                required
-                                searchable
-                                data={venues.map((venue) => ({ value: venue._id, label: venue.name }))}
-                                value={form.values.venue?._id || null}
-                                onChange={(value) => {
-                                    const selectedVenue = venues.find((venue) => venue._id === value);
-                                    form.setFieldValue('venue', selectedVenue ? { _id: selectedVenue._id, name: selectedVenue.name } : null);
-                                }}
-                                error={form.errors.venue}
-                                readOnly={!editMode}
-                            />
+                            { /* TODO: Opakovat každý týden, každé 2 týdny atd. (pokud se bude implementovat) */}
                         </SimpleGrid>
 
                         <SimpleGrid cols={{ base: 1, md: 2 }} spacing="md">
@@ -220,6 +224,37 @@ const EventDetail = (props: IEventDetail) => {
                                 value={form.values.endTime}
                                 onChange={(time) => form.setFieldValue('endTime', time)}
                                 error={form.errors.endTime}
+                                readOnly={!editMode}
+                            />
+                            <MultiSelect
+                                label="Celky"
+                                placeholder="Celky"
+                                radius="md"
+                                required
+                                data={squads.map((squad) => ({ value: squad._id, label: squad.name }))}
+                                value={form.values.squads.map((s) => s._id || '')}
+                                onChange={(values) => {
+                                    const selectedSquads = squads.filter((squad) => values.includes(squad._id));
+                                    form.setFieldValue('squads', selectedSquads);
+                                }}
+                                error={form.errors.squads}
+                                readOnly={!editMode}
+                            />
+
+                            <Select
+                                label="Hala"
+                                placeholder="Venue"
+                                leftSection={<IconMapPin size={16} />}
+                                radius="md"
+                                required
+                                searchable
+                                data={venues.map((venue) => ({ value: venue._id, label: venue.name }))}
+                                value={form.values.venue?._id || null}
+                                onChange={(value) => {
+                                    const selectedVenue = venues.find((venue) => venue._id === value);
+                                    form.setFieldValue('venue', selectedVenue ? { _id: selectedVenue._id, name: selectedVenue.name } : null);
+                                }}
+                                error={form.errors.venue}
                                 readOnly={!editMode}
                             />
                         </SimpleGrid>

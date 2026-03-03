@@ -10,6 +10,7 @@ import EventsTable from './EventsTable';
 import { getParticipantTeamEvents, updateParticipationStatus } from '@/utils/api';
 import { permission } from 'process';
 import { useApp } from '@/context/AppContext';
+import { useNavigate } from 'react-router';
 
 // Skončené a neskončené události
 const statusOptions = [
@@ -18,10 +19,10 @@ const statusOptions = [
 ] as const;
 
 const Overview = () => {
-    const { permissions } = useApp();
     const [teamEvents, setTeamEvents] = useState<TeamEvent[]>([]);
     const [filteredTeamEvents, setFilterdTeamEvents] = useState<TeamEvent[]>([]);
     const [selectedStatus, setSelectedStatus] = useState<string>('upcoming');
+    const navigate = useNavigate();
 
     const isEventUpcoming = (date: Date): boolean => date >= new Date();
 
@@ -114,7 +115,7 @@ const Overview = () => {
 
                     <Grid.Col span={12}>
                         <Group justify="center">
-                            <Button variant="filled">Vytvořit novou událost</Button>
+                            <Button variant="filled" onClick={() => navigate('/event-detail')}>Vytvořit novou událost</Button>
                         </Group>
                     </Grid.Col>
                 </Grid>
