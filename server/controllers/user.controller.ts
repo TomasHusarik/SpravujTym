@@ -27,8 +27,10 @@ export const getUser = async (req: Request, res: Response) => {
 
 // GET /user/get-users - Get all users
 export const getUsers = async (req: Request, res: Response) => {
+    const showInactive = req.query.showInactive === 'true';
+
     try {
-        const users = await User.find({ new: false }).select('-password').lean();
+        const users = await User.find({ new: false, active: !showInactive}).select('-password').lean();
         return res.status(200).json(users);
     } catch (error) {
         return res.status(500).json({ error: ErrorMessages.internalServerError });
@@ -69,6 +71,10 @@ export const updateUser = async (req: Request, res: Response) => {
         await user.save();
 
         const { password: _, ...userData } = user.toObject();
+
+        if (updateData.active === false) {
+            await SquadMembership.deleteMany({ user: user._id });
+        }
 
         return res.status(200).json(userData);
     } catch (error) {
@@ -276,6 +282,32 @@ export const getPermissions = async (req: Request, res: Response) => {
 
         const permissions = await resolveUserPermissions(userId.toString());
         return res.status(200).json(permissions);
+    } catch (error) {
+        return res.status(500).json({ error: ErrorMessages.internalServerError });
+    }
+};
+
+// DELETE /user/delete-user/:id - Soft delete user by ID
+export const deleteUser = async (req: Request, res: Response) => {
+    const userId = req.params.userId;
+
+    if (!userId) {
+        return res.status(400).json({ error: ErrorMessages.mandatoryField });
+    }
+
+    try {
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ error: ErrorMessages.notFound });
+        }
+
+        user.active = false;
+        await user.save();
+
+        await SquadMembership.deleteMany({ user: user._id });
+
+
+        return res.status(200).json({ message: 'User deactivated successfully' });
     } catch (error) {
         return res.status(500).json({ error: ErrorMessages.internalServerError });
     }

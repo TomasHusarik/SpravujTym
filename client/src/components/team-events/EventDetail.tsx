@@ -1,5 +1,5 @@
 import type { Venue } from '@/types/Venue';
-import { createTeamEvent, getSquads, getTeamEvent, getVenues, updateTeamEvent } from '@/utils/api';
+import { createTeamEvent, deleteTeamEvent, getSquads, getTeamEvent, getVenues, updateTeamEvent } from '@/utils/api';
 import { EventType, ParticipationStatus } from '@/utils/const';
 import { combinateDateAndTime, formatDate, getFullName, getParticipationStatusColor, showErrorNotification, showSuccessNotification, validateFutureDate, validateString } from '@/utils/helpers';
 import { ActionIcon, Badge, Button, Card, Divider, Drawer, Group, Indicator, MultiSelect, Paper, Select, SimpleGrid, Stack, Table, Text, TextInput, Title, Tooltip } from '@mantine/core';
@@ -53,6 +53,25 @@ const EventDetail = (props: IEventDetail) => {
             (p) => p.user._id !== userId
         );
         form.setFieldValue("eventParticipations", filtered);
+    };
+
+    const handleEventDelete = async () => {
+        if (!eventId) return;
+
+        const confirmed = window.confirm(
+            'Opravdu chcete smazat tuto událost?\n\nTuto akci nelze vrátit zpět.'
+        );
+
+        if (!confirmed) return;
+
+        try {
+            await deleteTeamEvent(eventId);
+            showSuccessNotification('Událost byla úspěšně smazána');
+            navigate('/overview');
+        } catch (error) {
+            console.error('Error deleting event:', error);
+            showErrorNotification('Chyba při mazání události');
+        }
     };
 
     const handleParticipantsAdd = (newUsers: User[]) => {
@@ -160,6 +179,9 @@ const EventDetail = (props: IEventDetail) => {
                                 <Title order={2}>Detail události</Title>
                                 <Text size="sm" c="dimmed">Informace o události a účásti</Text>
                             </div>
+                            {editMode && eventId && (
+                                <Button variant="light" onClick={() => handleEventDelete()}>Smazat Event</Button>
+                            )}
                         </Group>
 
                         <Divider />
@@ -291,6 +313,7 @@ const EventDetail = (props: IEventDetail) => {
                                                         <Indicator
                                                             color={getParticipationStatusColor(part.status)}
                                                             size={8}
+                                                            style={{ zIndex: 1 }}
                                                         />
                                                     </Table.Td>
                                                     <Table.Td>{getFullName(part.user)}</Table.Td>

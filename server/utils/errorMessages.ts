@@ -25,6 +25,8 @@ const ErrorMessages = {
     eventsArrayRequired: 'Events must be a non-empty array',
     teamEventFieldsRequired: 'Title, type, startDate and endDate are required',
     serverError: 'A server error occurred. Please try again later.',
+    InvalidDateRange: 'Invalid date range: endDate must be after startDate',
+    invalidDate: 'Invalid date format',
 };
 
 export default ErrorMessages;

@@ -1,5 +1,6 @@
 import type { User } from '@/types/User';
-import { formatDate, getFullName } from '@/utils/helpers';
+import { deleteUser } from '@/utils/api';
+import { formatDate, getFullName, showErrorNotification, showSuccessNotification } from '@/utils/helpers';
 import { ActionIcon, NumberInput, Pagination, Table } from '@mantine/core';
 import { useDebouncedValue } from '@mantine/hooks';
 import { IconTrash } from '@tabler/icons-react';
@@ -14,15 +15,28 @@ interface IUsersTable {
 const UsersTable = (props: IUsersTable) => {
     const { filteredUsers, loadData } = props;
 
-    const navigate = useNavigate(); 
+    const navigate = useNavigate();
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
     // debounce pageSize so table recalculation happens after user stops changing the input
     const [debouncedPageSize] = useDebouncedValue(pageSize, 700);
 
     const handleDelete = async (userId: string) => {
-        // implement delete user functionality here, e.g. call API to delete user and then reload data
-        console.log('Delete user with id:', userId);
+        const confirmed = window.confirm(
+            'Opravdu chcete smazat tohoto uživatele?\n\nTuto akci nelze vrátit zpět.'
+        );
+
+        if (!confirmed) return;
+
+        try {
+            await deleteUser(userId);
+            showSuccessNotification('Uživatel byl úspěšně smazán');
+        } catch (error) {
+            console.error('Error deleting user:', error);
+            showErrorNotification('Chyba při mazání uživatele');
+        } finally {
+            loadData();
+        }
     };
 
     const totalPages = Math.max(1, Math.ceil(filteredUsers.length / debouncedPageSize));

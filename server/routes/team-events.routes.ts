@@ -1,5 +1,5 @@
 import express from 'express';
-import { addEvents, createTeamEvent, getParticipantEvents, getTeamEventById, updateParticapationStatus, updateTeamEvent } from '@controllers/team-events.controller';
+import { addEvents, createTeamEvent, deleteTeamEvent, getParticipantEvents, getTeamEventById, updateParticapationStatus, updateTeamEvent } from '@controllers/team-events.controller';
 import { authMiddleware } from '@middleware/auth.middleware';
 import { requireCanCreateEvent } from '@middleware/permission.rules';
 
@@ -24,5 +24,8 @@ router.post('/update-participation-status', updateParticapationStatus);
 
 // PUT /team-event/update-event/:id - Update team event by ID
 router.put('/update-event/:_id', requireCanCreateEvent, updateTeamEvent);
+
+// DELETE /team-event/delete-event/:id - Delete team event by ID
+router.delete('/delete-event/:_id', requireCanCreateEvent, deleteTeamEvent);
 
 export default router;

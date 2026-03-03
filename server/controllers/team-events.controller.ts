@@ -371,3 +371,36 @@ export const updateTeamEvent = async (req: Request, res: Response) => {
         return res.status(500).json({ error: ErrorMessages.internalServerError });
     }
 }
+
+export const deleteTeamEvent = async (req: Request, res: Response) => {
+    const eventId = req.params._id;
+
+    if (!eventId) {
+        return res.status(400).json({ error: ErrorMessages.mandatoryField });
+    }
+
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
+    try {
+        const teamEvent = await TeamEvent.findById(eventId).session(session);
+
+        if (!teamEvent) {
+            await session.abortTransaction();
+            session.endSession();
+            return res.status(404).json({ error: ErrorMessages.notFound });
+        }
+
+        await EventParticipation.deleteMany({ event: eventId }, { session });
+        await teamEvent.deleteOne({ session });
+
+        await session.commitTransaction();
+        session.endSession();
+
+        return res.status(200).json({ message: "Team event deleted" });
+    } catch (error) {
+        await session.abortTransaction();
+        session.endSession();
+        return res.status(500).json({ error: ErrorMessages.internalServerError });
+    }
+}

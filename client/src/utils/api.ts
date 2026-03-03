@@ -203,6 +203,18 @@ export const updateTeamEvent = async (eventId: string, eventData: any) => {
     }
 }
 
+export const deleteTeamEvent = async (eventId: string) => {
+    try {
+        const response = await api.delete(`/team-event/delete-event/${eventId}`);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            throw new Error(error.response?.data?.error || 'Failed to delete team event');
+        }
+        throw error;
+    }
+}
+
 // #region User APIs
 export const updatePassword = async (values: any) => {
     try {
@@ -240,9 +252,13 @@ export const getUser = async (userId: string) => {
     }
 };
 
-export const getUsers = async () => {
+export const getUsers = async (showInactive: boolean = false) => {
     try {
-        const response = await api.get('/user/get-users');
+        const response = await api.get('/user/get-users', {
+            params: {
+                showInactive: showInactive,
+            },
+        });
         return response.data;
     } catch (error) {
         if (axios.isAxiosError(error)) {
@@ -314,3 +330,15 @@ export const getMyPermissions = async () => {
         throw error;
     }
 };
+
+export const deleteUser = async (userId: string) => {
+    try {
+        const response = await api.delete(`/user/delete-user/${userId}`);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            throw new Error(error.response?.data?.error || 'Failed to delete user');
+        }
+        throw error;
+    }
+}

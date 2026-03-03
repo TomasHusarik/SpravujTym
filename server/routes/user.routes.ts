@@ -1,5 +1,5 @@
 import express from 'express';
-import { signUp, login, signUpAdmin, logout, authUser, getUsers, getUser, updateUser, getPermissions, updatePassword } from '@controllers/user.controller';
+import { signUp, login, signUpAdmin, logout, authUser, getUsers, getUser, updateUser, getPermissions, updatePassword, deleteUser } from '@controllers/user.controller';
 import { authMiddleware } from '@middleware/auth.middleware';
 import { requireAdmin, requireCoachOfSquad, requireLoggedUser } from '@middleware/permission.rules';
 
@@ -38,6 +38,9 @@ router.put('/update-user/:userId', requireLoggedUser ,updateUser);
 
 // POST /user/sign-up - User registration
 router.post('/sign-up', requireAdmin, signUp);
+
+// DELETE /user/delete-user/:id - Delete user by ID
+router.delete('/delete-user/:userId', requireAdmin, deleteUser);
 
 
 

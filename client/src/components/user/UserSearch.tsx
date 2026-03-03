@@ -1,6 +1,6 @@
 import type { User } from '@/types/User';
 import { getUsers } from '@/utils/api';
-import { ActionIcon, Grid, TextInput, Title, Tooltip } from '@mantine/core';
+import { ActionIcon, Chip, Grid, TextInput, Title, Tooltip } from '@mantine/core';
 import { IconUserPlus } from '@tabler/icons-react';
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router';
@@ -14,10 +14,11 @@ const UserSearch = () => {
     const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
     const [debouncedSearchValue] = useDebouncedValue(searchValue, 150);
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+    const [showInactive, setShowInactive] = useState(false);
 
     const loadData = async () => {
         try {
-            const data = await getUsers();
+            const data = await getUsers(showInactive);
             setUsers(data);
         } catch (error) {
             console.error('Error fetching users:', error);
@@ -37,7 +38,7 @@ const UserSearch = () => {
 
     useEffect(() => {
         loadData();
-    }, [])
+    }, [showInactive]);
 
     return (
         <>
@@ -57,6 +58,10 @@ const UserSearch = () => {
                             </Tooltip>
                         }
                     />
+                </Grid.Col>
+                <Grid.Col span={6} />
+                <Grid.Col span={6}>
+                    <Chip checked={showInactive} onChange={(checked) => setShowInactive(checked)}>Neaktivní</Chip>
                 </Grid.Col>
                 <Grid.Col span={12}>
                     <UsersTable filteredUsers={filteredUsers} loadData={loadData} />
