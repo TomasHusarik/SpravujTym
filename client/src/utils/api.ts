@@ -4,6 +4,7 @@ import type { SquadMembership } from '@/types/SquadMembership';
 import type { UserPermissions } from '@/types/Permissions';
 import axios from 'axios';
 import { use } from 'react';
+import type { Payment } from '@/types/Payment';
 
 // Use environment variable or fallback to localhost for development
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
@@ -24,6 +25,17 @@ export const getPayments = async (userId: string) => {
     } catch (error) {
         if (axios.isAxiosError(error)) {
             throw new Error(error.response?.data?.error || 'Failed to fetch payments');
+        }
+        throw error;
+    }
+}
+
+export const addPayments = async (paymentData: any) => {
+    try {const response = await api.post('/payment/add-payments', paymentData);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            throw new Error(error.response?.data?.error || 'Failed to add payment');
         }
         throw error;
     }
@@ -105,10 +117,11 @@ export const addSquadMembers = async (squadId: string, userIds: string[], roles:
     }
 }
 
-export const updateSquadMemberRoles = async (membershipId: string, roles: string[]) => {
+export const updateSquadMemberRoles = async (squadId: string, membershipId: string, roles: string[]) => {
     try {
         const response = await api.put(`/squad/update-squad-member-roles/${membershipId}`, {
             roles,
+            squadId,
         });
         return response.data as SquadMembership;
     } catch (error) {

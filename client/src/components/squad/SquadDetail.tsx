@@ -26,7 +26,7 @@ const SquadDetail = ({ squadId }: ISquadDetail) => {
     }
 
     try {
-      await updateSquadMemberRoles(membershipId, castedRoles);
+      await updateSquadMemberRoles(squadId, membershipId, castedRoles);
       loadData();
     } catch (error) {
       console.error('Error updating squad member roles:', error);

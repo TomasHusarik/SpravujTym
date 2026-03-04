@@ -1,7 +1,7 @@
 import { Group, Paper, Stack, ThemeIcon, Text, Grid, Chip, Indicator, Button } from '@mantine/core';
 import React, { useEffect, useState } from 'react'
 import { IconBarbell } from '@tabler/icons-react';
-import { formatTeamEventDate, getEventColor } from '@/utils/helpers';
+import { extendedPemissions, formatTeamEventDate, getEventColor } from '@/utils/helpers';
 import type { TeamEvent } from '@/types/TeamEvent';
 import { Calendar } from '@mantine/dates';
 import { EventType } from '@/utils/const';
@@ -29,7 +29,7 @@ const Overview = () => {
     const handleStatusChange = async (eventId: string | undefined, newStatus: string) => {
         try {
             await updateParticipationStatus(eventId, newStatus);
-            loadData(); 
+            loadData();
         } catch (error) {
             console.error('Error updating participation status:', error);
         }
@@ -98,7 +98,7 @@ const Overview = () => {
                                                         size={6}
                                                         color={getEventColor(event.type)}
                                                         offset={-2}
-                                                        style={{zIndex: 1}}
+                                                        style={{ zIndex: 1 }}
                                                     >
                                                         <div>{day}</div>
                                                     </Indicator>
@@ -113,11 +113,13 @@ const Overview = () => {
                         </Group>
                     </Grid.Col>
 
-                    <Grid.Col span={12}>
-                        <Group justify="center">
-                            <Button variant="filled" onClick={() => navigate('/event-detail')}>Vytvořit novou událost</Button>
-                        </Group>
-                    </Grid.Col>
+                    {extendedPemissions() &&
+                        <Grid.Col span={12}>
+                            <Group justify="center">
+                                <Button variant="filled" onClick={() => navigate('/event-detail')}>Vytvořit novou událost</Button>
+                            </Group>
+                        </Grid.Col>
+                    }
                 </Grid>
             </Grid.Col>
         </Grid>

@@ -15,21 +15,22 @@ import UserMenu from './UserMenu';
 import { MenuItems } from './MenuItems';
 import { useNavigate } from 'react-router';
 import { useAuth } from '@context/AuthContext';
-import type { User } from '@/types/User';
-
-const tabs = [
-  { label: 'Přehled', value: 'overview' },
-  { label: 'Zeď', value: 'wall' },
-  { label: 'Kalendář', value: 'calendar' },
-  { label: 'Celky', value: 'squads' },
-  { label: 'Uživatelé', value: 'users' },
-];
+import { adminPermissions } from '@/utils/helpers';
 
 const Header = () => {
   const [opened, { toggle }] = useDisclosure(false);
 
   const navigate = useNavigate();
   const { isAuthenticated, user } = useAuth();
+
+  const tabs = [
+  { label: 'Přehled', value: 'overview' },
+  { label: 'Zeď', value: 'wall' },
+  { label: 'Kalendář', value: 'calendar' },
+  { label: 'Celky', value: 'squads' },
+  { label: 'Uživatelé', value: 'users' },
+  ...(adminPermissions() ? [{ label: 'Nová platba', value: 'payment' }] : []),
+];
 
   const items = tabs.map((tab) => (
     <Tabs.Tab value={tab.value} key={tab.value} onClick={() => navigate(`/${tab.value}`)}>

@@ -8,10 +8,10 @@ import type { Squad } from '@/types/Squad';
 import type { EventParticipation } from '@/types/EventParticipation';
 
 interface IMembershipsDrawer {
-    eventParticipations: EventParticipation[];
+    eventParticipations?: EventParticipation[];
     isDrawerOpen: boolean;
     setIsDrawerOpen: (open: boolean) => void;
-    onSave: (users: User[]) => void;
+    onSave?: (users: User[]) => void;
 }
 
 const MembershipsDrawer = (props: IMembershipsDrawer) => {

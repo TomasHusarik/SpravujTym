@@ -128,7 +128,7 @@ const UserDetail = (props: IUserDetail) => {
                         value={form.values?.email || ''}
                         onChange={(value) => form.setFieldValue('email', value.currentTarget.value)}
                         error={form.errors.email}
-                        readOnly={!editMode}
+                        readOnly={true}
                     />
                 </Grid.Col>
                 <Grid.Col span={{ base: 12, md: 6 }}>
@@ -174,7 +174,7 @@ const UserDetail = (props: IUserDetail) => {
                         value={form.values?.isAdmin ? 'true' : 'false'}
                         onChange={(value) => form.setFieldValue('isAdmin', value === 'true')}
                         error={form.errors.isAdmin}
-                        disabled={!editMode && adminPermissions()}
+                        disabled={!editMode || !adminPermissions()}
                     />
                 </Grid.Col>
                 <Grid.Col span={{ base: 12, md: 6 }}>
@@ -192,7 +192,7 @@ const UserDetail = (props: IUserDetail) => {
                         value={form.values?.active ? 'true' : 'false'}
                         onChange={(value) => form.setFieldValue('active', value === 'true')}
                         error={form.errors.active}
-                        disabled={!editMode && adminPermissions()}
+                        disabled={!editMode || !adminPermissions()}
                     />
                 </Grid.Col>
 

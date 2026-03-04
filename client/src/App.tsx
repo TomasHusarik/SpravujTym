@@ -12,6 +12,7 @@ import UserPage from "./pages/UserPage";
 import SquadsPage from "./pages/SquadsPage";
 import SquadPage from "./pages/SquadPage";
 import UsersPage from "./pages/UsersPage";
+import PaymentPage from "./pages/PaymentPage";
 
 const App = () => {
   const { isAuthenticated, isLoading, user } = useAuth();
@@ -54,6 +55,7 @@ const App = () => {
                   <Route path="/squad/:id" element={requireAuth(<SquadPage />)} />
                   <Route path="/calendar" element={requireAuth(<CalendarPage />)} />
                   <Route path="/user/:id" element={requireAuth(<UserPage />)} />
+                  <Route path="/payment" element={requireAuth(<PaymentPage />)} />
                   <Route element={requireAuth(<EventDetailPage />)}>
                     <Route path="/event-detail" element={<EventDetailPage />} />
                     <Route path="/event-detail/:id" element={<EventDetailPage />} />

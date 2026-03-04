@@ -1,4 +1,4 @@
-import { addPayment, addPayments, deletePayment, getPayments, updatePayment } from '@controllers/payment.controller';
+import { addPayments, deletePayment, getPayments, updatePayment } from '@controllers/payment.controller';
 import { authMiddleware } from '@middleware/auth.middleware';
 import { requireAdmin, requireLoggedUser } from '@middleware/permission.rules';
 import express from 'express';
@@ -10,10 +10,7 @@ router.use(authMiddleware);
 // GET /payment/get-payments - Get all user payments
 router.get('/get-payments/:userId', requireLoggedUser, getPayments);
 
-// POST /payment/add-payment - Create a new payment
-router.post('/add-payment', requireAdmin, addPayment);
-
-// POST /payment/add-payment - Create payment
+// POST /payment/add-payments - Create new payments
 router.post('/add-payments', requireAdmin, addPayments);
 
 // PUT /payment/update-payment/:id - Update payment by ID

@@ -2,49 +2,32 @@ import { Request, Response } from "express";
 import Payment, { PaymentStatus } from "@models/Payment";
 import ErrorMessages from "@utils/errorMessages";
 
-// POST /payment/add-payment - Create a new payment
-export const addPayment = async (req: Request, res: Response) => {
-    const { amount, userId, dueDate, type, status } = req.body;
-
-    if (!amount || !userId) {
-        return res.status(400).json({ error: ErrorMessages.mandatoryField });
-    }
-
-    try {
-        const newPayment = {
-            amount,
-            userId,
-            dueDate,
-            status,
-            type,
-        };
-
-        await Payment.create( newPayment );
-        return res.status(201).json(newPayment);
-    } catch (error) {
-        return res.status(500).json({ error: ErrorMessages.internalServerError });
-    }
-};
-
-// POST /payment/add-payments - Create payment for multiple users
+// POST /payment/add-payments - Create new payments (for multiple users) userIds, amount, type, dueDate
 export const addPayments = async (req: Request, res: Response) => {
-    const { amount, userIds, dueDate, type } = req.body;
+    const { userIds, amount, type, dueDate } = req.body;
 
-    if (!amount || !Array.isArray(userIds) || userIds.length === 0) {
+    if (!userIds || !amount || !type || !dueDate) {
         return res.status(400).json({ error: ErrorMessages.mandatoryField });
     }
 
+    if (!Array.isArray(userIds) || userIds.length === 0) {
+        return res.status(400).json({ error: 'userIds must be a non-empty array' });
+    }
+
     try {
-        const newPayments = userIds.map((userId: string) => ({
-            amount,
+        const paymentData = userIds.map((userId: string) => ({
             userId,
-            dueDate,
-            status: PaymentStatus.Pending,
+            amount,
             type,
+            dueDate,
+            status: PaymentStatus.Pending
         }));
 
-        await Payment.insertMany(newPayments);
-        return res.status(201).json({ payments: newPayments });
+        const payments = userIds.length === 1
+            ? [await Payment.create(paymentData[0])]
+            : await Payment.insertMany(paymentData);
+
+        return res.status(201).json(payments);
     } catch (error) {
         return res.status(500).json({ error: ErrorMessages.internalServerError });
     }
