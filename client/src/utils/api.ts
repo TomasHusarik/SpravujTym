@@ -355,3 +355,52 @@ export const deleteUser = async (userId: string) => {
         throw error;
     }
 }
+
+// #region Announcments APIs
+export const createAnnouncement = async (announcementData: any) => {
+    try {
+        const response = await api.post('/announcement/create-announcement', announcementData);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            throw new Error(error.response?.data?.error || 'Failed to create announcement');
+        }
+        throw error;
+    }
+}
+
+export const getAnnouncements = async () => {
+    try {
+        const response = await api.get('/announcement/get-announcements');
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            throw new Error(error.response?.data?.error || 'Failed to fetch announcements');
+        }
+        throw error;
+    }
+}
+
+export const deleteAnnouncement = async (announcementId: string) => {
+    try {
+        const response = await api.delete(`/announcement/delete-announcement/${announcementId}`);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            throw new Error(error.response?.data?.error || 'Failed to delete announcement');
+        }
+        throw error;
+    }
+}
+
+export const updateAnnouncement = async (announcementId: string, announcementData: any) => {
+    try {
+        const response = await api.put(`/announcement/update-announcement/${announcementId}`, announcementData);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            throw new Error(error.response?.data?.error || 'Failed to update announcement');
+        }
+        throw error;
+    }
+}

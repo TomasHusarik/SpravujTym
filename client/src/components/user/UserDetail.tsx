@@ -2,7 +2,7 @@ import { useAuth } from '@/context/AuthContext'
 import type { User } from '@/types/User'
 import { getUser, updateUser } from '@/utils/api'
 import { UserStatus } from '@/utils/const'
-import { adminPermissions, playerPermissions, showErrorNotification, showSuccessNotification } from '@/utils/helpers'
+import { showErrorNotification, showSuccessNotification, useAdminPermissions, usePlayerPermissions } from '@/utils/helpers'
 import { Button, Checkbox, Grid, MultiSelect, NumberInput, Select, TextInput, Title } from '@mantine/core'
 import { DatePickerInput } from '@mantine/dates'
 import { useForm } from '@mantine/form'
@@ -16,10 +16,12 @@ interface IUserDetail {
 
 const UserDetail = (props: IUserDetail) => {
     const { userId } = props;
+    const isAdmin = useAdminPermissions();
 
     const [isSaving, setIsSaving] = useState(false);
     const [editMode, setEditMode] = useState(false);
     const [user, setUser] = useState<User>(null);
+    const hasPlayerPermissions = usePlayerPermissions(user);
 
     const form = useForm({
         initialValues: {
@@ -114,7 +116,7 @@ const UserDetail = (props: IUserDetail) => {
                         value={form.values?.lastName || ''}
                         onChange={(value) => form.setFieldValue('lastName', value.currentTarget.value)}
                         error={form.errors.lastName}
-                        readOnly={!editMode && adminPermissions()}
+                        readOnly={!editMode && isAdmin}
                     />
                 </Grid.Col>
                 <Grid.Col span={{ base: 12, md: 6 }}>
@@ -140,7 +142,7 @@ const UserDetail = (props: IUserDetail) => {
                         radius="md"
                         size="md"
                         name="age"
-                        value={form.values?.birthDate || ''}
+                        value={form.values?.birthDate || null}
                         onChange={(value) => form.setFieldValue('birthDate', value)}
                         error={form.errors.birthDate}
                         readOnly={!editMode}
@@ -174,7 +176,7 @@ const UserDetail = (props: IUserDetail) => {
                         value={form.values?.isAdmin ? 'true' : 'false'}
                         onChange={(value) => form.setFieldValue('isAdmin', value === 'true')}
                         error={form.errors.isAdmin}
-                        disabled={!editMode || !adminPermissions()}
+                        disabled={!editMode || !isAdmin}
                     />
                 </Grid.Col>
                 <Grid.Col span={{ base: 12, md: 6 }}>
@@ -192,26 +194,22 @@ const UserDetail = (props: IUserDetail) => {
                         value={form.values?.active ? 'true' : 'false'}
                         onChange={(value) => form.setFieldValue('active', value === 'true')}
                         error={form.errors.active}
-                        disabled={!editMode || !adminPermissions()}
+                        disabled={!editMode || !isAdmin}
                     />
                 </Grid.Col>
 
-                {playerPermissions(user) &&
+                {hasPlayerPermissions && (
                     <Grid.Col span={12} style={{ display: 'flex', justifyContent: 'space-between' }}>
                         <Button
                             variant="light"
                             radius="md"
-                            leftSection={
-                                <IconPencil stroke={1.5} size={20} />
-                            }
+                            leftSection={<IconPencil stroke={1.5} size={20} />}
                             onClick={() => handleEditMode()}
                         >
                             {editMode ? 'Zrušit' : 'Upravit'}
                         </Button>
 
-                        {!editMode && (
-                            <ChangePasswordModal />
-                        )}
+                        {!editMode && <ChangePasswordModal userId={userId}/>}
 
                         {editMode && (
                             <Button
@@ -219,15 +217,13 @@ const UserDetail = (props: IUserDetail) => {
                                 variant="light"
                                 radius="md"
                                 loading={isSaving}
-                                leftSection={
-                                    <IconDeviceFloppy stroke={1.5} size={20} />
-                                }
+                                leftSection={<IconDeviceFloppy stroke={1.5} size={20} />}
                             >
                                 Uložit
                             </Button>
                         )}
                     </Grid.Col>
-                }
+                )}
             </Grid>
         </form>
     )

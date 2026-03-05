@@ -34,7 +34,7 @@ router.get('/get-user/:userId', getUser);
 router.get('/get-users', getUsers);
 
 // PUT /user/update-user/:id - Edit user by ID
-router.put('/update-user/:userId', requireLoggedUser ,updateUser);
+router.put('/update-user/:userId', requireLoggedUser, updateUser);
 
 // POST /user/sign-up - User registration
 router.post('/sign-up', requireAdmin, signUp);

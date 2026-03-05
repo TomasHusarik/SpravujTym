@@ -27,7 +27,7 @@ export const requireAdmin = requireAccess(
 export const requireLoggedUser = requireAccess(
     (req: Request) => {
         const loggedUserId = req.loggedUser._id.toString();
-        const targetUserId = req.params.userId;
+        let targetUserId = req.params.userId ?? req.body?.userId;
 
         if (loggedUserId === targetUserId) {
             return true;

@@ -2,15 +2,21 @@ import { updatePassword } from '@/utils/api';
 import { showErrorNotification, showSuccessNotification } from '@/utils/helpers';
 import { Button, Group, Modal, PasswordInput, Stack, Text } from '@mantine/core';
 import { useForm } from '@mantine/form';
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 
-const ChangePasswordModal = () => {
+interface IChangePasswordModal {
+    userId: string;
+}
+
+const ChangePasswordModal = (props: IChangePasswordModal) => {
+    const { userId } = props;
 
     const [opened, setOpened] = useState(false);
     const [loading, setLoading] = useState(false);
 
     const passwordform = useForm({
         initialValues: {
+            userId: "",
             currentPassword: "",
             newPassword: "",
             confirmPassword: "",
@@ -27,6 +33,7 @@ const ChangePasswordModal = () => {
     const handleSubmit = passwordform.onSubmit(async (values) => {
         try {
             setLoading(true);
+            console.log("Submitting password change with values:", values);
             await updatePassword(values);
             showSuccessNotification("Heslo bylo úspěšně změněno");
             setOpened(false);
@@ -37,6 +44,10 @@ const ChangePasswordModal = () => {
             setLoading(false);
         }
     });
+
+    useEffect(() => {
+        passwordform.setFieldValue("userId", userId);
+    }, [userId]);
 
 
     return (

@@ -1,7 +1,7 @@
 import { Group, Paper, Stack, ThemeIcon, Text, Grid, Chip, Indicator, Button } from '@mantine/core';
 import React, { useEffect, useState } from 'react'
 import { IconBarbell } from '@tabler/icons-react';
-import { extendedPemissions, formatTeamEventDate, getEventColor } from '@/utils/helpers';
+import { formatTeamEventDate, getEventColor, useExtendedPermissions } from '@/utils/helpers';
 import type { TeamEvent } from '@/types/TeamEvent';
 import { Calendar } from '@mantine/dates';
 import { EventType } from '@/utils/const';
@@ -23,6 +23,7 @@ const Overview = () => {
     const [filteredTeamEvents, setFilterdTeamEvents] = useState<TeamEvent[]>([]);
     const [selectedStatus, setSelectedStatus] = useState<string>('upcoming');
     const navigate = useNavigate();
+    const hasExtendedPermissions = useExtendedPermissions();
 
     const isEventUpcoming = (date: Date): boolean => date >= new Date();
 
@@ -113,7 +114,7 @@ const Overview = () => {
                         </Group>
                     </Grid.Col>
 
-                    {extendedPemissions() &&
+                    {hasExtendedPermissions &&
                         <Grid.Col span={12}>
                             <Group justify="center">
                                 <Button variant="filled" onClick={() => navigate('/event-detail')}>Vytvořit novou událost</Button>

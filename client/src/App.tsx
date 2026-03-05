@@ -13,6 +13,7 @@ import SquadsPage from "./pages/SquadsPage";
 import SquadPage from "./pages/SquadPage";
 import UsersPage from "./pages/UsersPage";
 import PaymentPage from "./pages/PaymentPage";
+import AnnouncementsPage from "./pages/AnnouncementsPage";
 
 const App = () => {
   const { isAuthenticated, isLoading, user } = useAuth();
@@ -61,6 +62,7 @@ const App = () => {
                     <Route path="/event-detail/:id" element={<EventDetailPage />} />
                   </Route>
                   <Route path="/users" element={requireAuth(<UsersPage />)} />
+                  <Route path="/announcements" element={requireAuth(<AnnouncementsPage />)} />
                 </>
               )
             }

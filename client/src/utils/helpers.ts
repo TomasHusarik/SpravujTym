@@ -3,7 +3,6 @@ import { EventType, LeagueCategory } from "./const";
 import ErrorMessages from "./errorMessages";
 import { notifications } from "@mantine/notifications";
 import type { Squad } from "@/types/Squad";
-import type { UserPermissions } from "@/types/Permissions";
 import { useAuth } from "@/context/AuthContext";
 
 
@@ -117,26 +116,26 @@ export const getCategoryLabel = (category?: string) => {
 };
 
 // #region Permissions
-export const adminPermissions = () => {
+export const useAdminPermissions = () => {
     const { permissions } = useAuth();
     if (!permissions) return false;
     return Boolean(permissions?.isAdmin);
 }
 
-export const extendedPemissions = () => {
+export const useExtendedPermissions = () => {
     const { permissions } = useAuth();
     if (!permissions) return false;
     return Boolean(permissions?.isAdmin || permissions?.coachSquadIds?.length > 0);
 }
 
-export const squadCoachPermissions = (squad: Squad) => {
+export const useSquadCoachPermissions = (squad: Squad) => {
     const { permissions } = useAuth();
     if (!permissions) return false;
     return Boolean(permissions?.isAdmin || permissions?.coachSquadIds?.includes(squad._id));
 }
 
-export const playerPermissions = (usr: User) => {
+export const usePlayerPermissions = (usr: User) => {
     const { user } = useAuth();
     if (!usr || !user) return false;
-    return Boolean(usr._id === user._id || adminPermissions());
+    return Boolean(usr._id === user._id || user?.isAdmin);
 }

@@ -296,67 +296,69 @@ const EventDetail = (props: IEventDetail) => {
                                 {form.values.eventParticipations.length === 0 ? (
                                     <Text c="dimmed" size="sm">Zatím nejsou přiřazeni žádní členové.</Text>
                                 ) : (
-                                    <Table striped highlightOnHover>
-                                        <Table.Thead>
-                                            <Table.Tr>
-                                                <Table.Th></Table.Th>
-                                                <Table.Th>Uživatel</Table.Th>
-                                                <Table.Th>E-mail</Table.Th>
-                                                <Table.Th>Status</Table.Th>
-                                                <Table.Th></Table.Th>
-                                            </Table.Tr>
-                                        </Table.Thead>
-                                        <Table.Tbody>
-                                            {form.values.eventParticipations.map((part) => (
-                                                <Table.Tr key={part.user._id}>
-                                                    <Table.Td>
-                                                        <Indicator
-                                                            color={getParticipationStatusColor(part.status)}
-                                                            size={8}
-                                                            style={{ zIndex: 1 }}
-                                                        />
-                                                    </Table.Td>
-                                                    <Table.Td>{getFullName(part.user)}</Table.Td>
-                                                    <Table.Td>{part.user?.email}</Table.Td>
-                                                    <Table.Td>
-                                                        {part.status ? (
-                                                            <>
-                                                                <Select
-                                                                    data={Object.values(ParticipationStatus)}
-                                                                    value={part.status || ''}
-                                                                    onChange={(value) => {
-                                                                        const updated = form.values.eventParticipations.map((p) =>
-                                                                            p.user._id === part.user._id
-                                                                                ? { ...p, status: value || '' }
-                                                                                : p
-                                                                        );
-
-                                                                        form.setFieldValue('eventParticipations', updated);
-                                                                    }}
-                                                                    clearable={false}
-                                                                    searchable={false}
-                                                                    w={200}
-                                                                    disabled={!editMode}
-                                                                />
-                                                            </>
-                                                        ) : (
-                                                            <Text c="dimmed">N/A</Text>
-                                                        )}
-                                                    </Table.Td>
-                                                    <Table.Td>
-
-                                                        {editMode ?
-                                                            <Tooltip label="Odstranit" withArrow>
-                                                                <ActionIcon size={32} radius="xl" variant="subtle" onClick={(e) => { e.stopPropagation(); handleDelete(part.user._id); }}>
-                                                                    <IconTrash size={20} />
-                                                                </ActionIcon>
-                                                            </Tooltip> : formatDate(new Date(part.createdAt))
-                                                        }
-                                                    </Table.Td>
+                                    <div style={{ width: '100%', overflowX: 'auto' }}>
+                                        <Table striped highlightOnHover>
+                                            <Table.Thead>
+                                                <Table.Tr>
+                                                    <Table.Th></Table.Th>
+                                                    <Table.Th></Table.Th>
+                                                    {/* <Table.Th>E-mail</Table.Th> */}
+                                                    <Table.Th></Table.Th>
+                                                    <Table.Th></Table.Th>
                                                 </Table.Tr>
-                                            ))}
-                                        </Table.Tbody>
-                                    </Table>
+                                            </Table.Thead>
+                                            <Table.Tbody>
+                                                {form.values.eventParticipations.map((part) => (
+                                                    <Table.Tr key={part.user._id}>
+                                                        <Table.Td>
+                                                            <Indicator
+                                                                color={getParticipationStatusColor(part.status)}
+                                                                size={8}
+                                                                style={{ zIndex: 1 }}
+                                                            />
+                                                        </Table.Td>
+                                                        <Table.Td>{getFullName(part.user)}</Table.Td>
+                                                        {/* <Table.Td>{part.user?.email}</Table.Td> */}
+                                                        <Table.Td>
+                                                            {part.status ? (
+                                                                <>
+                                                                    <Select
+                                                                        data={Object.values(ParticipationStatus)}
+                                                                        value={part.status || ''}
+                                                                        onChange={(value) => {
+                                                                            const updated = form.values.eventParticipations.map((p) =>
+                                                                                p.user._id === part.user._id
+                                                                                    ? { ...p, status: value || '' }
+                                                                                    : p
+                                                                            );
+
+                                                                            form.setFieldValue('eventParticipations', updated);
+                                                                        }}
+                                                                        clearable={false}
+                                                                        searchable={false}
+                                                                        w={200}
+                                                                        disabled={!editMode}
+                                                                    />
+                                                                </>
+                                                            ) : (
+                                                                <Text c="dimmed">N/A</Text>
+                                                            )}
+                                                        </Table.Td>
+                                                        <Table.Td>
+
+                                                            {editMode ?
+                                                                <Tooltip label="Odstranit" withArrow>
+                                                                    <ActionIcon size={32} radius="xl" variant="subtle" onClick={(e) => { e.stopPropagation(); handleDelete(part.user._id); }}>
+                                                                        <IconTrash size={20} />
+                                                                    </ActionIcon>
+                                                                </Tooltip> : formatDate(new Date(part.createdAt))
+                                                            }
+                                                        </Table.Td>
+                                                    </Table.Tr>
+                                                ))}
+                                            </Table.Tbody>
+                                        </Table>
+                                    </div>
                                 )}
                             </Stack>
                         </Card>

@@ -203,8 +203,7 @@ export const signUpAdmin = async (req: Request, res: Response) => {
 
 // PUT /user/update-password - Update user password
 export const updatePassword = async (req: Request, res: Response) => {
-    const userId = req.loggedUser?._id.toString();
-    const { currentPassword, newPassword, confirmPassword } = req.body;
+    const { currentPassword, newPassword, confirmPassword, userId } = req.body;
 
     if (!userId) {
         return res.status(401).json({ error: ErrorMessages.notAuthenticated });
