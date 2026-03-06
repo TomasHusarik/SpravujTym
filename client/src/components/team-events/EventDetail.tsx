@@ -1,7 +1,7 @@
 import type { Venue } from '@/types/Venue';
 import { createTeamEvent, deleteTeamEvent, getSquads, getTeamEvent, getVenues, updateTeamEvent } from '@/utils/api';
 import { EventType, ParticipationStatus } from '@/utils/const';
-import { combinateDateAndTime, formatDate, getFullName, getParticipationStatusColor, showErrorNotification, showSuccessNotification, validateFutureDate, validateString } from '@/utils/helpers';
+import { combinateDateAndTime, formatDate, getFullName, getParticipationStatusColor, showErrorNotification, showSuccessNotification, useSquadCoachPermissions, validateFutureDate, validateString } from '@/utils/helpers';
 import { ActionIcon, Badge, Button, Card, Divider, Drawer, Group, Indicator, MultiSelect, Paper, Select, SimpleGrid, Stack, Table, Text, TextInput, Title, Tooltip } from '@mantine/core';
 import { DatePickerInput, TimePicker } from '@mantine/dates';
 import { useForm } from '@mantine/form';
@@ -130,7 +130,6 @@ const EventDetail = (props: IEventDetail) => {
     const loadData = async () => {
         try {
             const event = await getTeamEvent(eventId);
-            console.log('Loaded event data:', event);
 
             // Pre-fill form with existing event data
             const start = new Date(event.startDate);
@@ -180,7 +179,15 @@ const EventDetail = (props: IEventDetail) => {
                                 <Text size="sm" c="dimmed">Informace o události a účásti</Text>
                             </div>
                             {editMode && eventId && (
-                                <Button variant="light" onClick={() => handleEventDelete()}>Smazat Event</Button>
+                                <Button
+                                    variant="light"
+                                    onClick={() => handleEventDelete()}
+                                    leftSection={<IconTrash size={16} />}
+                                    color="red"
+                                    radius="md"
+                                >
+                                    Smazat
+                                </Button>
                             )}
                         </Group>
 
@@ -363,27 +370,29 @@ const EventDetail = (props: IEventDetail) => {
                             </Stack>
                         </Card>
 
-                        <Group justify="space-between">
-                            <Button
-                                variant="light"
-                                radius="md"
-                                onClick={() => setEditMode(!editMode)}
-                                leftSection={<IconPencil stroke={1.5} size={20} />}
-                            >
-                                {editMode ? 'Zrušit' : 'Upravit'}
-                            </Button>
-                            {editMode && (
+                        {useSquadCoachPermissions(form.values.squads) && (
+                            <Group justify="space-between">
                                 <Button
-                                    type="submit"
                                     variant="light"
                                     radius="md"
-                                    loading={isSaving}
-                                    leftSection={<IconDeviceFloppy stroke={1.5} size={20} />}
+                                    onClick={() => setEditMode(!editMode)}
+                                    leftSection={<IconPencil stroke={1.5} size={20} />}
                                 >
-                                    Save
+                                    {editMode ? 'Zrušit' : 'Upravit'}
                                 </Button>
-                            )}
-                        </Group>
+                                {editMode && (
+                                    <Button
+                                        type="submit"
+                                        variant="light"
+                                        radius="md"
+                                        loading={isSaving}
+                                        leftSection={<IconDeviceFloppy stroke={1.5} size={20} />}
+                                    >
+                                        Save
+                                    </Button>
+                                )}
+                            </Group>
+                        )}
                     </Stack>
                 </Paper >
             </form >

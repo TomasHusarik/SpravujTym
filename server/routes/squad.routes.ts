@@ -1,4 +1,4 @@
-import { addSquad, addSquadMembers, deleteSquadMember, getSquad, getSquadMembers, getSquads, updateSquadMemberRoles } from '@controllers/squad.controller';
+import { addSquadMembers, createSquad, deleteSquad, deleteSquadMember, getSquad, getSquadMembers, getSquads, updateSquad, updateSquadMemberRoles } from '@controllers/squad.controller';
 import { authMiddleware } from '@middleware/auth.middleware';
 import { requireAdmin, requireCoachOfSquad } from '@middleware/permission.rules';
 import express from 'express';
@@ -14,7 +14,10 @@ router.get('/get-squads', getSquads);
 router.get('/get-squad/:_id', getSquad);
 
 // POST /user/login - User login
-router.post('/add-squad', requireAdmin, addSquad);
+router.post('/create-squad', requireAdmin, createSquad);
+
+// PUT /squad/update-squad/:_id - Update squad by id
+router.put('/update-squad/:_id', requireAdmin, updateSquad);
 
 // GET /squad/get-squad-members/:_id - Get squad roster by squad id
 router.get('/get-squad-members/:_id', getSquadMembers);
@@ -27,5 +30,8 @@ router.put('/update-squad-member-roles/:membershipId', requireCoachOfSquad, upda
 
 // DELETE /squad/delete-squad-member/:membershipId - Remove user from squad roster
 router.delete('/delete-squad-member/:membershipId', requireCoachOfSquad, deleteSquadMember);
+
+// DELETE /squad/delete-squad/:_id - Delete squad by id
+router.delete('/delete-squad/:_id', requireAdmin, deleteSquad);
 
 export default router;

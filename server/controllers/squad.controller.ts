@@ -38,17 +38,47 @@ export const getSquad = async (req: Request, res: Response) => {
     }
 };
 
-// POST /team/add-team - Create a new team
-export const addSquad = async (req: Request, res: Response) => {
-    const { name } = req.body;
+// POST /team/create-squad - Create a new team
+export const createSquad = async (req: Request, res: Response) => {
+    const { name, leagueId, teamId } = req.body;
 
-    if (!name) {
+    if (!name || !leagueId || !teamId) {
         return res.status(400).json({ error: ErrorMessages.mandatoryField });
     }
 
     try {
-        const newTeam = await Squad.create(req.body);
+        const newTeam = await Squad.create({
+            name,
+            league: leagueId,
+            team: teamId,
+        });
         return res.status(201).json(newTeam);
+    } catch (error) {
+        return res.status(500).json({ error: ErrorMessages.internalServerError });
+    }
+};
+
+// PUT /squad/update-squad/:_id - Update squad by id
+export const updateSquad = async (req: Request, res: Response) => {
+    const squadId = req.params._id;
+    const { name, leagueId } = req.body;
+
+    if (!squadId || !name || !leagueId) {
+        return res.status(400).json({ error: ErrorMessages.mandatoryField });
+    }
+
+    try {
+        const squad = await Squad.findById(squadId);
+
+        if (!squad) {
+            return res.status(404).json({ error: ErrorMessages.notFound });
+        }
+
+        squad.name = name;
+        squad.league = leagueId;
+        await squad.save();
+
+        return res.status(200).json(squad);
     } catch (error) {
         return res.status(500).json({ error: ErrorMessages.internalServerError });
     }
@@ -225,6 +255,32 @@ export const deleteSquadMember = async (req: Request, res: Response) => {
         await membership.deleteOne();
 
         return res.status(200).json({ message: "Member removed from squad successfully" });
+    } catch (error) {
+        return res.status(500).json({ error: ErrorMessages.internalServerError });
+    }
+};
+
+// DELETE /squad/delete-squad/:_id - Delete squad by id
+export const deleteSquad = async (req: Request, res: Response) => {
+    const squadId = req.params._id;
+
+    if (!squadId) {
+        return res.status(400).json({ error: ErrorMessages.mandatoryField });
+    }
+
+    try {
+        const squad = await Squad.findById(squadId);
+
+        if (!squad) {
+            return res.status(404).json({ error: ErrorMessages.notFound });
+        }
+
+        await squad.deleteOne();
+
+        // Also delete all related memberships
+        await SquadMembership.deleteMany({ squad: squadId });
+
+        return res.status(200).json({ message: "Squad deleted successfully" });
     } catch (error) {
         return res.status(500).json({ error: ErrorMessages.internalServerError });
     }

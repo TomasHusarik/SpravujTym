@@ -3,6 +3,7 @@ import ErrorMessages from '@utils/errorMessages';
 import TeamEvent from '@models/TeamEvent';
 import mongoose from 'mongoose';
 import EventParticipation, { IEventParticipation } from '@models/EventParticipation';
+import { ensurePermissions } from '@middleware/permission.middleware';
 
 // GET /team-event/:id - Get team event by ID
 export const getTeamEventById = async (req: Request, res: Response) => {
@@ -27,24 +28,65 @@ export const getTeamEventById = async (req: Request, res: Response) => {
     }
 };
 
-// GET /get-participant-events - Get all participant team events
-export const getParticipantEvents = async (req: Request, res: Response) => {
-    const user = req.loggedUser?._id.toString();
+// GET /get-teeam-events - Get team events
+export const getTeamEvents = async (req: Request, res: Response) => {
+    const userId = req.loggedUser?._id?.toString();
 
-    if (!user) {
+    if (!userId) {
         return res.status(401).json({ error: ErrorMessages.notAuthenticated });
     }
 
     try {
-        const myParticipations = await EventParticipation
-            .find({ user })
-            .lean();
+        const permissions = await ensurePermissions(req);
 
-        if (myParticipations.length === 0) {
-            return res.status(200).json([]); // Return empty array if no participations found
+        // ADMIN - get all events
+        if (permissions.isAdmin) {
+
+            const events = await TeamEvent.find()
+                .populate('venue', 'name')
+                .lean();
+
+            const eventIds = events.map(e => e._id);
+
+            const participations = await EventParticipation
+                .find({ event: { $in: eventIds } })
+                .lean();
+
+            const participationMap = new Map<string, any[]>();
+
+            participations.forEach(p => {
+                const key = p.event.toString();
+
+                if (!participationMap.has(key)) {
+                    participationMap.set(key, []);
+                }
+
+                participationMap.get(key)!.push(p);
+            });
+
+            const result = events.map(event => ({
+                ...event,
+                eventParticipations: participationMap.get(event._id.toString()) || []
+            }));
+
+            return res.status(200).json(result);
         }
 
-        const eventIds = myParticipations.map(p => p.event);
+        const coachedSquadObjectIds = permissions.coachSquadIds.map(id => new mongoose.Types.ObjectId(id));
+
+        const [myParticipations, coachedEventIds] = await Promise.all([
+            EventParticipation.find({ user: userId }).lean(),
+            coachedSquadObjectIds.length > 0
+                ? TeamEvent.find({ squads: { $in: coachedSquadObjectIds } }).distinct('_id')
+                : Promise.resolve([])
+        ]);
+
+        const participantEventIds = myParticipations.map(p => p.event);
+        const eventIds = [...new Set([...participantEventIds, ...coachedEventIds].map(id => id.toString()))];
+
+        if (eventIds.length === 0) {
+            return res.status(200).json([]);
+        }
 
         const events = await TeamEvent
             .find({ _id: { $in: eventIds } })
@@ -59,10 +101,11 @@ export const getParticipantEvents = async (req: Request, res: Response) => {
             ...event,
             eventParticipations: [
                 participationMap.get(event._id.toString())
-            ]
+            ].filter(Boolean)
         }));
 
         return res.status(200).json(result);
+
     } catch (error) {
         return res.status(500).json({ error: ErrorMessages.internalServerError });
     }

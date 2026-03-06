@@ -66,6 +66,41 @@ export const getTeam = async (teamId: string) => {
 }
 
 // #region Squad APIs
+export const createSquad = async (squad: Squad) => {
+    try {
+        const response = await api.post('/squad/create-squad', squad);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            throw new Error(error.response?.data?.error || 'Failed to create squad');
+        }
+        throw error;
+    }
+}
+export const deleteSquad = async (squadId: string) => {
+    try {
+        const response = await api.delete(`/squad/delete-squad/${squadId}`);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            throw new Error(error.response?.data?.error || 'Failed to delete squad');
+        }
+        throw error;
+    }
+};
+
+export const updateSquad = async (squadId: string, squadData: Squad) => {
+    try {
+        const response = await api.put(`/squad/update-squad/${squadId}`, squadData);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            throw new Error(error.response?.data?.error || 'Failed to update squad');
+        }
+        throw error;
+    }
+}
+    
 export const getSquads = async () => {
     try {
         const response = await api.get('/squad/get-squads');
@@ -161,7 +196,7 @@ export const getTeamEvent = async (eventId: string) => {
     }
 };
 
-export const getParticipantTeamEvents = async () => {
+export const getTeamEvents = async () => {
     try {
         const response = await api.get('/team-event/get-participant-events');
 
@@ -400,6 +435,19 @@ export const updateAnnouncement = async (announcementId: string, announcementDat
     } catch (error) {
         if (axios.isAxiosError(error)) {
             throw new Error(error.response?.data?.error || 'Failed to update announcement');
+        }
+        throw error;
+    }
+}
+
+// #region League APIs
+export const getLeagues = async () => {
+    try {
+        const response = await api.get('/league/get-leagues');
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            throw new Error(error.response?.data?.error || 'Failed to fetch leagues');
         }
         throw error;
     }

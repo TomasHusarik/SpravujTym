@@ -1,5 +1,4 @@
 import type { TeamEvent } from '@/types/TeamEvent';
-import { updateParticipationStatus } from '@/utils/api';
 import { formatTeamEventDate, getEventColor, getParticipationStatusColor } from '@/utils/helpers';
 import { Group, Paper, Stack, ThemeIcon, Text, Select, Badge } from '@mantine/core';
 import { IconBarbell } from '@tabler/icons-react';
@@ -16,6 +15,17 @@ const EventsTable = (props: IEventsTable) => {
     const { filteredTeamEvents, handleStatusChange } = props;
 
     const navigate = useNavigate();
+
+    if (!filteredTeamEvents?.length) {
+        return (
+            <Paper withBorder radius="md" p="xl">
+                <Stack align="center" gap={4}>
+                    <Text fw={600}>Žádné události k zobrazení</Text>
+                    <Text size="sm" c="dimmed">Zkus změnit vybraný filtr období nebo účasti.</Text>
+                </Stack>
+            </Paper>
+        );
+    }
 
     return (
         <Stack gap="md">
@@ -47,25 +57,27 @@ const EventsTable = (props: IEventsTable) => {
                             </Text>
 
                             <Group gap="xs" c="dimmed" fz="sm">
-                                <Text span>{`${formatTeamEventDate(event.startDate!, event.endDate!)} ${event.venue.name}`}</Text>
+                                <Text span>{`${formatTeamEventDate(event.startDate!, event.endDate!)} ${event.venue?.name ?? ''}`}</Text>
                             </Group>
                         </Stack>
+                        {event.eventParticipations?.length > 0 && (
+                            <Group gap="xs">
+                                <Badge
+                                    color={getParticipationStatusColor(event.eventParticipations?.[0]?.status)}
+                                    variant="dot"
+                                    size="lg"
+                                />
+                                <Select
+                                    placeholder="Status"
+                                    data={Object.values(ParticipationStatus)}
+                                    value={event.eventParticipations?.[0]?.status || ParticipationStatus.PENDING.value}
+                                    onChange={(value) => handleStatusChange(event._id, value)}
+                                    w={150}
+                                    size="sm"
+                                />
+                            </Group>
+                        )}
 
-                        <Group gap="xs">
-                            <Badge
-                                color={getParticipationStatusColor(event.eventParticipations?.[0]?.status)}
-                                variant="dot"
-                                size="lg"
-                            />
-                            <Select
-                                placeholder="Status"
-                                data={Object.values(ParticipationStatus)}
-                                value={event.eventParticipations?.[0]?.status || ParticipationStatus.PENDING.value}
-                                onChange={(value) => handleStatusChange(event._id, value)}
-                                w={150}
-                                size="sm"
-                            />
-                        </Group>
                     </Group>
                 </Paper>
             ))}

@@ -17,3 +17,13 @@ export const addLeague = async (req: Request, res: Response) => {
         return res.status(500).json({ error: ErrorMessages.internalServerError });
     }
 };
+
+// GET /league/get-leagues - Get all leagues
+export const getLeagues = async (req: Request, res: Response) => {
+    try {
+        const leagues = await League.find().lean();
+        return res.status(200).json(leagues);
+    } catch (error) {
+        return res.status(500).json({ error: ErrorMessages.internalServerError });
+    }
+};

@@ -8,7 +8,7 @@ import listPlugin from '@fullcalendar/list';
 import { getEventColor } from '@/utils/helpers';
 import { useComputedColorScheme } from '@mantine/core';
 import { useEffect, useState } from 'react';
-import { getParticipantTeamEvents } from '@/utils/api';
+import { getTeamEvents } from '@/utils/api';
 
 const EventsCalendar = () => {
     const [teamEvents, setTeamEvents] = useState<TeamEvent[]>([]);
@@ -24,7 +24,7 @@ const EventsCalendar = () => {
 
     const loadData = async () => {
         try {
-            const events = await getParticipantTeamEvents();
+            const events = await getTeamEvents();
             setTeamEvents(events);
         } catch (error) {
             console.error('Error fetching team events:', error);

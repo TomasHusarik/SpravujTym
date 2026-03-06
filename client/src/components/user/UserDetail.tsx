@@ -1,14 +1,15 @@
 import { useAuth } from '@/context/AuthContext'
 import type { User } from '@/types/User'
-import { getUser, updateUser } from '@/utils/api'
+import { deleteUser, getUser, updateUser } from '@/utils/api'
 import { UserStatus } from '@/utils/const'
 import { showErrorNotification, showSuccessNotification, useAdminPermissions, usePlayerPermissions } from '@/utils/helpers'
 import { Button, Checkbox, Grid, MultiSelect, NumberInput, Select, TextInput, Title } from '@mantine/core'
 import { DatePickerInput } from '@mantine/dates'
 import { useForm } from '@mantine/form'
-import { IconDeviceFloppy, IconPhone, IconUser, IconMail, IconCalendar, IconShieldCheck, IconToggleRight, IconPencil } from '@tabler/icons-react'
+import { IconDeviceFloppy, IconPhone, IconUser, IconMail, IconCalendar, IconShieldCheck, IconToggleRight, IconPencil, IconTrash } from '@tabler/icons-react'
 import React, { useEffect, useState } from 'react'
 import ChangePasswordModal from '../modals/ChangePasswordModal'
+import { useNavigate } from 'react-router-dom'
 
 interface IUserDetail {
     userId: string;
@@ -22,6 +23,7 @@ const UserDetail = (props: IUserDetail) => {
     const [editMode, setEditMode] = useState(false);
     const [user, setUser] = useState<User>(null);
     const hasPlayerPermissions = usePlayerPermissions(user);
+    const navigate = useNavigate();
 
     const form = useForm({
         initialValues: {
@@ -49,7 +51,20 @@ const UserDetail = (props: IUserDetail) => {
     const handleEditMode = () => {
         setEditMode(!editMode);
         if (editMode) {
-            loadData(); // Reset form values when exiting edit mode
+            loadData();
+        }
+    };
+
+    const handleUserDelete = async () => {
+        if (!userId) return;
+
+        try {
+            await deleteUser(userId);
+            showSuccessNotification('Uživatel úspěšně smazán');
+            navigate('/users');
+        } catch (error) {
+            showErrorNotification('Chyba při mazání uživatele');
+            console.error('Error deleting user:', error);
         }
     };
 
@@ -87,12 +102,25 @@ const UserDetail = (props: IUserDetail) => {
 
 
     return (
-             <form onSubmit={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    handleSave(e);
-                }}>
+        <form onSubmit={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            handleSave(e);
+        }}>
             <Grid>
+                {editMode && userId && (
+                    <Grid.Col span={12} style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                        <Button
+                            variant="light"
+                            onClick={() => handleUserDelete()}
+                            leftSection={<IconTrash size={16} />}
+                            color="red"
+                            radius="md"
+                        >
+                            Smazat
+                        </Button>
+                    </Grid.Col>
+                )}
                 <Grid.Col span={{ base: 12, md: 6 }}>
                     <TextInput
                         label="Jméno"
@@ -209,7 +237,7 @@ const UserDetail = (props: IUserDetail) => {
                             {editMode ? 'Zrušit' : 'Upravit'}
                         </Button>
 
-                        {!editMode && <ChangePasswordModal userId={userId}/>}
+                        {!editMode && <ChangePasswordModal userId={userId} />}
 
                         {editMode && (
                             <Button

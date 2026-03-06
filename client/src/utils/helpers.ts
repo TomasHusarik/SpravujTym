@@ -128,10 +128,17 @@ export const useExtendedPermissions = () => {
     return Boolean(permissions?.isAdmin || permissions?.coachSquadIds?.length > 0);
 }
 
-export const useSquadCoachPermissions = (squad: Squad) => {
+export const useSquadCoachPermissions = (squadOrSquads: Squad | Squad[]) => {
     const { permissions } = useAuth();
     if (!permissions) return false;
-    return Boolean(permissions?.isAdmin || permissions?.coachSquadIds?.includes(squad._id));
+
+    if (permissions.isAdmin) return true;
+
+
+    if (Array.isArray(squadOrSquads)) {
+        return squadOrSquads.some(squad => permissions.coachSquadIds?.includes(squad._id));
+    }
+    return Boolean(permissions.coachSquadIds?.includes(squadOrSquads._id));
 }
 
 export const usePlayerPermissions = (usr: User) => {

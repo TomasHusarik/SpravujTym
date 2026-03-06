@@ -6,7 +6,7 @@ export interface ISquad {
     _id?: Types.ObjectId;
     name?: string;
     league?: ILeague;
-    teamId?: Types.ObjectId;
+    team?: Types.ObjectId;
     createdAt?: Date;
     updatedAt?: Date;
 }
@@ -14,7 +14,7 @@ export interface ISquad {
 const SquadSchema = new mongoose.Schema<ISquad>({
     name: { type: String, required: true },
     league: { type: mongoose.Schema.Types.ObjectId, ref: 'League', required: true },
-    teamId: { type: mongoose.Schema.Types.ObjectId, ref: 'Team', required: true },
+    team: { type: mongoose.Schema.Types.ObjectId, ref: 'Team', required: true },
 }, {
     timestamps: true
 });
