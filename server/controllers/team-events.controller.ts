@@ -28,7 +28,7 @@ export const getTeamEventById = async (req: Request, res: Response) => {
     }
 };
 
-// GET /get-teeam-events - Get team events
+// GET /get-team-events - Get team events
 export const getTeamEvents = async (req: Request, res: Response) => {
     const userId = req.loggedUser?._id?.toString();
 
@@ -42,47 +42,53 @@ export const getTeamEvents = async (req: Request, res: Response) => {
         // ADMIN - get all events
         if (permissions.isAdmin) {
 
-            const events = await TeamEvent.find()
-                .populate('venue', 'name')
-                .lean();
+            const [events, myParticipations] = await Promise.all([
+                TeamEvent.find()
+                    .populate('venue', 'name')
+                    .lean(),
 
-            const eventIds = events.map(e => e._id);
+                EventParticipation
+                    .find({ user: userId })
+                    .select('event status user')
+                    .lean()
+            ]);
 
-            const participations = await EventParticipation
-                .find({ event: { $in: eventIds } })
-                .lean();
-
-            const participationMap = new Map<string, any[]>();
-
-            participations.forEach(p => {
-                const key = p.event.toString();
-
-                if (!participationMap.has(key)) {
-                    participationMap.set(key, []);
-                }
-
-                participationMap.get(key)!.push(p);
-            });
+            const participationMap = new Map(
+                myParticipations.map(p => [p.event.toString(), p])
+            );
 
             const result = events.map(event => ({
                 ...event,
-                eventParticipations: participationMap.get(event._id.toString()) || []
+                eventParticipations: [
+                    participationMap.get(event._id.toString())
+                ].filter(Boolean)
             }));
 
             return res.status(200).json(result);
         }
 
-        const coachedSquadObjectIds = permissions.coachSquadIds.map(id => new mongoose.Types.ObjectId(id));
+        // PLAYER / COACH
+
+        const coachedSquadObjectIds = permissions.coachSquadIds.map(
+            id => new mongoose.Types.ObjectId(id)
+        );
 
         const [myParticipations, coachedEventIds] = await Promise.all([
-            EventParticipation.find({ user: userId }).lean(),
+            EventParticipation
+                .find({ user: userId })
+                .select('event status user')
+                .lean(),
+
             coachedSquadObjectIds.length > 0
                 ? TeamEvent.find({ squads: { $in: coachedSquadObjectIds } }).distinct('_id')
                 : Promise.resolve([])
         ]);
 
         const participantEventIds = myParticipations.map(p => p.event);
-        const eventIds = [...new Set([...participantEventIds, ...coachedEventIds].map(id => id.toString()))];
+
+        const eventIds = [...new Set(
+            [...participantEventIds, ...coachedEventIds].map(id => id.toString())
+        )];
 
         if (eventIds.length === 0) {
             return res.status(200).json([]);

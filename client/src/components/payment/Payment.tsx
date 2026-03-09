@@ -3,7 +3,7 @@ import type { User } from '@/types/User';
 import { addPayments } from '@/utils/api';
 import { PaymentStatus as PaymentStatusConst, PaymentType as PaymentTypeConst } from '@/utils/const';
 import { getFullName, showErrorNotification, showSuccessNotification } from '@/utils/helpers';
-import { ActionIcon, Button, Divider, Group, NumberInput, Paper, Select, SimpleGrid, Stack, Text, Textarea, Title, Tooltip } from '@mantine/core';
+import { ActionIcon, Button, Divider, Group, NumberInput, Paper, Select, SimpleGrid, Stack, Text, Textarea, TextInput, Title, Tooltip } from '@mantine/core';
 import { DatePickerInput } from '@mantine/dates';
 import { useForm } from '@mantine/form';
 import { IconCalendar, IconCash, IconDeviceFloppy, IconReceipt2, IconRosetteDiscountCheck, IconUser, IconUserPlus } from '@tabler/icons-react';
@@ -80,7 +80,7 @@ const Payment = () => {
                         <Divider />
 
                         <SimpleGrid cols={{ base: 1, md: 2 }} spacing="md">
-                            <Textarea
+                            <TextInput
                                 label="Uživatel"
                                 placeholder="Vyberte uživatele"
                                 leftSection={<IconUser size={16} />}

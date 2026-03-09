@@ -14,6 +14,7 @@ import SquadPage from "./pages/SquadPage";
 import UsersPage from "./pages/UsersPage";
 import PaymentPage from "./pages/PaymentPage";
 import AnnouncementsPage from "./pages/AnnouncementsPage";
+import HomePage from "./pages/HomePage";
 
 const App = () => {
   const { isAuthenticated, isLoading, user } = useAuth();
@@ -50,6 +51,7 @@ const App = () => {
               ) : (
                 <>
                   <Route path="/" element={<Navigate to={isAuthenticated ? "/overview" : "/login"} replace />} />
+                  <Route path="/home" element={<HomePage />} />
                   <Route path="/login" element={isAuthenticated ? <Navigate to="/overview" replace /> : <LoginPage />} />
                   <Route path="/overview" element={requireAuth(<OverviewPage />)} />
                   <Route path="/squads" element={requireAuth(<SquadsPage />)} />

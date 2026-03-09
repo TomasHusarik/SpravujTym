@@ -13,6 +13,20 @@ const api = axios.create({
     baseURL: API_BASE_URL,
     withCredentials: true,
 });
+
+// #region Email APIs
+export const sendEmail = async (emailData: any) => {
+    try {
+        const response = await api.post('/email/send-email', emailData);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            throw new Error(error.response?.data?.error || 'Failed to send email');
+        }
+        throw error;
+    }
+}
+
 // #region Payment APIs
 export const getPayments = async (userId: string) => {
     try {

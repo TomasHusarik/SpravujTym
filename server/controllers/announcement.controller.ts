@@ -47,7 +47,7 @@ export const getAnnouncements = async (req: Request, res: Response) => {
             .sort({ pinned: -1, createdAt: -1 })
             .lean();
 
-        res.status(200).json({ announcements });
+        res.status(200).json(announcements);
     } catch (error) {
         console.error('Error fetching announcements:', error);
         res.status(500).json({ error: ErrorMessages.serverError });

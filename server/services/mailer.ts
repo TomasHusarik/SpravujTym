@@ -9,7 +9,7 @@ export const mailer = async (emailData: IEmail) => {
     try {
     await resend.emails.send({
             from: from || 'SpravujTym <no-reply@spravujtym.cz>',
-            to: to || 'info@spravujtym.com',
+            to: to || 'info@spravujtym.cz',
             subject: subject || 'Registrace',
             html: context,
             attachments: attachments?.map(att => ({

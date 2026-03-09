@@ -1,12 +1,14 @@
 import { Group, Paper, Text, Grid, Chip, Indicator, Button, Stack, Switch, Badge, Divider } from '@mantine/core';
 import React, { useEffect, useState } from 'react'
-import { getEventColor, useExtendedPermissions } from '@/utils/helpers';
+import { getEventColor, getParticipationStatusColor, useExtendedPermissions } from '@/utils/helpers';
 import type { TeamEvent } from '@/types/TeamEvent';
 import { Calendar } from '@mantine/dates';
 import dayjs from 'dayjs';
 import EventsTable from './EventsTable';
 import { getTeamEvents, updateParticipationStatus } from '@/utils/api';
 import { useNavigate } from 'react-router';
+import { DonutChart } from '@mantine/charts';
+
 
 // Skončené a neskončené události
 const statusOptions = [
@@ -23,6 +25,21 @@ const Overview = () => {
     const hasExtendedPermissions = useExtendedPermissions();
 
     const isEventUpcoming = (date: Date | string): boolean => new Date(date) >= new Date();
+
+    const getChartData = () => {
+
+        const relevantEvents = teamEvents.filter(event => !isEventUpcoming(event.startDate));
+
+        const accepted = relevantEvents.filter(event => event.eventParticipations?.some(p => p.status === 'confirmed')).length;
+        const pending = relevantEvents.filter(event => event.eventParticipations?.some(p => p.status === 'pending')).length;
+        const declined = relevantEvents.filter(event => event.eventParticipations?.some(p => p.status === 'declined')).length;
+
+        return [
+            { name: 'Přijato', value: accepted, color: getParticipationStatusColor('confirmed') },
+            { name: 'Čeká na schválení', value: pending, color: getParticipationStatusColor('pending') },
+            { name: 'Odmítnuto', value: declined, color: getParticipationStatusColor('declined') },
+        ];
+    };
 
     const handleStatusChange = async (eventId: string | undefined, newStatus: string) => {
         try {
@@ -103,6 +120,12 @@ const Overview = () => {
                 <Grid>
                     <Grid.Col span={12} visibleFrom="md">
                         <Group justify="center" mb="md">
+                            <DonutChart size={150} thickness={20} chartLabel="Účast" data={getChartData()} />
+                        </Group>
+                    </Grid.Col>
+
+                    <Grid.Col span={12} visibleFrom="md">
+                        <Group justify="center" mb="md">
                             <Paper radius="lg" p="sm">
                                 <Calendar
                                     locale="cs"
@@ -140,6 +163,7 @@ const Overview = () => {
                             </Group>
                         </Grid.Col>
                     }
+
                 </Grid>
             </Grid.Col>
         </Grid>

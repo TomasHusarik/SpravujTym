@@ -44,7 +44,6 @@ const EventDetail = (props: IEventDetail) => {
             type: (val: string) => validateString(val),
             startTime: (val: string) => validateString(val),
             endTime: (val: string) => validateString(val),
-            date: (val: Date) => validateFutureDate(val),
         },
     });
 

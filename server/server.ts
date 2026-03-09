@@ -12,6 +12,7 @@ import leagueRoutes from '@routes/league.routes';
 import paymentRoutes from '@routes/paymnet.routes';
 import Announcement from '@models/Announcement';
 import announcementRoutes from '@routes/announcement.routes';
+import emailRoutes from '@routes/email.routes';
 
 // import vehicleRoutes from '@routes/vehicles.routes';
 
@@ -34,6 +35,7 @@ app.use('/api/squad', squadRoutes);
 app.use('/api/league', leagueRoutes);
 app.use('/api/payment', paymentRoutes);
 app.use('/api/announcement', announcementRoutes);
+app.use('/api/email', emailRoutes);
 
 app.listen(PORT, () => {
     connectDB();

@@ -80,7 +80,7 @@ const Login = () => {
                         </Button>
 
                         <Text size="sm" mt="md" c="dimmed" ta="center">
-                            <a href="/fan" style={{ color: 'inherit', fontWeight: 500 }}>Navštiv sekci pro fanoušky</a> pro informace o zápasech a aktuality týmu.
+                            <a href="/home" style={{ color: 'inherit', fontWeight: 500 }}>Navštiv sekci pro fanoušky</a> pro informace o zápasech a aktuality týmu.
                         </Text>
                     </div>
                 </form>
