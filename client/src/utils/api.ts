@@ -28,6 +28,22 @@ export const sendEmail = async (emailData: any) => {
 }
 
 // #region Payment APIs
+export const getPayment = async (paymentId: string) => {
+    try {
+        const response = await api.get(`/payment/get-payment/${paymentId}`);
+        const payment = response.data;
+        return {
+            ...payment,
+            dueDate: payment.dueDate ? new Date(payment.dueDate) : undefined,
+        };
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            throw new Error(error.response?.data?.error || 'Failed to fetch payment');
+        }
+        throw error;
+    }
+}
+
 export const getPayments = async (userId: string) => {
     try {
         const response = await api.get(`/payment/get-payments/${userId}`);
@@ -44,7 +60,7 @@ export const getPayments = async (userId: string) => {
     }
 }
 
-export const addPayments = async (paymentData: any) => {
+export const createPayments = async (paymentData: any) => {
     try {const response = await api.post('/payment/add-payments', paymentData);
         return response.data;
     } catch (error) {
@@ -54,6 +70,31 @@ export const addPayments = async (paymentData: any) => {
         throw error;
     }
 }
+
+export const updatePayment = async (paymentId: string, paymentData: any) => {
+    try {
+        const response = await api.put(`/payment/update-payment/${paymentId}`, paymentData);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            throw new Error(error.response?.data?.error || 'Failed to update payment');
+        }
+        throw error;
+    }
+}
+
+export const deletePayment = async (paymentId: string) => {
+    try {
+        const response = await api.delete(`/payment/delete-payment/${paymentId}`);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            throw new Error(error.response?.data?.error || 'Failed to delete payment');
+        }
+        throw error;
+    }
+}
+
 // #region Venue APIs
 export const getVenues = async () => {
     try {

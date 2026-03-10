@@ -10,7 +10,6 @@ export function GetInTouch() {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    subject: '',
     message: '',
   });
   const [loading, setLoading] = useState(false);
@@ -29,7 +28,6 @@ export function GetInTouch() {
       setFormData({
         name: '',
         email: '',
-        subject: '',
         message: '',
       });
       showSuccessNotification('Message sent successfully!');
@@ -77,16 +75,6 @@ export function GetInTouch() {
                 required
               />
             </SimpleGrid>
-
-            <TextInput
-              mt="md"
-              label="Předmět"
-              placeholder="Předmět"
-              name="subject"
-              value={formData.subject}
-              onChange={handleChange}
-              required
-            />
 
             <Textarea
               mt="md"

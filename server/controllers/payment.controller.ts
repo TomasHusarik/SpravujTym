@@ -3,7 +3,7 @@ import Payment, { PaymentStatus } from "@models/Payment";
 import ErrorMessages from "@utils/errorMessages";
 
 // POST /payment/add-payments - Create new payments (for multiple users) userIds, amount, type, dueDate
-export const addPayments = async (req: Request, res: Response) => {
+export const createPayments = async (req: Request, res: Response) => {
     const { userIds, amount, type, dueDate } = req.body;
 
     if (!userIds || !amount || !type || !dueDate) {
@@ -16,7 +16,7 @@ export const addPayments = async (req: Request, res: Response) => {
 
     try {
         const paymentData = userIds.map((userId: string) => ({
-            userId,
+            user: userId,
             amount,
             type,
             dueDate,
@@ -33,10 +33,23 @@ export const addPayments = async (req: Request, res: Response) => {
     }
 };
 
+// GET /payment/get-payment/:paymentId - Get payment by ID
+export const getPayment = async (req: Request, res: Response) => {
+    try {
+        const payment = await Payment.findById(req.params.paymentId).populate('user').lean();
+        if (!payment) {
+            return res.status(404).json({ error: ErrorMessages.notFound });
+        }
+        return res.status(200).json(payment);
+    } catch (error) {
+        return res.status(500).json({ error: ErrorMessages.internalServerError });
+    }
+};
+
 // GET /payment/get-payments/:userId - Get payments for a specific user
 export const getPayments = async (req: Request, res: Response) => {
     try {
-        const payments = await Payment.find({ userId: req.params.userId }).lean();
+        const payments = await Payment.find({ user: req.params.userId }).lean();
         return res.status(200).json(payments);
     } catch (error) {
         return res.status(500).json({ error: ErrorMessages.internalServerError });
@@ -45,34 +58,35 @@ export const getPayments = async (req: Request, res: Response) => {
 
 // POST /payment/update-payment/:id - Update payment by ID
 export const updatePayment = async (req: Request, res: Response) => {
-    const { _id, ...updateData } = req.body;
+    const { amount, status, dueDate, type } = req.body;
 
     try {
-        const payment = await Payment.findById(_id);
+        const payment = await Payment.findById(req.params.id);
         if (!payment) {
             return res.status(404).json({ error: ErrorMessages.notFound });
         }
 
-        // Update fields
-        Object.assign(payment, updateData);
+        if (amount !== undefined) payment.amount = amount;
+        if (status !== undefined) payment.status = status;
+        if (dueDate !== undefined) payment.dueDate = dueDate;
+        if (type !== undefined) payment.type = type;
 
         await payment.save();
-
         return res.status(200).json(payment);
     } catch (error) {
         return res.status(500).json({ error: ErrorMessages.internalServerError });
-    } 
+    }
 };
+
 
 // DELETE /payment/delete-payment/:id - Delete payment by ID
 export const deletePayment = async (req: Request, res: Response) => {
     try {
-        const payment = await Payment.findById(req.params._id);
+        const payment = await Payment.findById(req.params.id);
         if (!payment) {
             return res.status(404).json({ error: ErrorMessages.notFound });
         }
-
-        await Payment.deleteOne({ _id: req.params._id });
+        await payment.deleteOne();
         return res.status(200).json({ message: 'Payment deleted successfully' });
     } catch (error) {
         return res.status(500).json({ error: ErrorMessages.internalServerError });

@@ -2,7 +2,7 @@ import mongoose, { Types } from "mongoose";
 
 export interface IPayment { 
     _id?: Types.ObjectId;
-    userId?: Types.ObjectId;
+    user?: Types.ObjectId;
     amount?: number;
     status?: PaymentStatus;
     dueDate?: Date;
@@ -28,7 +28,7 @@ const paymentSchema = new mongoose.Schema<IPayment>({
     status: { type: String, enum: Object.values(PaymentStatus), default: PaymentStatus.Pending, required: true },
     dueDate: { type: Date, required: true },
     type: { type: String, enum: Object.values(PaymentType), required: true },
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }
+    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }
 }, {
     timestamps: true,
     versionKey: false

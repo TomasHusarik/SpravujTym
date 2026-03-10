@@ -1,9 +1,11 @@
-import e, { Request, Response } from 'express';
+import { Request, Response } from 'express';
 import ErrorMessages from '@utils/errorMessages';
-import TeamEvent from '@models/TeamEvent';
+import TeamEvent, { TeamEventType } from '@models/TeamEvent';
 import mongoose from 'mongoose';
 import EventParticipation, { IEventParticipation } from '@models/EventParticipation';
 import { ensurePermissions } from '@middleware/permission.middleware';
+import { NominationMail } from '@mails/NominationMail';
+import User from '@models/User';
 
 // GET /team-event/:id - Get team event by ID
 export const getTeamEventById = async (req: Request, res: Response) => {
@@ -193,6 +195,26 @@ export const createTeamEvent = async (req: Request, res: Response) => {
 
         await session.commitTransaction();
         session.endSession();
+
+        if (type === TeamEventType.Match && Array.isArray(participations) && participations.length > 0) {
+            const participantEmails = await User.find({
+                _id: { $in: participations.map((p: any) => p.userId) }
+            })
+                .select('email')
+                .lean();
+
+            try {
+                for (const participant of participantEmails) {
+                    await NominationMail(participant.email, {
+                        title,
+                        startDate,
+                        endDate,
+                    });
+                }
+            } catch (emailError) {
+                console.error('Failed to send nomination emails:', emailError);
+            }
+        }
 
         return res.status(201).json({ eventId: newTeamEvent[0]._id });
     } catch (error) {

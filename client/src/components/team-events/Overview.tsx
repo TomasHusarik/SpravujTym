@@ -8,6 +8,7 @@ import EventsTable from './EventsTable';
 import { getTeamEvents, updateParticipationStatus } from '@/utils/api';
 import { useNavigate } from 'react-router';
 import { DonutChart } from '@mantine/charts';
+import { useMediaQuery } from '@mantine/hooks';
 
 
 // Skončené a neskončené události
@@ -23,6 +24,7 @@ const Overview = () => {
     const [showManagedEvents, setShowManagedEvents] = useState<boolean>(false);
     const navigate = useNavigate();
     const hasExtendedPermissions = useExtendedPermissions();
+    const isDesktop = useMediaQuery('(min-width: 62em)');
 
     const isEventUpcoming = (date: Date | string): boolean => new Date(date) >= new Date();
 
@@ -119,9 +121,13 @@ const Overview = () => {
             <Grid.Col span={{ base: 12, md: 4 }} order={{ base: 2, md: 3 }}>
                 <Grid>
                     <Grid.Col span={12} visibleFrom="md">
-                        <Group justify="center" mb="md">
-                            <DonutChart size={150} thickness={20} chartLabel="Účast" data={getChartData()} />
-                        </Group>
+                        {isDesktop && (
+                            <Group justify="center" mb="md">
+                                <div style={{ width: 150, height: 150, minWidth: 150, minHeight: 150 }}>
+                                    <DonutChart size={150} thickness={20} chartLabel="Účast" data={getChartData()} />
+                                </div>
+                            </Group>
+                        )}
                     </Grid.Col>
 
                     <Grid.Col span={12} visibleFrom="md">

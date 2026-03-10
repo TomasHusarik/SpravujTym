@@ -3,12 +3,6 @@ export interface IEmail {
   to?: string;
   subject?: string;
   context?: string;
-  attachments?: {
-    filename: string;
-    content: Buffer | string;
-    cid: string;
-    contentType: string;
-  }[];
 }
 
 export type UserPermissions = {

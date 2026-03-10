@@ -1,16 +1,22 @@
 import PaymentUsersDrawer from '@/components/drawers/PaymentUsersDrawer';
 import type { User } from '@/types/User';
-import { addPayments } from '@/utils/api';
+import { createPayments, updatePayment, getPayment } from '@/utils/api';
 import { PaymentStatus as PaymentStatusConst, PaymentType as PaymentTypeConst } from '@/utils/const';
 import { getFullName, showErrorNotification, showSuccessNotification } from '@/utils/helpers';
 import { ActionIcon, Button, Divider, Group, NumberInput, Paper, Select, SimpleGrid, Stack, Text, Textarea, TextInput, Title, Tooltip } from '@mantine/core';
 import { DatePickerInput } from '@mantine/dates';
 import { useForm } from '@mantine/form';
 import { IconCalendar, IconCash, IconDeviceFloppy, IconReceipt2, IconRosetteDiscountCheck, IconUser, IconUserPlus } from '@tabler/icons-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+
+interface IPayment {
+    paymentId?: string;
+    modalOpen?: (open: boolean) => void;
+}
 
 
-const Payment = () => {
+const Payment = (props: IPayment) => {
+    const { paymentId, modalOpen } = props;
 
     const [isSaving, setIsSaving] = useState(false);
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -53,18 +59,48 @@ const Payment = () => {
 
             };
 
-            await addPayments(payload);
+            if (paymentId) {
+                await updatePayment(paymentId, payload);
+                modalOpen?.(false);
+            } else {
+                await createPayments(payload);
+            }
 
 
-            showSuccessNotification('Platba byla úspěšně vytvořena');
+            showSuccessNotification(`Platba byla ${paymentId ? 'aktualizována' : 'vytvořena'}`);
             form.reset();
             setSelectedUsers([]);
         } catch {
-            showErrorNotification('Nepodařilo se vytvořit platbu');
+            showErrorNotification(`Nepodařilo se ${paymentId ? 'aktualizovat' : 'vytvořit'} platbu`);
         } finally {
             setIsSaving(false);
         }
     });
+
+    const loadData = async () => {
+        try {
+            const pay = await getPayment(paymentId);
+            console.log('Loaded payment:', pay);
+            form.setValues({
+                userIds: [pay.user._id],
+                amount: pay.amount,
+                status: pay.status,
+                dueDate: new Date(pay.dueDate),
+                type: pay.type,
+            });
+            setSelectedUsers([pay.user]);
+        } catch (error) {
+            console.error('Error loading payments:', error);
+        }
+    };
+    useEffect(() => {
+        if (paymentId) {
+            loadData();
+        } else {
+            form.reset();
+        }
+    }, [open]);
+
     return (
         <>
             <form onSubmit={handleSave}>
@@ -72,8 +108,8 @@ const Payment = () => {
                     <Stack gap="lg">
                         <Group justify="space-between" align="flex-end">
                             <div>
-                                <Title order={2}>Nová platba</Title>
-                                <Text size="sm" c="dimmed">Vyplňte informace pro vytvoření nové platby</Text>
+                                <Title order={2}>{paymentId ? `Upravit Platbu` : `Nová Platba`}</Title>
+                                <Text size="sm" c="dimmed">{paymentId ? `Upravte informace pro platbu` : `Vyplňte informace pro vytvoření nové platby`}</Text>
                             </div>
                         </Group>
 
@@ -90,11 +126,13 @@ const Payment = () => {
                                 value={selectedUsers.map((usr) => getFullName(usr)).join(", \n")}
                                 error={form.errors.userId}
                                 rightSection={
-                                    <Tooltip label="Vybrat uživatele" withArrow>
-                                        <ActionIcon size={32} radius="xl" variant="subtle" onClick={() => setIsDrawerOpen(true)} >
-                                            <IconUserPlus stroke={1.5} />
-                                        </ActionIcon>
-                                    </Tooltip>
+                                    !paymentId && (
+                                        <Tooltip label="Vybrat uživatele" withArrow>
+                                            <ActionIcon size={32} radius="xl" variant="subtle" onClick={() => setIsDrawerOpen(true)} >
+                                                <IconUserPlus stroke={1.5} />
+                                            </ActionIcon>
+                                        </Tooltip>
+                                    )
                                 }
 
                             />

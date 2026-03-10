@@ -164,6 +164,7 @@ const EventDetail = (props: IEventDetail) => {
             loadData();
         } else {
             loadVenuesAndSquads();
+            setEditMode(true); 
         }
     }, [eventId]);
 

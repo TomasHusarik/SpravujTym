@@ -1,10 +1,13 @@
 import type { Payment } from '@/types/Payment';
-import { Alert, Badge, Group, Image, Paper, Stack, Text } from '@mantine/core';
+import { ActionIcon, Alert, Badge, Group, Image, Paper, Stack, Text } from '@mantine/core';
 import { useEffect, useState } from 'react';
 import QRCode from 'qrcode';
 import { useApp } from '@/context/AppContext';
-import { getPayments } from '@/utils/api';
+import { deletePayment, getPayments } from '@/utils/api';
 import { PaymentStatus as PaymentStatusConst, PaymentType as PaymentTypeConst } from '@/utils/const';
+import { IconEdit, IconTrash } from '@tabler/icons-react';
+import { useAdminPermissions } from '@/utils/helpers';
+import PaymentModal from '../modals/PaymentModal';
 
 interface IUserPayments {
   userId: string;
@@ -14,6 +17,8 @@ const UserPayments = ({ userId }: IUserPayments) => {
   const { team } = useApp();
   const [payments, setPayments] = useState<Payment[]>([]);
   const [qrMap, setQrMap] = useState<Record<string, string>>({});
+
+  const isAdmin = useAdminPermissions();
 
   const getStatusColor = (status?: string) => {
     if (status === PaymentStatusConst.COMPLETED.value) return 'green';
@@ -43,6 +48,22 @@ const UserPayments = ({ userId }: IUserPayments) => {
 
     return parts.filter(Boolean).join('*');
   };
+
+  const handleDelete = async (paymentId?: string) => {
+    if (!paymentId) return;
+
+    if (!confirm('Opravdu chcete smazat tuto platbu?')) {
+      return;
+    }
+
+    try {
+      await deletePayment(paymentId);
+    } catch (error) {
+      console.error('Error deleting payment:', error);
+    } finally {
+      loadData();
+    }
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -133,15 +154,27 @@ const UserPayments = ({ userId }: IUserPayments) => {
                 </Text>
               </Stack>
 
-              {payment.status === PaymentStatusConst.PENDING.value && payment._id && qrMap[payment._id] && (
-                <Image
-                  src={qrMap[payment._id]}
-                  alt="QR platba"
-                  w={140}
-                  h={140}
-                  radius="md"
-                />
-              )}
+              <Stack gap="xs" align="end">
+                {isAdmin && (
+                  <Group gap="xs">
+                    <PaymentModal paymentId={payment._id ?? ''} loadData={loadData}/>
+                    <ActionIcon variant="light" color="red" onClick={() => handleDelete(payment._id)}>
+                      <IconTrash size={16} />
+                    </ActionIcon>
+                  </Group>
+                )}
+
+                {payment.status === PaymentStatusConst.PENDING.value && payment._id && qrMap[payment._id] && (
+                  <Image
+                    src={qrMap[payment._id]}
+                    alt="QR platba"
+                    w={140}
+                    h={140}
+                    radius="md"
+
+                  />
+                )}
+              </Stack>
             </Group>
           </Paper>
         );
