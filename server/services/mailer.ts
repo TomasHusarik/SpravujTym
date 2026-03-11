@@ -8,7 +8,16 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 export const mailer = async (emailData: IEmail) => {
     const { from, to, subject, context } = emailData;
 
-    const logoFilePath = path.join(__dirname, '..', 'assets', 'logo40x40.png');
+    const logoFilePathCandidates = [
+        path.join(__dirname, '..', 'assets', 'logo40x40.png'),
+        path.join(__dirname, '..', '..', 'assets', 'logo40x40.png'),
+    ];
+    const logoFilePath = logoFilePathCandidates.find((candidate) => fs.existsSync(candidate));
+
+    if (!logoFilePath) {
+        throw new Error('Mailer logo asset was not found.');
+    }
+
     const logoBase64 = fs.readFileSync(logoFilePath).toString('base64');
 
     try {

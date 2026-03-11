@@ -23,15 +23,20 @@ jobs:
                   cache: "npm"
             - name: Install dependencies
               run: npm run install-all
+
             - name: Build
               run: npm run build
 
             - name: Prepare deployment
-              run: 
-                  mkdir deploy &&
-                  cp -r server deploy/server &&
-                  cp package.json deploy/package.json &&
-                  cp -r client deploy/client
+              run: |
+                  mkdir -p deploy/server deploy/client
+                  cp package.json deploy/package.json
+                  cp server/package.json deploy/server/package.json
+                  cp server/package-lock.json deploy/server/package-lock.json
+                  cp -r server/dist deploy/server/dist
+                  cp -r server/assets deploy/server/assets
+                  cp -r client/dist deploy/client/dist
+                  npm ci --omit=dev --prefix deploy/server
 
             - name: Deploy to Azure
               uses: azure/webapps-deploy@v3
