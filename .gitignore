@@ -32,7 +32,6 @@ build/Release
 .parcel-cache/
 .output/
 out/
-public/
 
 # Testing & coverage
 coverage/
