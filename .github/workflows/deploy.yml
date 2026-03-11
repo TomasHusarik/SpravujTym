@@ -28,9 +28,9 @@ jobs:
 
             - name: Prepare deployment
               run: 
-                  mkdir deploy
-                  cp -r server deploy/server
-                  cp package.json deploy/package.json
+                  mkdir deploy &&
+                  cp -r server deploy/server &&
+                  cp package.json deploy/package.json &&
                   cp -r client deploy/client
 
             - name: Deploy to Azure
