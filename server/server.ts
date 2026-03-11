@@ -13,6 +13,7 @@ import paymentRoutes from '@routes/paymnet.routes';
 import Announcement from '@models/Announcement';
 import announcementRoutes from '@routes/announcement.routes';
 import emailRoutes from '@routes/email.routes';
+import path from "node:path";
 
 // import vehicleRoutes from '@routes/vehicles.routes';
 
@@ -36,6 +37,15 @@ app.use('/api/league', leagueRoutes);
 app.use('/api/payment', paymentRoutes);
 app.use('/api/announcement', announcementRoutes);
 app.use('/api/email', emailRoutes);
+
+//client
+const clientBuildPath = path.join(__dirname, '..', 'client', 'dist');
+app.use(express.static(clientBuildPath));
+
+app.get(/^\/.*/, (req, res) => {
+    res.sendFile(path.join(clientBuildPath, 'index.html'));
+});
+
 
 app.listen(PORT, () => {
     connectDB();
