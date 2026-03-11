@@ -10,7 +10,7 @@ import SquadModal from '../modals/SquadModal';
 
 const Squads = () => {
     const navigate = useNavigate();
-    const [squads, setSquads] = useState<Squad[]>([]);
+    const [squads, setSquads] = useState<Squad[]>();
     const [isLoading, setIsLoading] = useState(true);
     const [isSquadModalOpen, setIsSquadModalOpen] = useState(false);
     const [selectedSquad, setSelectedSquad] = useState<Squad>(null);
@@ -19,7 +19,7 @@ const Squads = () => {
         try {
             setIsLoading(true);
             const data = await getSquads();
-            setSquads(data ?? []);
+            setSquads(data);
         } catch (err) {
         } finally {
             setIsLoading(false);

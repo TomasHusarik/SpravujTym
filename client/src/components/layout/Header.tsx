@@ -16,6 +16,7 @@ import { MenuItems } from './MenuItems';
 import { useNavigate } from 'react-router';
 import { useAuth } from '@context/AuthContext';
 import { useAdminPermissions } from '@/utils/helpers';
+import logo from '@assets/logo40x40.svg';
 
 const Header = () => {
   const [opened, { toggle }] = useDisclosure(false);
@@ -44,7 +45,7 @@ const Header = () => {
       <Container className={classes.mainSection} size="">
         <Group justify="space-between">
           <div style={{ display: 'flex', alignItems: 'center', gap: '15px', cursor: 'pointer' }} onClick={() => navigate('/')}>
-            <Image src="/logo40x40.svg" alt="Bluehorses Logo" w={40} h={40} />
+            <Image src={logo} alt="Bluehorses Logo" w={40} h={40} />
             <Text fw={700} fz="xl" className={classes.logoText}>
               Blue Horses Stochov
             </Text>
