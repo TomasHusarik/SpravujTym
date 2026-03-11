@@ -27,7 +27,8 @@ jobs:
               run: npm run build
 
             - name: Prepare deployment
-              run: mkdir deploy
+              run: 
+                  mkdir deploy
                   cp -r server deploy/server
                   cp package.json deploy/package.json
                   cp -r client deploy/client
