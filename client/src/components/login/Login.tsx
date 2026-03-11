@@ -1,5 +1,5 @@
 import { Button, Text, Paper, PasswordInput, Image, TextInput, Title, Divider } from '@mantine/core';
-import classes from './login.module.css';
+import classes from './Login.module.css';
 import logo from '@assets/logo40x40.svg';
 import { useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router';
