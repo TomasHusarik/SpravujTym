@@ -16,7 +16,7 @@ type AuthContextValue = {
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 const USER_STORAGE_KEY = 'user';
-const DEFAULT_TEAM_ID = "99ec4679a3aebfee8e290c5"; // Replace with config file
+const DEFAULT_TEAM_ID = "699ec4679a3aebfee8e290c5"; // Replace with config file
 
 export const AuthProvider = ({ children }: { children: react.ReactNode }) => {
 
