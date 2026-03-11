@@ -3,6 +3,8 @@ import e, { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import env from '@utils/validateEnv';
 
+const isProd = process.env.NODE_ENV === "production";
+
 // Helper function to generate random password
 export const generateRandomPassword = (): string => {
     return randomBytes(12).toString('hex');
@@ -10,26 +12,26 @@ export const generateRandomPassword = (): string => {
 
 //#region Token and Cookie Helpers
 
-// Token generation
+// Create JWT token
 export const createToken = (payload: object) => {
-    return jwt.sign(payload, env.JWT_SECRET, { expiresIn: '7d' });
+    return jwt.sign(payload, env.JWT_SECRET, { expiresIn: "7d" });
 };
 
-// Helper function to set token cookie
+// Middleware to set auth cookie
 export const generateTokenCookie = (res: Response, token: string) => {
-    res.cookie('authToken', token, {
+    res.cookie("authToken", token, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+        secure: isProd,
+        sameSite: "lax",
+        maxAge: 7 * 24 * 60 * 60 * 1000
     });
-}
+};
 
-// Helper function to clear token cookie
+// Middleware to clear auth cookie
 export const resetCookie = (res: Response) => {
-    res.clearCookie('authToken', {
+    res.clearCookie("authToken", {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        secure: isProd,
+        sameSite: "lax"
     });
 };

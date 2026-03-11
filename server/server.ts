@@ -4,6 +4,9 @@ import cookieParser from 'cookie-parser';
 import fs from 'node:fs';
 import env from '@utils/validateEnv';
 import { connectDB } from '@db/connection';
+import path from 'node:path';
+
+// Routes
 import authRoutes from '@routes/user.routes';
 import teamEventsRoutes from '@routes/team-events.routes';
 import venueRoutes from '@routes/venue.routes';
@@ -11,24 +14,26 @@ import teamRoutes from '@routes/team.routes';
 import squadRoutes from '@routes/squad.routes';
 import leagueRoutes from '@routes/league.routes';
 import paymentRoutes from '@routes/paymnet.routes';
-import Announcement from '@models/Announcement';
 import announcementRoutes from '@routes/announcement.routes';
 import emailRoutes from '@routes/email.routes';
-import path from 'node:path';
-
-// import vehicleRoutes from '@routes/vehicles.routes';
 
 const PORT = env.PORT;
 const app = express();
 
-app.use(cors({ origin: 'http://localhost:5173', credentials: true }));
+app.set('trust proxy', 1);
+
+// CORS
+app.use(cors({
+    origin: true,
+    credentials: true
+}));
 
 // Middleware
 app.use(cookieParser());
 app.use(express.json());
-app.use(express.text());
+app.use(express.urlencoded({ extended: true }));
 
-// Routes
+// API routes
 app.use('/api/user', authRoutes);
 app.use('/api/team-event', teamEventsRoutes);
 app.use('/api/venue', venueRoutes);
@@ -39,7 +44,7 @@ app.use('/api/payment', paymentRoutes);
 app.use('/api/announcement', announcementRoutes);
 app.use('/api/email', emailRoutes);
 
-//client
+// React client
 const clientBuildPathCandidates = [
     path.join(__dirname, '..', 'client', 'dist'),
     path.join(__dirname, '..', '..', 'client', 'dist'),
@@ -57,8 +62,8 @@ app.get(/^\/.*/, (req, res) => {
     res.sendFile(path.join(clientBuildPath, 'index.html'));
 });
 
-
+// Start server
 app.listen(PORT, () => {
     connectDB();
-    console.log(`Server is running on http://localhost:${PORT}`);
+    console.log(`Server running on port ${PORT}`);
 });
