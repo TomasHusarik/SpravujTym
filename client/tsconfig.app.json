@@ -28,6 +28,7 @@
         /* Module Resolution */
     "paths": {
       "@/*": ["./src/*"],
+      "@root/*": ["../*"],
       "@pages/*": ["./src/pages/*"],
       "@components/*": ["./src/components/*"],
       "@assets/*": ["./src/assets/*"],

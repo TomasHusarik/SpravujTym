@@ -3,8 +3,7 @@ import type { Squad } from '@/types/Squad';
 import type { SquadMembership } from '@/types/SquadMembership';
 import type { UserPermissions } from '@/types/Permissions';
 import axios from 'axios';
-import { use } from 'react';
-import type { Payment } from '@/types/Payment';
+import { config } from '@/config/config';
 
 // Use environment variable or fallback to localhost for development
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';

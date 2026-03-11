@@ -3,6 +3,7 @@ import { loginUser, logoutUser, authUser, getTeam, getMyPermissions } from '@uti
 import type { User } from '@/types/User';
 import type { UserPermissions } from '@/types/Permissions';
 import { useApp } from './AppContext';
+import { config } from '@/config/config';
 
 type AuthContextValue = {
     user: User | null;
@@ -16,7 +17,7 @@ type AuthContextValue = {
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 const USER_STORAGE_KEY = 'user';
-const DEFAULT_TEAM_ID = "699ec4679a3aebfee8e290c5"; // Replace with config file
+const DEFAULT_TEAM_ID = config.teamId;
 
 export const AuthProvider = ({ children }: { children: react.ReactNode }) => {
 

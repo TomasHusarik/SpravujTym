@@ -17,6 +17,7 @@ import { useNavigate } from 'react-router';
 import { useAuth } from '@context/AuthContext';
 import { useAdminPermissions } from '@/utils/helpers';
 import logo from '@assets/logo40x40.svg';
+import { config } from '@/config/config';
 
 const Header = () => {
   const [opened, { toggle }] = useDisclosure(false);
@@ -47,7 +48,7 @@ const Header = () => {
           <div style={{ display: 'flex', alignItems: 'center', gap: '15px', cursor: 'pointer' }} onClick={() => navigate('/')}>
             <Image src={logo} alt="Bluehorses Logo" w={40} h={40} />
             <Text fw={700} fz="xl" className={classes.logoText}>
-              Blue Horses Stochov
+              {config.teamName}
             </Text>
           </div>
 

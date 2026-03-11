@@ -1,6 +1,6 @@
 {
     "name": "spravuj-tym",
-    "version": "1.0.0",
+    "version": "2026.3.11",
     "private": true,
     "scripts": {
         "install-all": "npm install && npm --prefix client install && npm --prefix server install",
