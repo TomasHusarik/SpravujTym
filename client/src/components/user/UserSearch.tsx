@@ -1,16 +1,22 @@
 import type { User } from '@/types/User';
 import { getUsers } from '@/utils/api';
-import { ActionIcon, Chip, Grid, TextInput, Title, Tooltip } from '@mantine/core';
+import {
+    ActionIcon,
+    Chip,
+    Group,
+    Stack,
+    TextInput,
+    Tooltip,
+} from '@mantine/core';
 import { IconUserPlus } from '@tabler/icons-react';
-import React, { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router';
-import UsersTable from './UsersTable';
+import { useEffect, useState } from 'react';
 import { useDebouncedValue } from '@mantine/hooks';
+import UsersTable from './UsersTable';
 import NewUserDrawer from '../drawers/NewUserDrawer';
 
 const UserSearch = () => {
     const [users, setUsers] = useState<User[]>([]);
-    const [searchValue, setSearchValue] = useState<string>('');
+    const [searchValue, setSearchValue] = useState('');
     const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
     const [debouncedSearchValue] = useDebouncedValue(searchValue, 150);
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -27,14 +33,19 @@ const UserSearch = () => {
 
     useEffect(() => {
         const lowerSearch = debouncedSearchValue.toLowerCase();
+
         const filtered = users.filter((user) => {
             const fullName = `${user.firstName} ${user.lastName}`.toLowerCase();
             const email = user.email?.toLowerCase() || '';
-            return fullName.includes(lowerSearch) || email.includes(lowerSearch);
+
+            return (
+                fullName.includes(lowerSearch) ||
+                email.includes(lowerSearch)
+            );
         });
+
         setFilteredUsers(filtered);
     }, [debouncedSearchValue, users]);
-
 
     useEffect(() => {
         loadData();
@@ -42,8 +53,10 @@ const UserSearch = () => {
 
     return (
         <>
-            <Grid>
-                <Grid.Col span={6}>
+            <Stack gap="md">
+
+                {/* Search + create */}
+                <Group align="flex-end" wrap="nowrap">
                     <TextInput
                         radius="md"
                         size="md"
@@ -57,20 +70,35 @@ const UserSearch = () => {
                                 </ActionIcon>
                             </Tooltip>
                         }
+                        style={{ flex: 1, maxWidth: 450 }}
                     />
-                </Grid.Col>
-                <Grid.Col span={6} />
-                <Grid.Col span={6}>
-                    <Chip checked={showInactive} onChange={(checked) => setShowInactive(checked)}>Neaktivní</Chip>
-                </Grid.Col>
-                <Grid.Col span={12}>
-                    <UsersTable filteredUsers={filteredUsers} loadData={loadData} />
-                </Grid.Col>
-            </Grid>
+                </Group>
 
-            <NewUserDrawer isDrawerOpen={isDrawerOpen} setIsDrawerOpen={setIsDrawerOpen} />
+                {/* Filters */}
+                <Group>
+                    <Chip
+                        checked={showInactive}
+                        onChange={(checked) => setShowInactive(checked)}
+                        variant="outline"
+                    >
+                        Zobrazit neaktivní
+                    </Chip>
+                </Group>
+
+                {/* Table */}
+                <UsersTable
+                    filteredUsers={filteredUsers}
+                    loadData={loadData}
+                />
+
+            </Stack>
+
+            <NewUserDrawer
+                isDrawerOpen={isDrawerOpen}
+                setIsDrawerOpen={setIsDrawerOpen}
+            />
         </>
-    )
-}
+    );
+};
 
-export default UserSearch
+export default UserSearch;

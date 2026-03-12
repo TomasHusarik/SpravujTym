@@ -125,45 +125,99 @@ const SquadDetail = ({ squadId }: ISquadDetail) => {
             {members.length === 0 ? (
               <Text c="dimmed">Zatím nejsou přiřazeni žádní členové.</Text>
             ) : (
-              <Table striped highlightOnHover>
-                <Table.Thead>
-                  <Table.Tr>
-                    <Table.Th>Uživatel</Table.Th>
-                    <Table.Th>E-mail</Table.Th>
-                    <Table.Th>Role</Table.Th>
-                    <Table.Th>Delete</Table.Th>
-                  </Table.Tr>
-                </Table.Thead>
-                <Table.Tbody>
-                  {sortedMembers.map((member) => {
-                    return (
+              <>
+                {/* DESKTOP TABLE */}
+                <Table striped highlightOnHover visibleFrom="sm">
+                  <Table.Thead>
+                    <Table.Tr>
+                      <Table.Th>Uživatel</Table.Th>
+                      <Table.Th>E-mail</Table.Th>
+                      <Table.Th>Role</Table.Th>
+                      <Table.Th></Table.Th>
+                    </Table.Tr>
+                  </Table.Thead>
+
+                  <Table.Tbody>
+                    {sortedMembers.map((member) => (
                       <Table.Tr key={member._id}>
                         <Table.Td>{getFullName(member.user)}</Table.Td>
                         <Table.Td>{member.user?.email}</Table.Td>
+
                         <Table.Td>
-                          {member._id ? (
-                            <MultiSelect
-                              data={Object.values(SquadRole)}
-                              value={member.roles || []}
-                              onChange={(value) => handleMemberRolesChange(member._id, value)}
-                              clearable={false}
-                              searchable={false}
-                              w={200}
-                            />
-                          ) : (
-                            <Text c="dimmed">N/A</Text>
-                          )}
+                          <MultiSelect
+                            data={Object.values(SquadRole)}
+                            value={member.roles || []}
+                            onChange={(value) =>
+                              handleMemberRolesChange(member._id, value)
+                            }
+                            clearable={false}
+                            searchable={false}
+                            w={200}
+                          />
                         </Table.Td>
+
                         <Table.Td>
-                          <ActionIcon size={32} radius="xl" variant="subtle" onClick={(e) => { e.stopPropagation(); handleDelete(member._id); }}>
+                          <ActionIcon
+                            size={32}
+                            radius="xl"
+                            variant="subtle"
+                            onClick={() => handleDelete(member._id)}
+                          >
                             <IconTrash stroke={1.5} />
                           </ActionIcon>
                         </Table.Td>
                       </Table.Tr>
-                    );
-                  })}
-                </Table.Tbody>
-              </Table>
+                    ))}
+                  </Table.Tbody>
+                </Table>
+
+                {/* MOBILE LIST */}
+                <Stack hiddenFrom="sm" gap={6}>
+                  {sortedMembers.map((member) => (
+                    <Box
+                      key={member._id}
+                      p="xs"
+                      style={{
+                        border: "1px solid var(--mantine-color-default-border)",
+                        borderRadius: "var(--mantine-radius-md)",
+                      }}
+                    >
+                      <Group justify="space-between" align="flex-start" wrap="nowrap">
+
+                        <Stack gap={2} style={{ flex: 1 }}>
+                          <Text fw={600} size="sm">
+                            {getFullName(member.user)}
+                          </Text>
+
+                          <Text size="xs" c="dimmed">
+                            {member.user?.email}
+                          </Text>
+
+                          <MultiSelect
+                            data={Object.values(SquadRole)}
+                            value={member.roles || []}
+                            onChange={(value) =>
+                              handleMemberRolesChange(member._id, value)
+                            }
+                            clearable={false}
+                            searchable={false}
+                            size="xs"
+                          />
+                        </Stack>
+
+                        <ActionIcon
+                          color="red"
+                          variant="subtle"
+                          onClick={() => handleDelete(member._id)}
+                        >
+                          <IconTrash size={16} />
+                        </ActionIcon>
+
+                      </Group>
+                    </Box>
+                  ))}
+                </Stack>
+              </>
             )}
           </Stack>
         </Stack>
