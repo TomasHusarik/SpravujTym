@@ -21,9 +21,7 @@ jobs:
               with:
                   node-version: "24"
                   cache: "npm"
-                  cache-dependency-path:
-                    client/package-lock.json
-                    server/package-lock.json
+                  cache-dependency-path: "**/package-lock.json"
 
             - name: Install dependencies
               run: |
@@ -42,7 +40,7 @@ jobs:
 
                   cp -r server/dist deploy/server/
                   cp -r client/dist deploy/client/
-                  
+
                   cp -r server/assets deploy/server/assets || true
                   
             - name: Install production dependencies
