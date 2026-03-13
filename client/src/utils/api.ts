@@ -63,9 +63,13 @@ export const updateComment = async (commentId: string, content: string) => {
     }
 }
 
-export const deleteComment = async (commentId: string) => {
+export const deleteComment = async (commentId: string, author: string) => {
     try {
-        const response = await api.delete(`/comment/delete-comment/${commentId}`);
+        const response = await api.delete(`/comment/delete-comment/${commentId}`, {
+            data: {
+                author,
+            },
+        });
         return response.data;
     } catch (error) {
         if (axios.isAxiosError(error)) {
@@ -109,7 +113,8 @@ export const getPayments = async (userId: string) => {
 }
 
 export const createPayments = async (paymentData: any) => {
-    try {const response = await api.post('/payment/add-payments', paymentData);
+    try {
+        const response = await api.post('/payment/add-payments', paymentData);
         return response.data;
     } catch (error) {
         if (axios.isAxiosError(error)) {
@@ -203,7 +208,7 @@ export const updateSquad = async (squadId: string, squadData: Squad) => {
         throw error;
     }
 }
-    
+
 export const getSquads = async () => {
     try {
         const response = await api.get('/squad/get-squads');

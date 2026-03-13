@@ -14,13 +14,18 @@ import {
 } from '@mantine/core';
 
 import {
+    IconCheck,
+    IconDeviceFloppy,
+    IconEdit,
     IconSend,
     IconTrash,
+    IconX,
 } from '@tabler/icons-react';
 
-import { getFullName, formatDate, showErrorNotification, showSuccessNotification } from '@/utils/helpers';
-import { createComment, deleteComment, getComments } from '@/utils/api';
+import { getFullName, formatDate, showErrorNotification, showSuccessNotification, useAdminPermissions } from '@/utils/helpers';
+import { createComment, deleteComment, getComments, updateComment } from '@/utils/api';
 import type { Comment } from '@/types/Comment';
+import { useAuth } from '@/context/AuthContext';
 
 interface IEventComments {
     eventId: string;
@@ -29,9 +34,15 @@ interface IEventComments {
 const EventComments = (props: IEventComments) => {
     const { eventId } = props;
 
+    const { user } = useAuth();
+    const isAdmin = useAdminPermissions();
+
     const [comments, setComments] = useState<Comment[]>([]);
     const [newComment, setNewComment] = useState<string>('');
     const [isSending, setIsSending] = useState(false);
+
+    const [editingId, setEditingId] = useState<string | null>(null);
+    const [editingText, setEditingText] = useState('');
 
     const handleAddComment = async () => {
         if (!newComment.trim()) return;
@@ -55,14 +66,51 @@ const EventComments = (props: IEventComments) => {
         }
     };
 
-    const handleDelete = async (commentId: string) => {
+    const handleEditStart = (comment: Comment) => {
+
+        setEditingId(comment._id);
+        setEditingText(comment.content);
+
+    };
+
+    const handleEditCancel = () => {
+
+        setEditingId(null);
+        setEditingText('');
+
+    };
+
+    const handleEditSave = async () => {
+
+        if (!editingId) return;
+
         try {
-            await deleteComment(commentId);
+
+            await updateComment(editingId, editingText);
+
+            showSuccessNotification('Komentář byl upraven');
+
+            setEditingId(null);
+            setEditingText('');
+
+            loadData();
+
+        } catch {
+
+            showErrorNotification('Nepodařilo se upravit komentář');
+
+        }
+    };
+
+
+    const handleDelete = async (comment: Comment) => {
+        try {
+            await deleteComment(comment._id, comment.author._id);
             showSuccessNotification('Komentář byl úspěšně smazán');
             loadData();
         } catch {
             showErrorNotification('Nepodařilo se smazat komentář');
-            console.error('Error deleting comment:', commentId);
+            console.error('Error deleting comment:', comment._id);
         }
     };
 
@@ -96,28 +144,33 @@ const EventComments = (props: IEventComments) => {
                     autosize
                     minRows={2}
                     maxRows={6}
-                    style={{ flex: 1 }}
                     value={newComment}
-                    onChange={(e) =>
-                        setNewComment(e.currentTarget.value)
-                    }
+                    onChange={(e) => setNewComment(e.currentTarget.value)}
                     rightSection={
                         <Tooltip label="Odeslat" withArrow>
-                            <ActionIcon size={32} radius="xl" variant="subtle" loading={isSending} onClick={handleAddComment} >
+                            <ActionIcon
+                                size={32}
+                                radius="xl"
+                                variant="subtle"
+                                loading={isSending}
+                                onClick={handleAddComment}
+                            >
                                 <IconSend size={18} />
-
                             </ActionIcon>
                         </Tooltip>
                     }
                 />
 
-                {/* COMMENTS LIST */}
+                {/* COMMENTS */}
 
                 {comments.length === 0 ? (
+
                     <Text c="dimmed" size="sm">
                         Zatím zde nejsou žádné komentáře.
                     </Text>
+
                 ) : (
+
                     <Stack gap="sm">
 
                         {comments.map((comment) => (
@@ -130,58 +183,113 @@ const EventComments = (props: IEventComments) => {
                                 bg="light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-6))"
                             >
 
-                                <Group align="flex-start" justify="space-between">
+                                <Stack gap={4}>
 
-                                    <Group align="flex-start">
+                                    {/* HEADER */}
+                                    <Group justify="space-between" align="flex-start" wrap="nowrap">
 
-                                        <Avatar radius="xl" size="sm" color="initials" name={getFullName(comment.author)}  src={comment.author.imageUrl} />
+                                        <Group gap="sm" align="flex-start">
 
-                                        <Stack gap={2} >
+                                            <Avatar
+                                                radius="xl"
+                                                size="sm"
+                                                color="initials"
+                                                name={getFullName(comment.author)}
+                                                src={comment.author.imageUrl}
+                                            />
 
-                                            <Text fw={600} size="sm">
-                                                {getFullName(comment.author)}
-                                            </Text>
+                                            <Stack gap={0}>
 
-                                            <Text size="xs" c="dimmed">
-                                                {new Date(comment.createdAt).toLocaleString('cs-CZ', {
-                                                    day: 'numeric',
-                                                    month: 'numeric',
-                                                    year: 'numeric',
-                                                    hour: '2-digit',
-                                                    minute: '2-digit'
-                                                })}
-                                            </Text>
+                                                <Text fw={600} size="sm">
+                                                    {getFullName(comment.author)}
+                                                </Text>
 
-                                            <Text size="sm">
-                                                {comment.content}
-                                            </Text>
+                                                <Text size="xs" c="dimmed">
+                                                    {new Date(comment.createdAt).toLocaleString('cs-CZ', {
+                                                        day: 'numeric',
+                                                        month: 'numeric',
+                                                        year: 'numeric',
+                                                        hour: '2-digit',
+                                                        minute: '2-digit'
+                                                    })}
+                                                </Text>
+                                            </Stack>
+                                        </Group>
+
+                                        {editingId !== comment._id && (
+
+                                            <Group gap="xs">
+
+                                                {(user._id === comment.author._id) && (
+                                                    <ActionIcon
+                                                        variant="light"
+                                                        color="blue"
+                                                        onClick={() => handleEditStart(comment)}
+                                                    >
+                                                        <IconEdit size={16} />
+                                                    </ActionIcon>
+                                                )}
+
+                                                {(isAdmin || user._id === comment.author._id) && (
+                                                <ActionIcon
+                                                    variant="light"
+                                                    color="red"
+                                                    onClick={() => handleDelete(comment)}
+                                                >
+                                                    <IconTrash size={16} />
+                                                </ActionIcon>
+                                                )}
+                                            </Group>
+                                        )}
+                                    </Group>
+
+                                    {/* CONTENT */}
+
+                                    {editingId === comment._id ? (
+
+                                        <Stack gap="xs" pl={34}>
+
+                                            <Textarea
+                                                autosize
+                                                minRows={2}
+                                                value={editingText}
+                                                onChange={(e) => setEditingText(e.currentTarget.value)}
+                                            />
+                                            <Group gap="xs">
+                                                <Button
+                                                    size="xs"
+                                                    leftSection={<IconCheck size={14} />}
+                                                    onClick={handleEditSave}
+                                                >
+                                                    Uložit
+                                                </Button>
+
+                                                <Button
+                                                    size="xs"
+                                                    variant="light"
+                                                    leftSection={<IconX size={14} />}
+                                                    onClick={handleEditCancel}
+                                                >
+                                                    Zrušit
+                                                </Button>
+                                            </Group>
 
                                         </Stack>
 
-                                    </Group>
+                                    ) : (
 
-                                    <ActionIcon
-                                        variant="subtle"
-                                        color="red"
-                                        radius="xl"
-                                        onClick={() =>
-                                            handleDelete(comment._id)
-                                        }
-                                    >
-                                        <IconTrash size={16} />
-                                    </ActionIcon>
-
-                                </Group>
-
+                                        <Text size="sm" pl={34}>
+                                            {comment.content}
+                                        </Text>
+                                    )}
+                                </Stack>
                             </Paper>
 
                         ))}
 
                     </Stack>
                 )}
-
             </Stack>
-
         </Paper>
     );
 };

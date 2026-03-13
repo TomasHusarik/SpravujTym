@@ -17,7 +17,7 @@ router.get('/get-comments/:eventId', getComment)
 router.post('/create-comment', createComment);
 
 // PUT /comment/update-comment/:commentId - Update comment
-router.put('/update-comment/:commentId', requireLoggedUser, updateComment);
+router.put('/update-comment/:commentId', updateComment);
 
 // DELETE /comment/delete-comment/:commentId - Delete comment
 router.delete('/delete-comment/:commentId', requireLoggedUser, deleteComment);

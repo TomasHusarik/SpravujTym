@@ -46,6 +46,18 @@ export const updateComment = async (req: Request, res: Response) => {
         return res.status(400).json({ error: "Content is required for updating comment" });
     }
 
+    //Only author can update comment, check in route with requireLoggedUser middleware
+    const com = await Comment.findById(commentId);
+
+    if (!com) {
+        return res.status(404).json({ error: "Comment not found" });
+    }
+
+    if (com.author.toString() !== req.loggedUser._id.toString()) {
+        return res.status(403).json({ error: "You do not have permission to edit this comment" });
+    }
+
+
     try {
         const updatedComment = await Comment.findByIdAndUpdate(
             commentId,
@@ -67,6 +79,16 @@ export const updateComment = async (req: Request, res: Response) => {
 // DELETE /comment/delete-comment/:commentId - Delete comment
 export const deleteComment = async (req: Request, res: Response) => {
     const { commentId } = req.params;
+    const author = req.body.author;
+
+    if (!commentId) {
+        return res.status(400).json({ error: "Comment ID is required for deletion" });
+    }
+
+    if (!req.loggedUser.isAdmin && author !== req.loggedUser._id.toString()) {
+        console.log(req.loggedUser._id.toString(), author)
+        return res.status(403).json({ error: "You do not have permission to delete this comment" });
+    }
 
     try {
         const deletedComment = await Comment.findByIdAndDelete(commentId);
