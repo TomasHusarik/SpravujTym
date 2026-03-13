@@ -38,11 +38,11 @@ jobs:
               run: |
                   mkdir -p deploy/server deploy/client
 
-                  cp server/package.json deploy/server/
-                  cp server/package-lock.json deploy/server/
+                  cp server/package.json deploy/package.json
+                  cp server/package-lock.json deploy/package-lock.json
 
-                  cp -r server/dist deploy/server/
-                  cp -r client/dist deploy/client/
+                  cp -r server/dist deploy/dist
+                  cp -r client/dist deploy/client
 
                   cp -r server/assets deploy/server/assets || true
                   
