@@ -134,9 +134,7 @@ const EventComments = (props: IEventComments) => {
 
                                     <Group align="flex-start">
 
-                                        {/* <Avatar radius="xl" size="sm">
-                                            {comment.author.firstName[0]}
-                                        </Avatar> */}
+                                        <Avatar radius="xl" size="sm" color="initials" name={getFullName(comment.author)}  src={comment.author.imageUrl} />
 
                                         <Stack gap={2} >
 

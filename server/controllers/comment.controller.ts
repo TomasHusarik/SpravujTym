@@ -6,7 +6,7 @@ export const getComment = async (req: Request, res: Response) => {
     const { eventId } = req.params;
 
     try {
-        const comments = await Comment.find({ event: eventId }).populate('author', 'firstName lastName');
+        const comments = await Comment.find({ event: eventId }).populate('author', 'firstName lastName imageUrl');
         res.json(comments);
     } catch (error) {
         console.error("Error fetching comments:", error);
