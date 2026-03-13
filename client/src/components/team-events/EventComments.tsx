@@ -78,6 +78,9 @@ const EventComments = (props: IEventComments) => {
 
     useEffect(() => {
         loadData();
+        const interval = setInterval(loadData, 5000); // každých 5s
+
+        return () => clearInterval(interval)
     }, [eventId]);
 
     return (
@@ -88,25 +91,25 @@ const EventComments = (props: IEventComments) => {
                 <Title order={4}>Komentáře</Title>
 
                 {/* ADD COMMENT */}
-                    <Textarea
-                        placeholder="Napsat komentář..."
-                        autosize
-                        minRows={2}
-                        maxRows={6}
-                        style={{ flex: 1 }}
-                        value={newComment}
-                        onChange={(e) =>
-                            setNewComment(e.currentTarget.value)
-                        }
-                        rightSection={
-                            <Tooltip label="Odeslat" withArrow>
-                                <ActionIcon size={32} radius="xl" variant="subtle" loading={isSending} onClick={handleAddComment} >
-                                    <IconSend size={18} />
+                <Textarea
+                    placeholder="Napsat komentář..."
+                    autosize
+                    minRows={2}
+                    maxRows={6}
+                    style={{ flex: 1 }}
+                    value={newComment}
+                    onChange={(e) =>
+                        setNewComment(e.currentTarget.value)
+                    }
+                    rightSection={
+                        <Tooltip label="Odeslat" withArrow>
+                            <ActionIcon size={32} radius="xl" variant="subtle" loading={isSending} onClick={handleAddComment} >
+                                <IconSend size={18} />
 
-                                </ActionIcon>
-                            </Tooltip>
-                        }
-                    />
+                            </ActionIcon>
+                        </Tooltip>
+                    }
+                />
 
                 {/* COMMENTS LIST */}
 
@@ -137,19 +140,19 @@ const EventComments = (props: IEventComments) => {
 
                                         <Stack gap={2} >
 
-                                                <Text fw={600} size="sm">
-                                                    {getFullName(comment.author)}
-                                                </Text>
+                                            <Text fw={600} size="sm">
+                                                {getFullName(comment.author)}
+                                            </Text>
 
-                                                <Text size="xs" c="dimmed">
-                                                    {new Date(comment.createdAt).toLocaleString('cs-CZ', {
-                                                        day: 'numeric',
-                                                        month: 'numeric',
-                                                        year: 'numeric',
-                                                        hour: '2-digit',
-                                                        minute: '2-digit'
-                                                    })}
-                                                </Text>
+                                            <Text size="xs" c="dimmed">
+                                                {new Date(comment.createdAt).toLocaleString('cs-CZ', {
+                                                    day: 'numeric',
+                                                    month: 'numeric',
+                                                    year: 'numeric',
+                                                    hour: '2-digit',
+                                                    minute: '2-digit'
+                                                })}
+                                            </Text>
 
                                             <Text size="sm">
                                                 {comment.content}

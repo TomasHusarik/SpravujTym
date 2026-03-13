@@ -34,7 +34,7 @@ jobs:
                   cp server/package.json deploy/server/package.json
                   cp server/package-lock.json deploy/server/package-lock.json
                   cp -r server/dist deploy/server/dist
-                  cp -r server/assets deploy/server/assets
+                  cp -r server/assets deploy/server/assets || true
                   cp -r client/dist deploy/client/dist
                   npm ci --omit=dev --prefix deploy/server
 
