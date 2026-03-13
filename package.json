@@ -5,7 +5,7 @@
     "scripts": {
         "install-all": "npm install && npm --prefix client install && npm --prefix server install",
         "build": "npm run build --prefix server && npm run build --prefix client",
-        "start": "npm --prefix server start",
+        "start": "node server/dist/server.js",
         "dev": "concurrently \"npm run dev --prefix server\" \"npm run dev --prefix client\""
     },
     "devDependencies": {
