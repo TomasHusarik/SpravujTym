@@ -16,6 +16,7 @@ import leagueRoutes from '@routes/league.routes';
 import paymentRoutes from '@routes/paymnet.routes';
 import announcementRoutes from '@routes/announcement.routes';
 import emailRoutes from '@routes/email.routes';
+import commentRoutes from '@routes/comment.routes';
 
 const PORT = env.PORT;
 const app = express();
@@ -43,6 +44,7 @@ app.use('/api/league', leagueRoutes);
 app.use('/api/payment', paymentRoutes);
 app.use('/api/announcement', announcementRoutes);
 app.use('/api/email', emailRoutes);
+app.use('/api/comment', commentRoutes);
 
 // React client
 const clientBuildPathCandidates = [

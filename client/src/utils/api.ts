@@ -26,6 +26,55 @@ export const sendEmail = async (emailData: any) => {
     }
 }
 
+// #region Commnet APIs
+export const getComments = async (eventId: string) => {
+    try {
+        const response = await api.get(`/comment/get-comments/${eventId}`);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            throw new Error(error.response?.data?.error || 'Failed to fetch comments');
+        }
+        throw error;
+    }
+}
+
+export const createComment = async (commentData: any) => {
+    try {
+        const response = await api.post('/comment/create-comment', commentData);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            throw new Error(error.response?.data?.error || 'Failed to create comment');
+        }
+        throw error;
+    }
+}
+
+export const updateComment = async (commentId: string, content: string) => {
+    try {
+        const response = await api.put(`/comment/update-comment/${commentId}`, { content });
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            throw new Error(error.response?.data?.error || 'Failed to update comment');
+        }
+        throw error;
+    }
+}
+
+export const deleteComment = async (commentId: string) => {
+    try {
+        const response = await api.delete(`/comment/delete-comment/${commentId}`);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            throw new Error(error.response?.data?.error || 'Failed to delete comment');
+        }
+        throw error;
+    }
+}
+
 // #region Payment APIs
 export const getPayment = async (paymentId: string) => {
     try {
