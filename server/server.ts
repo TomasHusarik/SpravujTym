@@ -49,16 +49,27 @@ app.use('/api/comment', commentRoutes);
 // React client
 if (process.env.NODE_ENV === "production") {
 
-  const clientPath = path.join(process.cwd(), "client", "dist");
+  const clientBuildPathCandidates = [
+    path.join(__dirname, "..", "client", "dist"),
+    path.join(__dirname, "..", "..", "client", "dist"),
+  ];
 
-  console.log("Serving React build from:", clientPath);
+  const clientBuildPath = clientBuildPathCandidates.find((p) =>
+    fs.existsSync(p)
+  );
 
-  app.use(express.static(clientPath));
+  if (!clientBuildPath) {
+    console.error("React build not found. Checked paths:", clientBuildPathCandidates);
+    throw new Error("Client build output was not found.");
+  }
+
+  console.log("Serving React build from:", clientBuildPath);
+
+  app.use(express.static(clientBuildPath));
 
   app.get("*", (req, res) => {
-    res.sendFile(path.join(clientPath, "index.html"));
+    res.sendFile(path.join(clientBuildPath, "index.html"));
   });
-
 }
 
 // Start server
