@@ -24,7 +24,7 @@ const SquadModal = (props: ISquadModal) => {
         initialValues: {
             name: squad?.name || '',
             leagueId: squad?.league._id || '',
-            teamId: team._id || '',
+            teamId: team?._id || '',
         },
         validate: {
             name: (val) => (val.trim() === '' ? 'Název je povinný' : null),
