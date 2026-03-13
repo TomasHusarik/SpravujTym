@@ -395,6 +395,7 @@ const EventDetail = ({ eventId }: IEventDetail) => {
                                                             <Indicator
                                                                 color={getParticipationStatusColor(part.status)}
                                                                 size={8}
+                                                                zIndex={1}
                                                             />
                                                         </Table.Td>
 
