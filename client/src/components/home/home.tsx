@@ -184,7 +184,6 @@ const Home = () => {
 
                                             <TypographyStylesProvider>
                                                 <Box
-                                                    c="dark.6"
                                                     style={{ lineHeight: 1.7 }}
                                                     dangerouslySetInnerHTML={{ __html: announcement.content }}
                                                 />
