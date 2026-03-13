@@ -47,22 +47,19 @@ app.use('/api/email', emailRoutes);
 app.use('/api/comment', commentRoutes);
 
 // React client
-const clientBuildPathCandidates = [
-    path.join(__dirname, '..', 'client', 'dist'),
-    path.join(__dirname, '..', '..', 'client', 'dist'),
-];
+if (process.env.NODE_ENV === "production") {
 
-const clientBuildPath = clientBuildPathCandidates.find((candidate) => fs.existsSync(candidate));
+const clientPath = path.join(process.cwd(), "..", "client", "dist");
 
-if (!clientBuildPath) {
-    throw new Error('Client build output was not found.');
+  console.log("Serving React build from:", clientPath);
+
+  app.use(express.static(clientPath));
+
+  app.get(/^\/.*/, (req, res) => {
+    res.sendFile(path.join(clientPath, "index.html"));
+  });
+
 }
-
-app.use(express.static(clientBuildPath));
-
-app.get(/^\/.*/, (req, res) => {
-    res.sendFile(path.join(clientBuildPath, 'index.html'));
-});
 
 // Start server
 app.listen(PORT, () => {
