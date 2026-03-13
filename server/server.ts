@@ -50,6 +50,10 @@ app.use('/api/comment', commentRoutes);
 const clientPath = path.join(process.cwd(), "client", "dist");
 console.log("Serving React build from:", clientPath);
 
+console.log("CWD:", process.cwd());
+console.log("CLIENT PATH:", clientPath);
+console.log("INDEX EXISTS:", fs.existsSync(path.join(clientPath, "index.html")))
+
 app.use(express.static(clientPath));
 
 app.get(/^\/.*/, (req, res) => {
