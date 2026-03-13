@@ -1,7 +1,6 @@
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
-import fs from 'node:fs';
 import env from '@utils/validateEnv';
 import { connectDB } from '@db/connection';
 import path from 'node:path';
@@ -47,18 +46,15 @@ app.use('/api/email', emailRoutes);
 app.use('/api/comment', commentRoutes);
 
 // React client
-const clientPath = path.join(process.cwd(), "client", "dist");
-console.log("Serving React build from:", clientPath);
+if (process.env.NODE_ENV === "production") {
+    const clientPath = path.join(process.cwd(), "client", "dist");
 
-console.log("CWD:", process.cwd());
-console.log("CLIENT PATH:", clientPath);
-console.log("INDEX EXISTS:", fs.existsSync(path.join(clientPath, "index.html")))
+    app.use(express.static(clientPath));
 
-app.use(express.static(clientPath));
-
-app.get(/^\/.*/, (req, res) => {
-    res.sendFile(path.join(clientPath, "index.html"));
-});
+    app.get(/^\/.*/, (req, res) => {
+        res.sendFile(path.join(clientPath, "index.html"));
+    });
+}
 
 // Start server
 app.listen(PORT, () => {
