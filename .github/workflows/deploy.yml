@@ -21,8 +21,14 @@ jobs:
               with:
                   node-version: "24"
                   cache: "npm"
+                  cache-dependency-path:
+                    client/package-lock.json
+                    server/package-lock.json
+
             - name: Install dependencies
-              run: npm run install-all
+              run: |
+                npm ci --prefix client
+                npm ci --prefix server
 
             - name: Build
               run: npm run build
@@ -30,12 +36,17 @@ jobs:
             - name: Prepare deployment
               run: |
                   mkdir -p deploy/server deploy/client
-                  cp package.json deploy/package.json
-                  cp server/package.json deploy/server/package.json
-                  cp server/package-lock.json deploy/server/package-lock.json
-                  cp -r server/dist deploy/server/dist
+
+                  cp server/package.json deploy/server/
+                  cp server/package-lock.json deploy/server/
+
+                  cp -r server/dist deploy/server/
+                  cp -r client/dist deploy/client/
+                  
                   cp -r server/assets deploy/server/assets || true
-                  cp -r client/dist deploy/client/dist
+                  
+            - name: Install production dependencies
+              run:
                   npm ci --omit=dev --prefix deploy/server
 
             - name: Deploy to Azure
