@@ -49,13 +49,13 @@ app.use('/api/comment', commentRoutes);
 // React client
 if (process.env.NODE_ENV === "production") {
 
-const clientPath = path.join(process.cwd(), "..", "client", "dist");
+  const clientPath = path.join(process.cwd(), "client", "dist");
 
   console.log("Serving React build from:", clientPath);
 
   app.use(express.static(clientPath));
 
-  app.get(/^\/.*/, (req, res) => {
+  app.get("*", (req, res) => {
     res.sendFile(path.join(clientPath, "index.html"));
   });
 
