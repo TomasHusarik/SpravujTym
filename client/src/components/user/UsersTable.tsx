@@ -1,7 +1,7 @@
 import type { User } from '@/types/User';
 import { deleteUser } from '@/utils/api';
 import { formatDate, getFullName, showErrorNotification, showSuccessNotification } from '@/utils/helpers';
-import { ActionIcon, Box, Group, NumberInput, Pagination, Stack, Table, Text } from '@mantine/core';
+import { ActionIcon, Avatar, Box, Group, NumberInput, Pagination, Stack, Table, Text } from '@mantine/core';
 import { useDebouncedValue } from '@mantine/hooks';
 import { IconTrash } from '@tabler/icons-react';
 import React, { useState } from 'react'
@@ -52,6 +52,7 @@ const UsersTable = ({ filteredUsers, loadData }: IUsersTable) => {
             <Table striped highlightOnHover visibleFrom="sm">
                 <Table.Thead>
                     <Table.Tr>
+                        <Table.Th></Table.Th>
                         <Table.Th>Jméno</Table.Th>
                         <Table.Th>Email</Table.Th>
                         <Table.Th>Datum narození</Table.Th>
@@ -66,6 +67,15 @@ const UsersTable = ({ filteredUsers, loadData }: IUsersTable) => {
                             style={{ cursor: 'pointer' }}
                             onClick={() => navigate(`/user/${u._id}`)}
                         >
+                            <Table.Td>
+                                <Avatar
+                                    radius="xl"
+                                    size="sm"
+                                    color="initials"
+                                    name={getFullName(u)}
+                                    src={u.imageUrl}
+                                />
+                            </Table.Td>
                             <Table.Td>{getFullName(u)}</Table.Td>
                             <Table.Td>{u.email}</Table.Td>
                             <Table.Td>{formatDate(u.birthDate)}</Table.Td>
@@ -103,9 +113,19 @@ const UsersTable = ({ filteredUsers, loadData }: IUsersTable) => {
                         onClick={() => navigate(`/user/${u._id}`)}
                     >
 
-                        <Group justify="space-between" align="flex-start">
+                        <Group align="flex-start" wrap="nowrap">
 
-                            <Stack gap={2}>
+                            <Avatar
+                                size="sm"
+                                color="initials"
+                                name={getFullName(u)}
+                                src={u.imageUrl}
+                            />
+
+                            <Stack
+                                gap={2}
+                                style={{ flex: 1 }}
+                            >
 
                                 <Text fw={600} size="sm">
                                     {getFullName(u)}

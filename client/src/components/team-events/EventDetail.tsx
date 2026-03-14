@@ -26,6 +26,7 @@ import {
 
 import {
     ActionIcon,
+    Avatar,
     Button,
     Card,
     Divider,
@@ -381,7 +382,6 @@ const EventDetail = ({ eventId }: IEventDetail) => {
                                         <Table striped highlightOnHover visibleFrom="sm">
                                             <Table.Thead>
                                                 <Table.Tr>
-                                                    <Table.Th></Table.Th>
                                                     <Table.Th>Uživatel</Table.Th>
                                                     <Table.Th>Status</Table.Th>
                                                     <Table.Th>Datum</Table.Th>
@@ -395,8 +395,18 @@ const EventDetail = ({ eventId }: IEventDetail) => {
                                                             <Indicator
                                                                 color={getParticipationStatusColor(part.status)}
                                                                 size={8}
+                                                                offset={4}
                                                                 zIndex={1}
+                                                                position='bottom-start'
+                                                            >
+                                                            <Avatar
+                                                                radius="xl"
+                                                                size="sm"
+                                                                color="initials"
+                                                                name={getFullName(part.user)}
+                                                                src={part.user.imageUrl}
                                                             />
+                                                            </Indicator>
                                                         </Table.Td>
 
                                                         <Table.Td>
@@ -466,27 +476,41 @@ const EventDetail = ({ eventId }: IEventDetail) => {
                                                 >
                                                     <Group justify="space-between" align="flex-start" wrap="nowrap">
                                                         <Stack gap={2} style={{ flex: 1, minWidth: 0 }}>
-                                                            <Group gap={15} wrap="nowrap">
+                                                            <Group gap="sm" wrap="nowrap" align="center">
+
                                                                 <Indicator
                                                                     color={getParticipationStatusColor(part.status)}
                                                                     size={8}
-                                                                />
+                                                                    offset={4}
+                                                                    position="bottom-start"
+                                                                >
+                                                                    <Avatar
+                                                                        radius="xl"
+                                                                        size="sm"
+                                                                        color="initials"
+                                                                        name={getFullName(part.user)}
+                                                                        src={part.user.imageUrl}
+                                                                    />
+                                                                </Indicator>
+
                                                                 <Text
                                                                     fw={600}
                                                                     size="sm"
                                                                     style={{
+                                                                        flex: 1,
                                                                         minWidth: 0,
-                                                                        overflow: 'hidden',
-                                                                        textOverflow: 'ellipsis',
-                                                                        whiteSpace: 'nowrap',
+                                                                        overflow: "hidden",
+                                                                        textOverflow: "ellipsis",
+                                                                        whiteSpace: "nowrap",
                                                                     }}
                                                                 >
                                                                     {getFullName(part.user)}
                                                                 </Text>
+
                                                             </Group>
 
                                                             {!editMode && (
-                                                                <Text size="xs" c="dimmed" ml={15}>
+                                                                <Text size="xs" c="dimmed">
                                                                     {formatDate(new Date(part.createdAt))}
                                                                 </Text>
                                                             )}

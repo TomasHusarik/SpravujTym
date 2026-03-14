@@ -3,7 +3,7 @@ import type { SquadMembership } from '@/types/SquadMembership';
 import { deleteSquadMember, getSquad, getSquadMembers, updateSquadMemberRoles } from '@/utils/api';
 import { SquadRole } from '@/utils/const';
 import { getCategoryLabel, getFullName, showErrorNotification, showSuccessNotification } from '@/utils/helpers';
-import { ActionIcon, Badge, Box, Button, Divider, Group, MultiSelect, Stack, Table, Text, Title } from '@mantine/core';
+import { ActionIcon, Avatar, Badge, Box, Button, Divider, Group, MultiSelect, Stack, Table, Text, Title } from '@mantine/core';
 import { IconPlus, IconTrash, IconUserPlus } from '@tabler/icons-react';
 import { useEffect, useState } from 'react';
 import SquadDrawer from '../drawers/SquadDrawer';
@@ -140,7 +140,18 @@ const SquadDetail = ({ squadId }: ISquadDetail) => {
                   <Table.Tbody>
                     {sortedMembers.map((member) => (
                       <Table.Tr key={member._id}>
-                        <Table.Td>{getFullName(member.user)}</Table.Td>
+                        <Table.Td>
+                          <Group align="center" gap="sm">
+                            <Avatar
+                              radius="xl"
+                              size="sm"
+                              color="initials"
+                              name={getFullName(member.user)}
+                              src={member.user?.imageUrl}
+                            />
+                            {getFullName(member.user)}
+                          </Group>
+                        </Table.Td>
                         <Table.Td>{member.user?.email}</Table.Td>
 
                         <Table.Td>
@@ -172,19 +183,43 @@ const SquadDetail = ({ squadId }: ISquadDetail) => {
                 </Table>
 
                 {/* MOBILE LIST */}
-                <Stack hiddenFrom="sm" gap={6}>
+                <Stack hiddenFrom="sm" gap="xs">
                   {sortedMembers.map((member) => (
                     <Box
                       key={member._id}
-                      p="xs"
+                      p="sm"
+                      pos="relative"
                       style={{
                         border: "1px solid var(--mantine-color-default-border)",
                         borderRadius: "var(--mantine-radius-md)",
                       }}
+                      bg="light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-6))"
                     >
-                      <Group justify="space-between" align="flex-start" wrap="nowrap">
 
-                        <Stack gap={2} style={{ flex: 1 }}>
+                      {/* DELETE BUTTON */}
+                      <ActionIcon
+                        pos="absolute"
+                        top={8}
+                        right={8}
+                        color="red"
+                        variant="subtle"
+                        onClick={() => handleDelete(member._id)}
+                      >
+                        <IconTrash size={16} />
+                      </ActionIcon>
+
+                      <Group align="flex-start" wrap="nowrap">
+
+                        <Avatar
+                          radius="xl"
+                          size="sm"
+                          color="initials"
+                          name={getFullName(member.user)}
+                          src={member.user?.imageUrl}
+                        />
+
+                        <Stack gap={4} style={{ flex: 1 }}>
+
                           <Text fw={600} size="sm">
                             {getFullName(member.user)}
                           </Text>
@@ -202,18 +237,13 @@ const SquadDetail = ({ squadId }: ISquadDetail) => {
                             clearable={false}
                             searchable={false}
                             size="xs"
+                            maw={200}
                           />
+
                         </Stack>
 
-                        <ActionIcon
-                          color="red"
-                          variant="subtle"
-                          onClick={() => handleDelete(member._id)}
-                        >
-                          <IconTrash size={16} />
-                        </ActionIcon>
-
                       </Group>
+
                     </Box>
                   ))}
                 </Stack>
