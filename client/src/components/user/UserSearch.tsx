@@ -13,8 +13,11 @@ import { useEffect, useState } from 'react';
 import { useDebouncedValue } from '@mantine/hooks';
 import UsersTable from './UsersTable';
 import NewUserDrawer from '../drawers/NewUserDrawer';
+import { useAdminPermissions } from '@/utils/helpers';
 
 const UserSearch = () => {
+    const isAdmin = useAdminPermissions();
+
     const [users, setUsers] = useState<User[]>([]);
     const [searchValue, setSearchValue] = useState('');
     const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
@@ -63,13 +66,13 @@ const UserSearch = () => {
                         placeholder="Vyhledat uživatele..."
                         value={searchValue}
                         onChange={(e) => setSearchValue(e.target.value)}
-                        rightSection={
+                        rightSection={isAdmin && (
                             <Tooltip label="Vytvořit uživatele" withArrow>
                                 <ActionIcon size={32} radius="xl" variant="subtle" onClick={() => setIsDrawerOpen(true)} >
                                     <IconUserPlus stroke={1.5} />
                                 </ActionIcon>
                             </Tooltip>
-                        }
+                        )}
                         style={{ flex: 1, maxWidth: 450 }}
                     />
                 </Group>

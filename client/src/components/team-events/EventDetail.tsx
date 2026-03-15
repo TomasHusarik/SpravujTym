@@ -399,13 +399,13 @@ const EventDetail = ({ eventId }: IEventDetail) => {
                                                                 zIndex={1}
                                                                 position='bottom-start'
                                                             >
-                                                            <Avatar
-                                                                radius="xl"
-                                                                size="sm"
-                                                                color="initials"
-                                                                name={getFullName(part.user)}
-                                                                src={part.user.imageUrl}
-                                                            />
+                                                                <Avatar
+                                                                    radius="xl"
+                                                                    size="sm"
+                                                                    color="initials"
+                                                                    name={getFullName(part.user)}
+                                                                    src={part.user.imageUrl}
+                                                                />
                                                             </Indicator>
                                                         </Table.Td>
 
@@ -454,7 +454,7 @@ const EventDetail = ({ eventId }: IEventDetail) => {
                                                                 </ActionIcon>
                                                             ) : (
                                                                 <Text size="xs" c="dimmed">
-                                                                    {formatDate(new Date(part.createdAt))}
+                                                                    {(new Date(part.updatedAt || part.createdAt).toLocaleString('cs-CZ', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' }))}
                                                                 </Text>
                                                             )}
                                                         </Table.Td>

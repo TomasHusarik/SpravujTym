@@ -2,8 +2,8 @@ import type { Squad } from '@/types/Squad';
 import type { SquadMembership } from '@/types/SquadMembership';
 import { deleteSquadMember, getSquad, getSquadMembers, updateSquadMemberRoles } from '@/utils/api';
 import { SquadRole } from '@/utils/const';
-import { getCategoryLabel, getFullName, showErrorNotification, showSuccessNotification } from '@/utils/helpers';
-import { ActionIcon, Avatar, Badge, Box, Button, Divider, Group, MultiSelect, Stack, Table, Text, Title } from '@mantine/core';
+import { getCategoryLabel, getFullName, showErrorNotification, showSuccessNotification, useSquadCoachPermissions } from '@/utils/helpers';
+import { ActionIcon, Avatar, Badge, Box, Button, Divider, Group, MultiSelect, Stack, Table, Text, Title, Tooltip } from '@mantine/core';
 import { IconPlus, IconTrash, IconUserPlus } from '@tabler/icons-react';
 import { useEffect, useState } from 'react';
 import SquadDrawer from '../drawers/SquadDrawer';
@@ -16,6 +16,8 @@ const SquadDetail = ({ squadId }: ISquadDetail) => {
   const [squad, setSquad] = useState<Squad | null>(null);
   const [members, setMembers] = useState<SquadMembership[]>([]);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+
+  const squadPermissions = useSquadCoachPermissions(squad);
 
   const handleMemberRolesChange = async (membershipId: string, roles: string[]) => {
     const castedRoles = roles;
@@ -116,9 +118,13 @@ const SquadDetail = ({ squadId }: ISquadDetail) => {
 
           <Group justify="space-between" align="center">
             <Title order={5}>Členové soupisky</Title>
-            <ActionIcon variant="light" color="blue" radius="xl" size={32} onClick={() => setIsDrawerOpen(true)}>
-              <IconUserPlus size={16} />
-            </ActionIcon>
+            {squadPermissions && (
+              <Tooltip label="Přidat člena" withArrow>
+                <ActionIcon variant="light" color="blue" radius="xl" size={32} onClick={() => setIsDrawerOpen(true)}>
+                  <IconUserPlus size={16} />
+                </ActionIcon>
+              </Tooltip>
+            )}
           </Group>
 
           <Stack gap="xs">
@@ -133,7 +139,7 @@ const SquadDetail = ({ squadId }: ISquadDetail) => {
                       <Table.Th>Uživatel</Table.Th>
                       <Table.Th>E-mail</Table.Th>
                       <Table.Th>Role</Table.Th>
-                      <Table.Th></Table.Th>
+                      {squadPermissions && (<Table.Th />)}
                     </Table.Tr>
                   </Table.Thead>
 
@@ -164,19 +170,24 @@ const SquadDetail = ({ squadId }: ISquadDetail) => {
                             clearable={false}
                             searchable={false}
                             w={200}
+                            disabled={!squadPermissions}
                           />
                         </Table.Td>
 
-                        <Table.Td>
-                          <ActionIcon
-                            size={32}
-                            radius="xl"
-                            variant="subtle"
-                            onClick={() => handleDelete(member._id)}
-                          >
-                            <IconTrash stroke={1.5} />
-                          </ActionIcon>
-                        </Table.Td>
+                        {squadPermissions && (
+                          <Table.Td>
+                            <Tooltip label="Odstranit člena" withArrow>
+                              <ActionIcon
+                                size={32}
+                                radius="xl"
+                                variant="light"
+                                onClick={() => handleDelete(member._id)}
+                              >
+                                <IconTrash stroke={1.5} size={20} />
+                              </ActionIcon>
+                            </Tooltip>
+                          </Table.Td>
+                        )}
                       </Table.Tr>
                     ))}
                   </Table.Tbody>
@@ -197,16 +208,20 @@ const SquadDetail = ({ squadId }: ISquadDetail) => {
                     >
 
                       {/* DELETE BUTTON */}
-                      <ActionIcon
-                        pos="absolute"
-                        top={8}
-                        right={8}
-                        color="red"
-                        variant="subtle"
-                        onClick={() => handleDelete(member._id)}
-                      >
-                        <IconTrash size={16} />
-                      </ActionIcon>
+                      {squadPermissions && (
+                        <Tooltip label="Odstranit člena" withArrow>
+                          <ActionIcon
+                            pos="absolute"
+                            top={8}
+                            right={8}
+                            color="red"
+                            variant="light"
+                            onClick={() => handleDelete(member._id)}
+                          >
+                            <IconTrash size={16} />
+                          </ActionIcon>
+                        </Tooltip>
+                      )}
 
                       <Group align="flex-start" wrap="nowrap">
 
@@ -238,6 +253,7 @@ const SquadDetail = ({ squadId }: ISquadDetail) => {
                             searchable={false}
                             size="xs"
                             maw={200}
+                            disabled={!squadPermissions}
                           />
 
                         </Stack>

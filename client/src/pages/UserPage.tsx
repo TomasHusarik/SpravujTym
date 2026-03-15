@@ -14,25 +14,28 @@ const UserPage = () => {
     }
 
     return (
-        <Tabs defaultValue="detail">
-            <Tabs.List>
-                <Tabs.Tab value="detail">
-                    Detail
-                </Tabs.Tab>
-                <Tabs.Tab value="payments">
-                    Platby
-                </Tabs.Tab>
-            </Tabs.List>
+        user.new ? (
+            <UserDetail userId={userId} />
+        ) : (
+            <Tabs defaultValue="detail">
+                <Tabs.List>
+                    <Tabs.Tab value="detail">
+                        Detail
+                    </Tabs.Tab>
+                    <Tabs.Tab value="payments">
+                        Platby
+                    </Tabs.Tab>
+                </Tabs.List>
 
-            <Tabs.Panel value="detail" pt="md">
-                <UserDetail userId={userId} />
-            </Tabs.Panel>
-            <Tabs.Panel value="payments" pt="md">
-                <UserPayments userId={userId} />
-            </Tabs.Panel>
-
-        </Tabs>
-    )
+                <Tabs.Panel value="detail" pt="md">
+                    <UserDetail userId={userId} />
+                </Tabs.Panel>
+                <Tabs.Panel value="payments" pt="md">
+                    <UserPayments userId={userId} />
+                </Tabs.Panel>
+            </Tabs>
+        )
+    );
 }
 
 export default UserPage

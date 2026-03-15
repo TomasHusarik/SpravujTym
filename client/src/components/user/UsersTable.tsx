@@ -1,6 +1,6 @@
 import type { User } from '@/types/User';
 import { deleteUser } from '@/utils/api';
-import { formatDate, getFullName, showErrorNotification, showSuccessNotification } from '@/utils/helpers';
+import { formatDate, getFullName, showErrorNotification, showSuccessNotification, useAdminPermissions } from '@/utils/helpers';
 import { ActionIcon, Avatar, Box, Group, NumberInput, Pagination, Stack, Table, Text } from '@mantine/core';
 import { useDebouncedValue } from '@mantine/hooks';
 import { IconTrash } from '@tabler/icons-react';
@@ -15,6 +15,7 @@ interface IUsersTable {
 const UsersTable = ({ filteredUsers, loadData }: IUsersTable) => {
 
     const navigate = useNavigate();
+    const isAdmin = useAdminPermissions();
 
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
@@ -56,7 +57,7 @@ const UsersTable = ({ filteredUsers, loadData }: IUsersTable) => {
                         <Table.Th>Jméno</Table.Th>
                         <Table.Th>Email</Table.Th>
                         <Table.Th>Datum narození</Table.Th>
-                        <Table.Th></Table.Th>
+                        {isAdmin && (<Table.Th />)}
                     </Table.Tr>
                 </Table.Thead>
 
@@ -80,19 +81,21 @@ const UsersTable = ({ filteredUsers, loadData }: IUsersTable) => {
                             <Table.Td>{u.email}</Table.Td>
                             <Table.Td>{formatDate(u.birthDate)}</Table.Td>
 
-                            <Table.Td>
-                                <ActionIcon
-                                    size={32}
-                                    radius="xl"
-                                    variant="subtle"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleDelete(u._id!);
-                                    }}
-                                >
-                                    <IconTrash stroke={1.5} />
-                                </ActionIcon>
-                            </Table.Td>
+                            {isAdmin && (
+                                <Table.Td>
+                                    <ActionIcon
+                                        size={32}
+                                        radius="xl"
+                                        variant="subtle"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleDelete(u._id!);
+                                        }}
+                                    >
+                                        <IconTrash stroke={1.5} />
+                                    </ActionIcon>
+                                </Table.Td>
+                            )}
                         </Table.Tr>
                     ))}
                 </Table.Tbody>
@@ -141,16 +144,18 @@ const UsersTable = ({ filteredUsers, loadData }: IUsersTable) => {
 
                             </Stack>
 
-                            <ActionIcon
-                                color="red"
-                                variant="subtle"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleDelete(u._id!);
-                                }}
-                            >
-                                <IconTrash size={16} />
-                            </ActionIcon>
+                            {isAdmin && (
+                                <ActionIcon
+                                    color="red"
+                                    variant="subtle"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleDelete(u._id!);
+                                    }}
+                                >
+                                    <IconTrash size={16} />
+                                </ActionIcon>
+                            )}
 
                         </Group>
 

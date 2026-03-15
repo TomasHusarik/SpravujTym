@@ -117,7 +117,6 @@ const EventComments = (props: IEventComments) => {
     const loadData = async () => {
         try {
             const com = await getComments(eventId);
-            console.log('Fetched comments:', com);
             setComments(com);
         } catch {
             showErrorNotification('Chyba při načítání komentářů');
@@ -231,13 +230,13 @@ const EventComments = (props: IEventComments) => {
                                                 )}
 
                                                 {(isAdmin || user._id === comment.author._id) && (
-                                                <ActionIcon
-                                                    variant="light"
-                                                    color="red"
-                                                    onClick={() => handleDelete(comment)}
-                                                >
-                                                    <IconTrash size={16} />
-                                                </ActionIcon>
+                                                    <ActionIcon
+                                                        variant="light"
+                                                        color="red"
+                                                        onClick={() => handleDelete(comment)}
+                                                    >
+                                                        <IconTrash size={16} />
+                                                    </ActionIcon>
                                                 )}
                                             </Group>
                                         )}

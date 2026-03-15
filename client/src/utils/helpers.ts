@@ -128,18 +128,22 @@ export const useExtendedPermissions = () => {
     return Boolean(permissions?.isAdmin || permissions?.coachSquadIds?.length > 0);
 }
 
-export const useSquadCoachPermissions = (squadOrSquads: Squad | Squad[]) => {
-    const { permissions } = useAuth();
-    if (!permissions) return false;
+export const useSquadCoachPermissions = (squadOrSquads?: Squad | Squad[] | null) => {
+  const { permissions } = useAuth();
 
-    if (permissions.isAdmin) return true;
+  if (!permissions) return false;
+  if (permissions.isAdmin) return true;
 
+  const coachSquads = permissions.coachSquadIds ?? [];
 
-    if (Array.isArray(squadOrSquads)) {
-        return squadOrSquads.some(squad => permissions.coachSquadIds?.includes(squad._id));
-    }
-    return Boolean(permissions.coachSquadIds?.includes(squadOrSquads._id));
-}
+  if (!squadOrSquads) return false;
+
+  const squads = Array.isArray(squadOrSquads)
+    ? squadOrSquads
+    : [squadOrSquads];
+
+  return squads.some(squad => squad && coachSquads.includes(squad._id));
+};
 
 export const usePlayerPermissions = (usr: User) => {
     const { user } = useAuth();
