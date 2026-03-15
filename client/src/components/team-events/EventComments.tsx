@@ -22,7 +22,7 @@ import {
     IconX,
 } from '@tabler/icons-react';
 
-import { getFullName, formatDate, showErrorNotification, showSuccessNotification, useAdminPermissions } from '@/utils/helpers';
+import { getFullName, showErrorNotification, showSuccessNotification, useAdminPermissions } from '@/utils/helpers';
 import { createComment, deleteComment, getComments, updateComment } from '@/utils/api';
 import type { Comment } from '@/types/Comment';
 import { useAuth } from '@/context/AuthContext';

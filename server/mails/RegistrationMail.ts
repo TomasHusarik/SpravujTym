@@ -24,7 +24,7 @@ export const RegistrationMail = async (email: string, password: string) => {
                         <td style="padding:16px 18px;">
                             <p style="margin:0 0 8px 0;font-size:14px;"><strong>E-mail:</strong> ${email}</p>
                             <p style="margin:0;font-size:14px;"><strong>Heslo:</strong> ${password}</p>
-                            <p style="margin:12px 0 0 0;font-size:14px;"><a href="https://www.spravujtym.cz/login" style="color:#1a73e8;text-decoration:none;">Přihlásit se</a></p>
+                            <p style="margin:12px 0 0 0;font-size:14px;"><a href="https://spravujtym.cz/login" style="color:#1a73e8;text-decoration:none;">Přihlásit se</a></p>
                         </td>
                     </tr>
                 </table>

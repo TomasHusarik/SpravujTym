@@ -193,12 +193,12 @@ const Home = () => {
                                         <Stack gap="sm">
                                             <Divider />
                                             <Group justify="space-between" align="center" wrap="wrap">
-                                                <Text size="sm" fw={600}>
+                                                <Badge color="blue" variant="light">
                                                     {getFullName(announcement.author)}
-                                                </Text>
-                                                {announcement.createdAt && (
+                                                </Badge>
+                                                {announcement.updatedAt && (
                                                     <Badge color="blue" variant="light">
-                                                        {new Date(announcement.createdAt).toLocaleDateString("cs-CZ")}
+                                                        {new Date(announcement.updatedAt).toLocaleString('cs-CZ', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' })}
                                                     </Badge>
                                                 )}
                                             </Group>

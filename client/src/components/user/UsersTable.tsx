@@ -79,7 +79,7 @@ const UsersTable = ({ filteredUsers, loadData }: IUsersTable) => {
                             </Table.Td>
                             <Table.Td>{getFullName(u)}</Table.Td>
                             <Table.Td>{u.email}</Table.Td>
-                            <Table.Td>{formatDate(u.birthDate)}</Table.Td>
+                            <Table.Td>{new Date(u.birthDate)?.toLocaleDateString('cs-CZ', { day: '2-digit', month: '2-digit', year: 'numeric' }) || 'N/A'}</Table.Td>
 
                             {isAdmin && (
                                 <Table.Td>
@@ -139,7 +139,7 @@ const UsersTable = ({ filteredUsers, loadData }: IUsersTable) => {
                                 </Text>
 
                                 <Text size="xs" c="dimmed">
-                                    {formatDate(u.birthDate)}
+                                    {new Date(u.birthDate)?.toLocaleDateString('cs-CZ', { day: '2-digit', month: '2-digit', year: 'numeric' }) || 'N/A'}
                                 </Text>
 
                             </Stack>
@@ -164,7 +164,7 @@ const UsersTable = ({ filteredUsers, loadData }: IUsersTable) => {
             </Stack>
 
             {/* PAGINATION */}
-            <Group justify="center" mt="md">
+            <Stack align="center" mt="md" gap="xs">
 
                 <Pagination
                     value={page}
@@ -183,7 +183,7 @@ const UsersTable = ({ filteredUsers, loadData }: IUsersTable) => {
                     w={80}
                 />
 
-            </Group>
+            </Stack>
 
         </Stack>
     )

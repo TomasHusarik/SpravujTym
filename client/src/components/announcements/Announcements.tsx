@@ -76,7 +76,6 @@ const Announcements = () => {
         try {
             setIsLoading(true);
             const response = await getAnnouncements();
-            console.log('Loaded announcements:', response);
             setAnnouncements(response?.announcements || response || []);
         } catch (error) {
             showErrorNotification('Nepodařilo se načíst oznámení');
@@ -93,17 +92,17 @@ const Announcements = () => {
     return (
         <Stack gap="lg">
             {isAdmin && (
-                 <Paper withBorder radius="lg" p="lg">
-                <Group justify="space-between" align="center">
-                    <div>
-                        <Title order={3}>Oznámení</Title>
-                        <Text size="sm" c="dimmed">Přehled a správa týmových oznámení.</Text>
-                    </div>
-                    <Button leftSection={<IconPlus size={16} />} radius="md" onClick={openCreate}>
-                        Nové oznámení
-                    </Button>
-                </Group>
-            </Paper>
+                <Paper withBorder radius="lg" p="lg">
+                    <Group justify="space-between" align="center">
+                        <div>
+                            <Title order={3}>Oznámení</Title>
+                            <Text size="sm" c="dimmed">Přehled a správa týmových oznámení.</Text>
+                        </div>
+                        <Button leftSection={<IconPlus size={16} />} radius="md" onClick={openCreate}>
+                            Nové oznámení
+                        </Button>
+                    </Group>
+                </Paper>
             )}
 
             <Stack gap="md">
@@ -116,7 +115,16 @@ const Announcements = () => {
                 )}
 
                 {!isLoading && announcements.map((announcement) => (
-                    <Paper withBorder radius="lg" p="lg" key={announcement._id}>
+                    <Paper
+                        withBorder
+                        radius="lg"
+                        p="lg"
+                        key={announcement._id}
+                        style={{
+                            height: "100%",
+                            borderColor: announcement.pinned ? "var(--mantine-color-yellow-4)" : undefined
+                        }}
+                    >
                         <Stack gap="sm">
                             <Group justify="space-between" align="flex-start">
                                 <Stack gap={4}>
@@ -152,11 +160,17 @@ const Announcements = () => {
                             <Divider />
 
                             <Group justify="space-between" align="center">
+                                <Badge color="blue" variant="light">
+                                    {getFullName(announcement.author)}
+                                </Badge>
                                 <Text size="xs" c="dimmed">
-                                    Vytvořeno: {getFullName(announcement.author)}
-                                </Text>
-                                <Text size="xs" c="dimmed">
-                                    {announcement.createdAt ? new Date(announcement.createdAt).toLocaleString('cs-CZ') : '-'}
+                                    {announcement.updatedAt ?
+                                        <Badge color="blue" variant="light">
+                                            {new Date(announcement.updatedAt).toLocaleString('cs-CZ', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                                        </Badge>
+                                        :
+                                        "N/A"
+                                    }
                                 </Text>
                             </Group>
                         </Stack>

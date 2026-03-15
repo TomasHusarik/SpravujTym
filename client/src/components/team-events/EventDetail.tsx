@@ -15,7 +15,6 @@ import {
 
 import {
     combinateDateAndTime,
-    formatDate,
     getFullName,
     getParticipationStatusColor,
     showErrorNotification,
@@ -511,7 +510,7 @@ const EventDetail = ({ eventId }: IEventDetail) => {
 
                                                             {!editMode && (
                                                                 <Text size="xs" c="dimmed">
-                                                                    {formatDate(new Date(part.createdAt))}
+                                                                    {new Date(part.createdAt).toLocaleString('cs-CZ', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' })}
                                                                 </Text>
                                                             )}
 

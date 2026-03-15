@@ -7,6 +7,7 @@ class User {
   +lastName : String
   +email : String
   +password : String
+  +new : Boolean
   +isAdmin : Boolean
   +mobile : String
   +birthDate : Date
@@ -48,8 +49,8 @@ class Squad {
 
 class SquadMembership {
   +_id : ObjectId
-  +squadId : ObjectId
-  +userId : ObjectId
+  +squad : ObjectId
+  +user : ObjectId
   +roles : String[]
   +active : Boolean
   +createdAt : Date
@@ -71,9 +72,18 @@ class TeamEvent {
 
 class EventParticipation {
   +_id : ObjectId
-  +eventId : ObjectId
-  +userId : ObjectId
+  +event : ObjectId
+  +user : ObjectId
   +status : String
+  +createdAt : Date
+  +updatedAt : Date
+}
+
+class Comment {
+  +_id : ObjectId
+  +author : ObjectId
+  +event : ObjectId
+  +content : String
   +createdAt : Date
   +updatedAt : Date
 }
@@ -90,8 +100,7 @@ class Venue {
 
 class Announcement {
   +_id : ObjectId
-  +teamId : ObjectId
-  +authorId : ObjectId
+  +author : ObjectId
   +title : String
   +content : String
   +visibility : String
@@ -102,20 +111,13 @@ class Announcement {
 
 class Payment {
   +_id : ObjectId
-  +userId : ObjectId
+  +user : ObjectId
   +amount : Number
   +status : String
   +dueDate : Date
   +type : String
   +createdAt : Date
   +updatedAt : Date
-}
-
-class Email {
-  +from : String
-  +to : String
-  +subject : String
-  +context : String
 }
 
 ' =====================
@@ -137,7 +139,9 @@ TeamEvent "0..*" --> "0..1" User
 EventParticipation "0..*" --> "1" User
 EventParticipation "0..*" --> "1" TeamEvent
 
-Announcement "0..*" --> "1" Team
+Comment "0..*" --> "1" User
+Comment "0..*" --> "1" TeamEvent
+
 Announcement "0..*" --> "1" User
 
 Payment "0..*" --> "1" User
