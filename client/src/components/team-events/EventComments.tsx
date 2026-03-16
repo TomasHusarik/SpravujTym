@@ -9,6 +9,7 @@ import {
     Stack,
     Text,
     Textarea,
+    TextInput,
     Title,
     Tooltip,
 } from '@mantine/core';
@@ -138,11 +139,14 @@ const EventComments = (props: IEventComments) => {
                 <Title order={4}>Komentáře</Title>
 
                 {/* ADD COMMENT */}
-                <Textarea
+                <form
+                    onSubmit={(e) => {
+                        e.preventDefault();
+                        handleAddComment();
+                    }}
+                >
+                <TextInput
                     placeholder="Napsat komentář..."
-                    autosize
-                    minRows={2}
-                    maxRows={6}
                     value={newComment}
                     onChange={(e) => setNewComment(e.currentTarget.value)}
                     rightSection={
@@ -152,13 +156,14 @@ const EventComments = (props: IEventComments) => {
                                 radius="xl"
                                 variant="subtle"
                                 loading={isSending}
-                                onClick={handleAddComment}
+                                type='submit'
                             >
                                 <IconSend size={18} />
                             </ActionIcon>
                         </Tooltip>
                     }
                 />
+                </form>
 
                 {/* COMMENTS */}
 
