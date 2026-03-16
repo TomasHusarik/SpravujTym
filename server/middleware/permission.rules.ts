@@ -20,8 +20,8 @@ export const requireCoachOfSquad = requireAccess(
 );
 
 export const requireAdmin = requireAccess(
-    (req: Request) => false,
-    'Admin permission required'
+    (req: Request) => req.permissions?.isAdmin === true,
+    'Admin permission is required'
 );
 
 export const requireLoggedUser = requireAccess(
