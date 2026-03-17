@@ -1,0 +1,70 @@
+@startuml
+title Sekvenční diagram – Vytvoření a úprava uživatele
+hide footbox
+
+actor "Admin / Operátor" as Admin
+actor "Uživatel" as UserActor
+participant "Aplikace" as App
+database "Databáze" as DB
+participant "Email služba" as Mail
+
+== Vytvoření uživatele ==
+
+Admin -> App : Zadá email nového uživatele
+App -> App : Ověří správnost emailu
+
+alt Email není vyplněn nebo má neplatný formát
+  App --> Admin : Zobrazí upozornění na chybu
+else Email je platný
+
+  App -> DB : Ověří, zda již existuje uživatel s tímto emailem
+  DB --> App : Výsledek kontroly
+
+  alt Email je již použit
+    App --> Admin : Informace, že email již existuje
+  else Email je volný
+
+    App -> App : Vygeneruje přihlašovací údaje
+    App -> DB : Vytvoří nový uživatelský účet
+    DB --> App : Potvrzení uložení
+
+    App -> Mail : Odešle registrační email
+    Mail --> UserActor : Doručí přihlašovací údaje
+
+    App --> Admin : Uživatel byl úspěšně vytvořen
+
+  end
+end
+
+== Úprava uživatele ==
+
+Admin -> App : Upraví údaje uživatele
+App -> DB : Vyhledá uživatele podle ID
+DB --> App : Uživatel nalezen / nenalezen
+
+alt Uživatel nebyl nalezen
+  App --> Admin : Informace, že uživatel neexistuje
+else Uživatel existuje
+
+  opt Přihlášený uživatel nemá administrátorská oprávnění
+    App -> App : Omezí změny citlivých údajů
+  end
+
+  App -> App : Aktualizuje údaje uživatele
+  App -> DB : Uloží změny
+  DB --> App : Potvrzení
+
+  opt Uživatel dokončuje první nastavení profilu
+    App -> Mail : Odešle informační email
+    Mail --> UserActor : Notifikace o připraveném profilu
+  end
+
+  opt Uživatel je deaktivován
+    App -> DB : Odebere jeho členství v týmech
+    DB --> App : Potvrzení
+  end
+
+  App --> Admin : Profil uživatele byl aktualizován
+
+end
+@enduml
