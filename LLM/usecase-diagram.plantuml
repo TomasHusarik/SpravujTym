@@ -1,0 +1,138 @@
+@startuml
+top to bottom direction
+!theme plain
+skinparam packageStyle rectangle
+skinparam shadowing false
+skinparam linetype ortho
+skinparam ranksep 45
+skinparam nodesep 25
+
+title Use-case diagram - Sprava sportovnich tymu
+
+actor "Veřejnost" as Public
+actor "Hráč" as Player
+actor "Trenér" as Coach
+actor "Admin" as Admin
+
+Coach --|> Player
+Admin --|> Coach
+
+rectangle "Aplikace pro správu sportovních týmů" {
+
+  package "Veřejná část" {
+    usecase "Přihlásit se" as UC_Login
+    usecase "Poslat kontaktní email" as UC_Contact
+    usecase "Prohlížet veřejné příspěvky" as UC_PublicPosts
+    usecase "Inicializovat admin účet" as UC_InitAdmin
+  }
+
+  package "Profil uživatele" {
+    usecase "Zobrazit vlastní profil" as UC_ViewProfile
+    usecase "Upravit vlastní profil" as UC_EditProfile
+    usecase "Změnit heslo" as UC_ChangePassword
+  }
+
+  package "Týmové události" {
+    usecase "Zobrazit své události" as UC_ViewEvents
+    usecase "Reagovat na účast" as UC_Respond
+    usecase "Komentovat událost" as UC_Comment
+    usecase "Spravovat týmové události" as UC_ManageEvents
+    usecase "Nominovat hráče" as UC_Nominate
+    usecase "Odeslat nominační email" as UC_SendNomMail
+  }
+
+  package "Platby" {
+    usecase "Zobrazit platby" as UC_ViewPayments
+    usecase "Spravovat platby" as UC_ManagePayments
+  }
+
+  package "Příspěvky" {
+    usecase "Prohlížet příspěvky" as UC_ViewPosts
+    usecase "Spravovat příspěvky" as UC_ManagePosts
+  }
+
+  package "Týmy a soupisky" {
+    usecase "Zobrazit týmy a soupisky" as UC_ViewTeams
+    usecase "Spravovat soupisku svého týmu" as UC_ManageOwnSquad
+    usecase "Spravovat týmy" as UC_ManageTeams
+    usecase "Spravovat kategorie" as UC_ManageCategories
+    usecase "Spravovat ligy" as UC_ManageLeagues
+    usecase "Spravovat soupisky" as UC_ManageSquads
+  }
+
+  package "Uživatelé" {
+    usecase "Spravovat uživatele" as UC_ManageUsers
+    usecase "Pozvat uživatele" as UC_Invite
+    usecase "Odeslat registrační email" as UC_SendRegMail
+  }
+
+}
+
+'====================
+' ASSOCIATIONS
+'====================
+
+Public -down-> UC_Login
+Public -down-> UC_Contact
+Public -down-> UC_PublicPosts
+Public -down-> UC_InitAdmin
+
+Player -down-> UC_ViewProfile
+Player -down-> UC_EditProfile
+Player -down-> UC_ChangePassword
+Player -down-> UC_ViewEvents
+Player -down-> UC_Respond
+Player -down-> UC_Comment
+Player -down-> UC_ViewPayments
+Player -down-> UC_ViewPosts
+Player -down-> UC_ViewTeams
+
+Coach -down-> UC_ManageEvents
+Coach -down-> UC_ManageOwnSquad
+
+Admin -down-> UC_ManageUsers
+Admin -down-> UC_ManagePayments
+Admin -down-> UC_ManagePosts
+Admin -down-> UC_ManageTeams
+Admin -down-> UC_ManageCategories
+Admin -down-> UC_ManageLeagues
+Admin -down-> UC_ManageSquads
+
+'====================
+' INCLUDE RELATIONS
+'====================
+
+UC_ManageUsers ..> UC_Invite : <<include>>
+UC_Invite ..> UC_SendRegMail : <<include>>
+
+UC_ManageEvents ..> UC_Nominate : <<include>>
+UC_Nominate ..> UC_SendNomMail : <<include>>
+
+'====================
+' LAYOUT HELPERS (minimal)
+'====================
+
+Public -[hidden]right-> Player
+Player -[hidden]right-> Coach
+Coach -[hidden]right-> Admin
+
+UC_Login -[hidden]down-> UC_ViewProfile
+
+UC_ViewProfile -[hidden]down-> UC_ViewEvents
+UC_ViewEvents -[hidden]down-> UC_ViewPayments
+UC_ViewPayments -[hidden]down-> UC_ViewPosts
+UC_ViewPosts -[hidden]down-> UC_ViewTeams
+
+UC_ManageUsers -[hidden]up-> UC_Invite
+UC_Invite -[hidden]up-> UC_SendRegMail
+
+UC_ManageEvents -[hidden]up-> UC_Nominate
+UC_Nominate -[hidden]up-> UC_SendNomMail
+
+UC_ManageTeams -[hidden]down-> UC_ManageCategories
+UC_ManageCategories -[hidden]down-> UC_ManageLeagues
+UC_ManageLeagues -[hidden]down-> UC_ManageSquads
+UC_ManageSquads -[hidden]down-> UC_ManageUsers
+UC_ManageUsers -[hidden]down-> UC_ManagePayments
+UC_ManagePayments -[hidden]down-> UC_ManagePosts
+@enduml

@@ -1,0 +1,66 @@
+@startuml
+title Activity diagram – Organizace týmové události
+
+|Trenér|
+start
+:Vytvořit novou událost;
+
+|Systém|
+:Publikovat událost;
+
+if (Událost je zápas?) then (Ano)
+:Odeslat upozornění hráčům;
+endif
+
+|Hráč|
+:Zobrazí událost v aplikaci;
+:Rozhodne se o účasti;
+
+if (Zúčastní se?) then (Ano)
+:Potvrdí účast;
+else
+:Odmítne účast;
+endif
+
+|Systém|
+:Aktualizuje seznam účasti;
+
+|Trenér|
+:Zkontroluje přehled účasti hráčů;
+
+while (Není dostatek hráčů?) is (Ano)
+
+if (Pozvat další hráče?) then (Ano)
+
+:Pozve další hráče;
+
+|Systém|
+:Aktualizuje seznam účasti;
+
+|Hráč|
+:Zobrazí událost v aplikaci;
+:Rozhodne se o účasti;
+
+|Systém|
+:Aktualizuje seznam účasti;
+
+|Trenér|
+:Znovu zkontroluje účast;
+
+else (Ne)
+
+:Zruší událost;
+
+|Systém|
+:Informuje hráče o zrušení;
+
+stop
+
+endif
+
+endwhile (Dostatek hráčů)
+
+:Potvrdí sestavu události;
+
+stop
+@enduml

@@ -183,6 +183,56 @@ datové typy
 technické poznámky
 implementační detaily
 
+3) Typ – sekvenční diagram
+Navrhuješ UML sekvenční diagramy, které popisují průběh interakcí mezi aktéry systému a jednotlivými částmi aplikace v časové posloupnosti. Diagramy slouží k zachycení procesů a scénářů použití systému na úrovni komunikace mezi uživateli, aplikací a externími službami.
+
+ROZSAH
+Modeluj pouze:
+hlavní scénáře interakce mezi uživateli a systémem
+komunikaci mezi aplikací a databází
+komunikaci aplikace s externími službami (např. emailová služba)
+hlavní kroky procesů, které mají význam z hlediska chování systému
+
+Nemodeluj:
+interní implementační detaily aplikace
+technické vrstvy frameworku
+konkrétní API endpointy nebo HTTP protokol
+detailní validační logiku
+
+MODEL
+Diagram by měl zachytit:
+aktéry systému (např. trenér, hráč)
+systémovou aplikaci jako hlavní komponentu
+databázi jako úložiště dat
+externí služby (např. emailovou službu)
+
+Každý diagram by měl znázorňovat jeden konkrétní scénář systému (např. vytvoření události nebo reakci hráče na účast).
+
+MODELovací pravidla:
+Používej následující prvky UML:
+actor
+participant
+database
+zprávy mezi objekty (→)
+návratové zprávy (–>)
+kombinační fragmenty:
+alt (alternativní scénáře)
+opt (volitelné kroky)
+loop (opakující se akce)
+
+Používej popisy akcí srozumitelné pro člověka, nikoliv technické nebo programátorské detaily.
+
+Nepoužívej:
+HTTP status kódy
+interní názvy metod nebo endpointů
+příliš technické názvy operací
+
+Ve všech sekvenčních diagramech používej následující základní strukturu PlantUML:
+@startuml
+    title Název scénáře
+    hide footbox
+@enduml
+           
 4) typ – Generování mongoose shemat a typů
 
 Navrhuješ implementační datové modely pro MongoDB pomocí knihovny Mongoose v jazyce TypeScript.

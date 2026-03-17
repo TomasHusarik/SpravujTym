@@ -1,0 +1,60 @@
+@startuml
+title Sekvenční diagram – Vytvoření události a reakce hráče
+hide footbox
+
+actor "Trenér / Admin" as Coach
+actor "Hráč" as Player
+participant "Aplikace" as App
+database "Databáze" as DB
+participant "Email služba" as Mail
+
+== Vytvoření události ==
+
+Coach -> App : Vyplní formulář a vytvoří událost
+App -> App : Ověří vyplněná data a přihlášení uživatele
+
+alt Nejsou vyplněna všechna povinná pole nebo uživatel není přihlášen
+App --> Coach : Zobrazí upozornění na chybu
+else Vše je v pořádku
+
+App -> DB : Uloží novou událost
+DB --> App : Potvrzení uložení
+
+opt Ve formuláři jsou vybraní hráči
+App -> DB : Vytvoří záznamy o účasti hráčů
+DB --> App : Potvrzení
+end
+
+App --> Coach : Událost byla úspěšně vytvořena
+
+end
+
+== Odeslání nominace na zápas ==
+
+opt Událost je typu zápas a má přiřazené hráče
+App -> DB : Získá emaily nominovaných hráčů
+DB --> App : Seznam emailových adres
+
+loop Pro každého hráče
+App -> Mail : Odešle nominační email
+Mail -> Player : Doručí pozvánku na zápas
+end
+
+end
+
+== Reakce hráče ==
+
+Player -> App : Změní stav účasti
+App -> DB : Vyhledá jeho účast na události
+
+alt Účast nebyla nalezena
+App --> Player : Informace, že účast nebyla nalezena
+else Účast existuje
+
+App -> DB : Uloží nový stav účasti
+DB --> App : Potvrzení
+
+App --> Player : Stav účasti byl aktualizován
+
+end
+@enduml

@@ -10,6 +10,7 @@ import { createToken, generateRandomPassword, generateTokenCookie, resetCookie }
 import { RegistrationMail } from '@mails/RegistrationMail';
 import SquadMembership from '@models/SquadMembership';
 import { resolveUserPermissions } from '@middleware/permission.middleware';
+import { UserReadyMail } from '@mails/UserReadyMail';
 
 
 // GET /user/get-user/:id - Get user by ID
@@ -65,7 +66,11 @@ export const updateUser = async (req: Request, res: Response) => {
 
         const isOwnProfile = req.loggedUser?._id.toString() === userId;
         if (isOwnProfile && user.new) {
+            // If user is updating their own profile and is marked as new, set new to false and send ready email
             user.new = false;
+
+            // Send email notification that user is ready
+            await UserReadyMail(user);
         }
 
         await user.save();
