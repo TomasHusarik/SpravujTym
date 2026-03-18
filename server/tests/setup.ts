@@ -24,9 +24,9 @@ beforeAll(async () => {
   mongoServer = await MongoMemoryReplSet.create({
     replSet: {
       count: 1,
+      ip: '127.0.0.1',
       storageEngine: 'wiredTiger',
     },
-    instanceOpts: [{ ip: '127.0.0.1' }],
   });
 
   await mongoose.connect(mongoServer.getUri());
