@@ -1,0 +1,46 @@
+@startuml
+!theme plain
+skinparam shadowing false
+skinparam linetype ortho
+
+title Stavovy diagram - Zivotni cyklus uzivatelskeho uctu
+
+[*] --> Nevytvoren
+
+state "Nevytvoren" as Nevytvoren
+state "Pozvany uzivatel\n(new = true, active = true)" as Pozvany
+state "Aktivni uzivatel\n(new = false, active = true)" as Aktivni
+state "Prihlasen" as Prihlasen
+state "Odhlasen" as Odhlasen
+state "Deaktivovany uzivatel\n(active = false)" as Deaktivovany
+
+Nevytvoren --> Pozvany : admin vytvori ucet\n(sign-up / invite)
+Pozvany --> Aktivni : uzivatel doplni profil\n(update-user na vlastnim uctu)
+Pozvany --> Deaktivovany : admin deaktivuje ucet
+
+Aktivni --> Prihlasen : uspesne prihlaseni
+Prihlasen --> Odhlasen : logout / vyprseni tokenu
+Odhlasen --> Prihlasen : dalsi uspesne prihlaseni
+
+Aktivni --> Aktivni : uprava profilu
+Prihlasen --> Prihlasen : zmena hesla
+Odhlasen --> Aktivni : ucet zustava aktivni
+
+Aktivni --> Deaktivovany : admin deaktivuje ucet
+Prihlasen --> Deaktivovany : admin deaktivuje ucet
+Odhlasen --> Deaktivovany : admin deaktivuje ucet
+
+Deaktivovany --> [*]
+
+note right of Pozvany
+  Ucet existuje v databazi,
+  ale uzivatel jeste nedokoncil
+  prvotni nastaveni profilu.
+end note
+
+note right of Deaktivovany
+  Pri deaktivaci dochazi take
+  k odebrani clentstvi v soupiskach.
+end note
+
+@enduml

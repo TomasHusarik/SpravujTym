@@ -1,0 +1,90 @@
+@startuml
+left to right direction
+!theme plain
+skinparam componentStyle rectangle
+skinparam shadowing false
+skinparam linetype ortho
+skinparam ranksep 40
+skinparam nodesep 25
+
+title Component diagram - Logicka architektura aplikace SpravujTym
+
+package "Frontend (React)" {
+  [Autentizace a relace] as FEAuth
+  [Sprava uzivatelu] as FEUsers
+  [Tymove udalosti a kalendar] as FEEvents
+  [Tymy a soupisky] as FETeams
+  [Platby] as FEPayments
+  [Prispevky a oznameni] as FEPosts
+  [API klient] as FEApi
+}
+
+package "Backend (Express + TypeScript)" {
+  [REST routy] as BERoutes
+  [Auth middleware] as BEAuth
+  [Permission middleware] as BEPerm
+
+  component "User controller" as CUser
+  component "Team-event controller" as CEvent
+  component "Team/Squad controller" as CTeam
+  component "Payment controller" as CPayment
+  component "Announcement controller" as CAnnouncement
+  component "Comment controller" as CComment
+  component "Email controller" as CEmail
+
+  component "Domain modely\n(User, TeamEvent, Squad, Payment, ...)" as BEModels
+  component "Pomocne utility\n(JWT, cookies, validace env)" as BEUtils
+}
+
+database "MongoDB" as DB
+cloud "Resend mail service" as Mail
+
+FEAuth --> FEApi
+FEUsers --> FEApi
+FEEvents --> FEApi
+FETeams --> FEApi
+FEPayments --> FEApi
+FEPosts --> FEApi
+
+FEApi --> BERoutes : HTTP / JSON
+
+BERoutes --> BEAuth
+BERoutes --> BEPerm
+
+BERoutes --> CUser
+BERoutes --> CEvent
+BERoutes --> CTeam
+BERoutes --> CPayment
+BERoutes --> CAnnouncement
+BERoutes --> CComment
+BERoutes --> CEmail
+
+BEAuth --> BEUtils
+BEPerm --> BEModels
+
+CUser --> BEModels
+CUser --> BEUtils
+CUser --> Mail
+
+CEvent --> BEModels
+CEvent --> Mail
+
+CTeam --> BEModels
+CPayment --> BEModels
+CAnnouncement --> BEModels
+CComment --> BEModels
+CEmail --> Mail
+
+BEModels --> DB
+
+note bottom of FEApi
+  Jednotna vrstva volani backend API
+  z React komponent a stranek.
+end note
+
+note bottom of BEPerm
+  Vyhodnocuje role admin / coach / player
+  na zaklade uzivatele a clenstvi v soupisce.
+end note
+
+@enduml
