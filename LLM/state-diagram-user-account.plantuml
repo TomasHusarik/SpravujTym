@@ -8,11 +8,11 @@ title Stavovy diagram - Zivotni cyklus uzivatelskeho uctu
 [*] --> Nevytvoren
 
 state "Nevytvoren" as Nevytvoren
-state "Pozvany uzivatel\n(new = true, active = true)" as Pozvany
-state "Aktivni uzivatel\n(new = false, active = true)" as Aktivni
+state "Pozvany uzivatel" as Pozvany
+state "Aktivni uzivatel" as Aktivni
 state "Prihlasen" as Prihlasen
 state "Odhlasen" as Odhlasen
-state "Deaktivovany uzivatel\n(active = false)" as Deaktivovany
+state "Deaktivovany uzivatel" as Deaktivovany
 
 Nevytvoren --> Pozvany : admin vytvori ucet\n(sign-up / invite)
 Pozvany --> Aktivni : uzivatel doplni profil\n(update-user na vlastnim uctu)
@@ -36,11 +36,16 @@ note right of Pozvany
   Ucet existuje v databazi,
   ale uzivatel jeste nedokoncil
   prvotni nastaveni profilu.
+  V implementaci odpovida
+  priznakum new = true
+  a active = true.
 end note
 
 note right of Deaktivovany
   Pri deaktivaci dochazi take
-  k odebrani clentstvi v soupiskach.
+  k odebrani clenstvi v soupiskach.
+  V implementaci odpovida
+  priznakum active = false.
 end note
 
 @enduml

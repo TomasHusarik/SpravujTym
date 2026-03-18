@@ -1,110 +1,111 @@
 @startuml
+top to bottom direction
+!theme plain
+skinparam shadowing false
+skinparam linetype ortho
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+skinparam ranksep 45
+skinparam nodesep 30
 hide circle
+hide methods
 
-' =====================
-' CORE DOMAIN ENTITIES
-' =====================
+title Konceptualni diagram trid - domenovy model aplikace SpravujTym
 
 class User {
-  +name
+  +jmeno
+  +prijmeni
   +email
-  +mobile
-  +age
-  +sex
-  +address
-  +birthDate
-  +active
-}
-
-class League {
-  +name
-  +season
-  +category
+  +telefon
+  +datumNarozeni
+  +aktivni
 }
 
 class Team {
-  +name
-  +shortName
-  +homeCity
-  +foundedYear
+  +nazev
+  +zkratka
+  +mesto
 }
 
 class Squad {
-  +name
+  +nazev
 }
 
-class TeamEvent {
-  +title
-  +type
-  +opponent?
-  +startTime
-  +endTime
-}
-
-class EventParticipation {
-  +status
-  +note
-  +createdAt
-}
-
-class Venue {
-  +name
-  +address
-  +city
-  +capacity
-}
-
-class Announcement {
-  +title
-  +content
-  +createdAt
-  +visibility
-  +type
-  +pinned
-}
-
-class Payment {
-  +amount
-  +status
-  +dueDate
-  +type
+class League {
+  +nazev
+  +sezona
+  +kategorie
 }
 
 class Membership {
   +role
-  +active
+  +aktivni
 }
 
-' =====================
-' STRUCTURE
-' =====================
+class TeamEvent {
+  +nazev
+  +typ
+  +zacatek
+  +konec
+}
 
-Team "1" -- "1..*" Squad : consists of
-League "1" -- "1..*" Squad : includes
+class EventParticipation {
+  +stavUcasti
+}
 
-' =====================
-' ASSOCIATION CLASS (Membership)
-' =====================
+class Venue {
+  +nazev
+  +mesto
+  +adresa
+  +kapacita
+}
 
-User "1" -- "0..*" Squad : member of
+class Comment {
+  +obsah
+  +casVytvoreni
+}
+
+class Announcement {
+  +nadpis
+  +obsah
+  +viditelnost
+  +pripnuto
+}
+
+class Payment {
+  +castka
+  +splatnost
+  +stav
+  +typ
+}
+
+User -[hidden]right- Team
+Team -[hidden]right- Squad
+Squad -[hidden]right- League
+Venue -[hidden]down- TeamEvent
+TeamEvent -[hidden]down- EventParticipation
+EventParticipation -[hidden]left- Comment
+Comment -[hidden]left- Announcement
+Announcement -[hidden]left- Payment
+
+Team "1" -- "1..*" Squad : obsahuje
+League "1" -- "0..*" Squad : zarazuje
+Team "1" -- "1" Venue : domovske zazemi
+
+User "1" -- "0..*" Squad : clenstvi
 (User, Squad) .. Membership
 
-' =====================
-' EVENTS
-' =====================
+Squad "0..*" -- "0..*" TeamEvent : ucastni se
+Venue "0..1" -- "0..*" TeamEvent : kona se na
+User "1" -- "0..*" TeamEvent : vytvari
 
-Team "1" -- "0..*" TeamEvent : schedules
-Venue "1" -- "0..*" TeamEvent : hosts
-
-User "1" -- "0..*" TeamEvent : participates in
+User "1" -- "0..*" TeamEvent : reaguje na ucast
 (User, TeamEvent) .. EventParticipation
 
-' =====================
-' COMMUNICATION & FINANCE
-' =====================
+User "1" -- "0..*" Comment : pise
+TeamEvent "1" -- "0..*" Comment : obsahuje
 
-User "1" -- "0..*" Announcement : authors
-Team "1" -- "0..*" Announcement : publishes
+User "1" -- "0..*" Announcement : publikuje
+User "1" -- "0..*" Payment : ma prirazenu platbu
 
-User "1" -- "0..*" Payment : pays
 @enduml

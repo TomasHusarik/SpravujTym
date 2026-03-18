@@ -481,6 +481,7 @@ const EventDetail = ({ eventId }: IEventDetail) => {
                                                                     color={getParticipationStatusColor(part.status)}
                                                                     size={8}
                                                                     offset={4}
+                                                                    zIndex={1}
                                                                     position="bottom-start"
                                                                 >
                                                                     <Avatar

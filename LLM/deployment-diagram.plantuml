@@ -8,29 +8,29 @@ skinparam nodesep 20
 
 title Deployment diagram - Nasazeni aplikace SpravujTym
 
-node "Uzivatelovo zarizeni" as ClientDevice {
+node "Klientske zarizeni" as ClientDevice {
   node "Webovy prohlizec" as Browser {
-    artifact "React SPA\n(Vite build)" as FrontendApp
+    artifact "React klient\n(SPA)" as FrontendApp
   }
 }
 
-node "Hosting aplikace" as Hosting {
+node "Aplikacni server" as Hosting {
   node "Node.js runtime" as NodeRuntime {
-    artifact "Express API server" as ApiServer
-    artifact "REST endpointy" as RestApi
+    artifact "Express aplikace" as ApiServer
+    artifact "REST API" as RestApi
     artifact "Middleware vrstva\n(auth, permissions, guards)" as Middleware
-    artifact "Business logika controlleru" as Controllers
+    artifact "Vrstva controlleru" as Controllers
     artifact "Mongoose modely" as Models
   }
 
-  folder "Staticke soubory klienta" as StaticFiles {
-    artifact "HTML / CSS / JS bundle" as FrontendBundle
+  folder "Staticke soubory" as StaticFiles {
+    artifact "Build frontend klienta" as FrontendBundle
   }
 
   database "MongoDB" as MongoDb
 }
 
-cloud "Emailova sluzba Resend" as Resend
+cloud "Emailova sluzba" as Resend
 
 collections "Cookies v prohlizeci" as Cookies
 
@@ -42,15 +42,15 @@ Controllers --> Models
 Models --> MongoDb : Mongoose dotazy
 
 ApiServer --> FrontendBundle : servirovani buildu v produkci
-Controllers --> Resend : registracni,\nnominační a informacni emaily
+Controllers --> Resend : registracni,\nnomincni a informacni emaily
 
 note right of Middleware
-  Autentizace probiha pomoci JWT
-  ulozeneho v HTTP-only cookie.
+  Autentizace vyuziva JWT
+  ulozene v HTTP-only cookie.
 end note
 
 note right of MongoDb
-  Databaze uchovava uzivatele,
+  Databaze uklada uzivatele,
   tymy, soupisky, udalosti,
   ucasti, komentare a platby.
 end note
