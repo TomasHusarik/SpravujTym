@@ -56,8 +56,11 @@ if (process.env.NODE_ENV === "production") {
     });
 }
 
-// Start server
-app.listen(PORT, () => {
-    connectDB();
-    console.log(`Server running on port ${PORT}`);
-});
+if (require.main === module) {
+    app.listen(PORT, () => {
+        connectDB();
+        console.log(`Server running on port ${PORT}`);
+    });
+}
+
+export default app;
