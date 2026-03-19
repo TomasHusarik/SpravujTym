@@ -2,6 +2,7 @@ process.env.NODE_ENV = 'test';
 process.env.JWT_SECRET = process.env.JWT_SECRET || 'test-jwt-secret';
 process.env.PORT = process.env.PORT || '4001';
 process.env.MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/test-bootstrap';
+process.env.RESEND_API_KEY = process.env.RESEND_API_KEY || 're_test_key';
 
 import mongoose from 'mongoose';
 import { MongoMemoryReplSet } from 'mongodb-memory-server';

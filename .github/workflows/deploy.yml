@@ -31,6 +31,9 @@ jobs:
                 npm ci --prefix client
                 npm ci --prefix server
 
+            - name: Run backend tests
+              run: npm run test --prefix server
+
             - name: Build
               run: npm run build
 
