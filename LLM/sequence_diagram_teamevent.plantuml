@@ -1,60 +1,67 @@
 @startuml
-title Sekvenční diagram – Vytvoření události a reakce hráče
+title Sekvencni diagram - Vytvoreni udalosti a reakce hrace
 hide footbox
 
-actor "Trenér / Admin" as Coach
-actor "Hráč" as Player
-participant "Aplikace" as App
-database "Databáze" as DB
-participant "Email služba" as Mail
+actor "Trener / Admin" as Coach
+actor "Hrac" as Player
+participant "Frontend" as FE
+participant "REST API" as API
+database "MongoDB" as DB
+participant "Emailova sluzba" as Mail
 
-== Vytvoření události ==
+== Vytvoreni udalosti ==
 
-Coach -> App : Vyplní formulář a vytvoří událost
-App -> App : Ověří vyplněná data a přihlášení uživatele
+Coach -> FE : Vyplni formular a vytvori udalost
+FE -> API : Odesle pozadavek na vytvoreni udalosti
+API -> API : Overi povinna data a opravneni uzivatele
 
-alt Nejsou vyplněna všechna povinná pole nebo uživatel není přihlášen
-App --> Coach : Zobrazí upozornění na chybu
-else Vše je v pořádku
+alt Nejsou vyplnena povinna pole nebo uzivatel nema opravneni
+  API --> FE : Chybova odpoved
+  FE --> Coach : Zobrazi upozorneni na chybu
+else Vse je v poradku
 
-App -> DB : Uloží novou událost
-DB --> App : Potvrzení uložení
+  API -> DB : Ulozi novou tymovou udalost
+  DB --> API : Potvrzeni ulozeni
 
-opt Ve formuláři jsou vybraní hráči
-App -> DB : Vytvoří záznamy o účasti hráčů
-DB --> App : Potvrzení
-end
+  opt Ve formulari jsou vybrani hraci
+    API -> DB : Vytvori zaznamy o ucasti hracu
+    DB --> API : Potvrzeni
+  end
 
-App --> Coach : Událost byla úspěšně vytvořena
-
-end
-
-== Odeslání nominace na zápas ==
-
-opt Událost je typu zápas a má přiřazené hráče
-App -> DB : Získá emaily nominovaných hráčů
-DB --> App : Seznam emailových adres
-
-loop Pro každého hráče
-App -> Mail : Odešle nominační email
-Mail -> Player : Doručí pozvánku na zápas
-end
+  API --> FE : Potvrzeni uspesneho vytvoreni
+  FE --> Coach : Udalost byla uspesne vytvorena
 
 end
 
-== Reakce hráče ==
+== Odeslani nominace na zapas ==
 
-Player -> App : Změní stav účasti
-App -> DB : Vyhledá jeho účast na události
+opt Udalost je typu zapas a ma prirazene hrace
+  API -> DB : Ziska emaily nominovanych hracu
+  DB --> API : Seznam emailovych adres
 
-alt Účast nebyla nalezena
-App --> Player : Informace, že účast nebyla nalezena
-else Účast existuje
+  loop Pro kazdeho hrace
+    API -> Mail : Odesle nominacni email
+    Mail -> Player : Doruci pozvanku na zapas
+  end
 
-App -> DB : Uloží nový stav účasti
-DB --> App : Potvrzení
+end
 
-App --> Player : Stav účasti byl aktualizován
+== Reakce hrace ==
+
+Player -> FE : Zmeni stav ucasti
+FE -> API : Odesle pozadavek na zmenu stavu ucasti
+API -> DB : Vyhleda ucast hrace na udalosti
+
+alt Ucast nebyla nalezena
+  API --> FE : Chybova odpoved
+  FE --> Player : Informace, ze ucast nebyla nalezena
+else Ucast existuje
+
+  API -> DB : Ulozi novy stav ucasti
+  DB --> API : Potvrzeni
+
+  API --> FE : Potvrzeni aktualizace
+  FE --> Player : Stav ucasti byl aktualizovan
 
 end
 @enduml

@@ -50,7 +50,7 @@ const Login = () => {
                         </Title>
 
                         <TextInput
-                            label="Email address"
+                            label="Email"
                             placeholder="bluehorses@gmail.com"
                             size="md"
                             radius="md"
@@ -59,8 +59,8 @@ const Login = () => {
                             error={loginForm.errors.email}
                         />
                         <PasswordInput
-                            label="Password"
-                            placeholder="Your password"
+                            label="Heslo"
+                            placeholder="Vaše heslo"
                             mt="md"
                             size="md"
                             radius="md"
@@ -76,7 +76,7 @@ const Login = () => {
                         )}
 
                         <Button fullWidth mt="xl" size="md" radius="md" type="submit" loading={isSubmitting}>
-                            Login
+                            Přihlásit se
                         </Button>
 
                         <Text size="sm" mt="md" c="dimmed" ta="center">

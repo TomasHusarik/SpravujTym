@@ -14,23 +14,24 @@ node "Klientske zarizeni" as ClientDevice {
   }
 }
 
-node "Aplikacni server" as Hosting {
-  node "Node.js runtime" as NodeRuntime {
-    artifact "Express aplikace" as ApiServer
-    artifact "REST API" as RestApi
-    artifact "Middleware vrstva\n(auth, permissions, guards)" as Middleware
-    artifact "Vrstva controlleru" as Controllers
-    artifact "Mongoose modely" as Models
-  }
+cloud "Microsoft Azure" as Azure {
+  node "Azure App Service" as AppService {
+    node "Node.js runtime" as NodeRuntime {
+      artifact "Express aplikace" as ApiServer
+      artifact "REST API" as RestApi
+      artifact "Middleware vrstva" as Middleware
+      artifact "Vrstva controlleru" as Controllers
+      artifact "Mongoose modely" as Models
+    }
 
-  folder "Staticke soubory" as StaticFiles {
-    artifact "Build frontend klienta" as FrontendBundle
+    folder "Staticke soubory" as StaticFiles {
+      artifact "Build frontend klienta" as FrontendBundle
+    }
   }
-
-  database "MongoDB" as MongoDb
 }
 
-cloud "Emailova sluzba" as Resend
+database "MongoDB Atlas" as MongoDb
+cloud "Resend" as Resend
 
 collections "Cookies v prohlizeci" as Cookies
 
@@ -44,15 +45,21 @@ Models --> MongoDb : Mongoose dotazy
 ApiServer --> FrontendBundle : servirovani buildu v produkci
 Controllers --> Resend : registracni,\nnomincni a informacni emaily
 
+Azure --> MongoDb : pripojeni k databazi
+
 note right of Middleware
   Autentizace vyuziva JWT
   ulozene v HTTP-only cookie.
 end note
 
+note right of AppService
+  Aplikace je nasazena jako
+  webova sluzba v Microsoft Azure.
+end note
+
 note right of MongoDb
-  Databaze uklada uzivatele,
-  tymy, soupisky, udalosti,
-  ucasti, komentare a platby.
+  Perzistentni databaze aplikace
+  provozovana mimo App Service.
 end note
 
 @enduml
