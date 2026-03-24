@@ -1,20 +1,96 @@
-1) 
-Na základě následujícího popisu navrhni konceptuální UML diagram tříd pomocí PlantUML syntaxe.
-Při návrhu se striktně řiď prepromptem pro konceptuální diagram tříd, který máš k dispozici.
-Dodržuj všechna jeho pravidla (rozsah, omezení, styl výstupu).
+1)
+Na zaklade nasledujiciho popisu navrhni konceptualni UML diagram trid pomoci PlantUML syntaxe.
+Pri navrhu se striktne rid prepromptem pro konceptualni diagram trid, ktery mas k dispozici.
+Dodrz vsechna jeho pravidla (rozsah, omezeni, styl vystupu).
 
-Navrhovaný systém je aplikace pro správu sportovních týmů a lig.
+Navrhovany system je aplikace pro spravu sportovnich tymu a lig.
 
-Systém umožňuje: evidenci uživatelů zapojených do týmů, plánování týmových událostí (např. zápasy, tréninky), evidenci účasti hráčů na událostech, správu týmů, publikaci týmových a veřejných příspěvků, správu plateb souvisejících s členstvím nebo aktivitami týmu
-Model má zachytit základní pojmy domény, jejich vlastnosti a vztahy.
+System umoznuje evidenci uzivatelu zapojenych do tymu, planovani tymovych udalosti, evidenci ucasti hracu na udalostech, spravu tymu, publikaci tymovych a verejnych prispevku a spravu plateb souvisejicich s clenstvim nebo aktivitami tymu.
+Model ma zachytit zakladni pojmy domeny, jejich vlastnosti a vztahy.
 
-Model by měl obsahovat entity typu: uživatel (user), tým (team), účast (attendance), hala(venue), platba(payment), příspěvek(announcement)...
+Model by mel obsahovat entity typu uzivatel, tym, soupiska, liga, tymova udalost, ucast na udalosti, hala, platba a oznameni.
 
 2)
-Na základě již vygenerovaného konceptuálního UML diagramu tříd proveď jeho revizi a úpravy tak, aby lépe odpovídal doménovým pravidlům aplikace pro správu sportovních týmů a lig. Při úpravách se striktně řiď prepromptem pro konceptuální diagram tříd a zachovej konceptuální úroveň modelu (žádné identifikátory, datové typy ani implementační detaily).
+Na zaklade jiz vygenerovaneho konceptualniho UML diagramu trid proved jeho revizi a upravy tak, aby lepe odpovidal domenovym pravidlum aplikace pro spravu sportovnich tymu a lig.
+Pri upravach se striktne rid prepromptem pro konceptualni diagram trid a zachovej konceptualni uroven modelu.
 
-Uprav názvosloví tak, aby bylo jednotné a doménově smysluplné (např. Event přejmenuj na TeamEvent, Attendance na EventParticipation). Platby v systému eviduj výhradně vůči uživateli, nikoli vůči týmu – odstraň tedy vztah mezi Payment a Team a zachovej pouze vztah k User. Entita Payment má obsahovat atributy status a dueDate.
+Uprav nazvoslovi tak, aby bylo jednotne a domenove smysluplne.
+Platby v systemu eviduj vuci uzivateli, nikoli vuci tymu.
+Zajisti, ze jeden tym muze byt rozdelen na vice soupisek a ze tymove udalosti mohou byt vazane na soupisky a haly.
 
-Přesuň atribut category z entity Team do entity League a zajisti, že League obsahuje atributy season a category. Uprav model tak, aby jeden tým mohl být rozdělen na více celků (squads), například A-tým, B-tým nebo mládež. Ověř, že entita TeamEvent obsahuje atributy startTime a endTime, entita Announcement atribut createdAt a entita EventParticipation atribut note.
+3)
+Na zaklade domenoveho modelu aplikace pro spravu sportovnich tymu a lig navrhni implementacni UML diagram trid pro MongoDB.
+Pri navrhu se striktne rid prepromptem pro implementacni class diagram.
 
-Rozšiř entitu User o atributy age, birthDate, roles, sex a mobile. Pokud je v diagramu entita Venue, uprav kardinality tak, aby jedna hala mohla mít 0..* týmových událostí, zatímco každá týmová událost se koná v jedné hale.
+Model ma zachytit MongoDB kolekce, jejich atributy, ObjectId reference a samostatne asociacni kolekce pro M:N vztahy.
+Pouzij entity jako User, Team, Squad, League, TeamEvent, EventParticipation, Payment, Announcement, Comment a Venue.
+
+4)
+Na zaklade nasledujiciho popisu navrhni UML use-case diagram pro aplikaci na spravu sportovnich tymu.
+Pri navrhu se striktne rid prepromptem pro use-case diagram.
+
+System ma role verejnost, hrac, trener a admin.
+System umoznuje prihlaseni, spravu profilu, spravu tymovych udalosti, reakci na ucast, spravu plateb, spravu prispevku, spravu tymu, soupisek, lig a uzivatelu.
+
+5)
+Na zaklade nasledujiciho scenare navrhni UML sekvencni diagram pomoci PlantUML.
+Pri navrhu se striktne rid prepromptem pro sekvencni diagram.
+
+Scenar:
+Administrator vytvori noveho uzivatele zadanim emailu.
+Frontend odesle pozadavek backendu.
+Backend overi vstup, zkontroluje existenci uzivatele, vytvori ucet, ulozi ho do databaze a nasledne odesle registracni email.
+Ve druhe casti diagramu administrator upravi profil existujiciho uzivatele.
+
+6)
+Na zaklade nasledujiciho scenare navrhni UML sekvencni diagram pomoci PlantUML.
+Pri navrhu se striktne rid prepromptem pro sekvencni diagram.
+
+Scenar:
+Trener nebo administrator vytvori tymovou udalost.
+Frontend odesle data backendu.
+Backend overi opravneni, ulozi udalost a pripadne vytvori zaznamy o ucasti hracu.
+Pokud jde o zapas, backend ziska emaily nominovanych hracu a odesle jim notifikace.
+Ve druhe casti diagramu hrac zmeni stav sve ucasti.
+
+7)
+Na zaklade nasledujiciho popisu navrhni UML activity diagram pomoci PlantUML.
+Pri navrhu se striktne rid prepromptem pro activity diagram.
+
+Scenar:
+Trener vytvari tymovou udalost.
+System ji publikuje.
+Hrac zobrazi udalost, rozhodne se o ucasti a potvrdi nebo odmitne ucast.
+Trener nasledne kontroluje stav ucasti a v pripade potreby doplni dalsi hrace nebo udalost zrusi.
+
+8)
+Na zaklade architektury aplikace pro spravu sportovnich tymu navrhni UML komponentovy diagram pomoci PlantUML.
+Pri navrhu se striktne rid prepromptem pro komponentovy diagram.
+
+Model ma obsahovat frontend v Reactu, API klient, backend v Expressu, routy, middleware, controllery, domenove modely, MongoDB a externi emailovou sluzbu.
+
+9)
+Na zaklade nasazeni aplikace navrhni UML deployment diagram pomoci PlantUML.
+Pri navrhu se striktne rid prepromptem pro deployment diagram.
+
+Aplikace je nasazena v Microsoft Azure.
+Frontend build je servirovan spolu s backendem.
+Backend bezi v Azure App Service na Node.js runtime.
+Databaze bezi v MongoDB Atlas.
+Pro odesilani emailu je pouzita externi sluzba Resend.
+Uzivatel pristupuje k aplikaci z weboveho prohlizece.
+
+10)
+Na zaklade nasledujiciho popisu navrhni UML stavovy diagram pomoci PlantUML.
+Pri navrhu se striktne rid prepromptem pro stavovy diagram.
+
+Modeluj zivotni cyklus uzivatelskeho uctu.
+Uzivatel muze byt nejprve nevytvoreny, pote pozvany, aktivni, prihlaseny, odhlaseny a deaktivovany.
+Prechody mezi stavy vyvolava vytvoreni uctu, prvotni nastaveni profilu, prihlaseni, odhlaseni nebo deaktivace administratorem.
+
+11)
+Na zaklade implementacniho UML diagramu trid navrhni Mongoose schemata a TypeScript typy.
+Pri navrhu se striktne rid prepromptem pro generovani mongoose schemat a typu.
+
+Vytvor modely pro User, Team, Squad, League, TeamEvent, EventParticipation, Announcement, Payment, Comment a Venue.
+Pouzij reference mezi kolekcemi tam, kde davaji smysl, a enumy pro stavy a typy.
