@@ -9,8 +9,8 @@ import League, { LeagueCategory } from '../models/League';
 import Squad from '../models/Squad';
 import SquadMembership, { SquadRole } from '../models/SquadMembership';
 import Team from '../models/Team';
-import User from '../models/User';
 import Venue from '../models/Venue';
+import { NominationMail } from '../mails/NominationMail';
 import { createTestUser } from './factories/userFactory';
 
 const createSquadGraph = async () => {
@@ -154,5 +154,79 @@ describe('POST /api/team-event/update-participation-status', () => {
     }).lean();
 
     expect(updatedParticipation?.status).toBe(EventParticipationStatus.Confirmed);
+  });
+});
+
+describe('PUT /api/team-event/update-event/:_id', () => {
+  it('sends a nomination to newly added players when a match is updated', async () => {
+    const nominationMailMock = NominationMail as jest.MockedFunction<typeof NominationMail>;
+    nominationMailMock.mockClear();
+
+    const { user: coach } = await createTestUser({ email: 'coach-update@test.local' });
+    const { user: existingPlayer } = await createTestUser({ email: 'existing-player@test.local' });
+    const { user: newPlayer } = await createTestUser({ email: 'new-player@test.local' });
+    const { squad, venue } = await createSquadGraph();
+
+    await SquadMembership.create({
+      user: coach._id,
+      squad: squad._id,
+      roles: [SquadRole.Coach],
+      active: true,
+    });
+
+    const event = await TeamEvent.create({
+      title: 'League Match',
+      type: TeamEventType.Match,
+      startDate: new Date('2025-03-22T15:00:00.000Z'),
+      endDate: new Date('2025-03-22T17:00:00.000Z'),
+      venue: venue._id,
+      squads: [squad._id],
+      createdBy: coach._id,
+    });
+
+    await EventParticipation.create({
+      event: event._id,
+      user: existingPlayer._id,
+      status: EventParticipationStatus.Pending,
+    });
+
+    const response = await request(app)
+      .put(`/api/team-event/update-event/${event._id.toString()}`)
+      .set('x-test-user-id', coach._id.toString())
+      .send({
+        title: 'League Match',
+        type: TeamEventType.Match,
+        startDate: '2025-03-22T15:00:00.000Z',
+        endDate: '2025-03-22T17:00:00.000Z',
+        venue: venue._id.toString(),
+        squads: [squad._id.toString()],
+        participations: [
+          {
+            userId: existingPlayer._id.toString(),
+            status: EventParticipationStatus.Pending,
+          },
+          {
+            userId: newPlayer._id.toString(),
+            status: EventParticipationStatus.Pending,
+          },
+        ],
+      });
+
+    expect(response.status).toBe(200);
+    expect(response.body.message).toBe('Team event updated');
+
+    const createdParticipation = await EventParticipation.findOne({
+      event: event._id,
+      user: newPlayer._id,
+    }).lean();
+
+    expect(createdParticipation?.status).toBe(EventParticipationStatus.Pending);
+    expect(nominationMailMock).toHaveBeenCalledTimes(1);
+    expect(nominationMailMock).toHaveBeenCalledWith(
+      newPlayer.email,
+      expect.objectContaining({
+        title: 'League Match',
+      })
+    );
   });
 });

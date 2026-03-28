@@ -1,5 +1,7 @@
 @startuml
-title Activity diagram – Organizace týmové události
+skinparam linetype ortho
+skinparam ranksep 35
+skinparam nodesep 25
 
 |Trenér|
 start
@@ -10,6 +12,7 @@ start
 
 if (Událost je zápas?) then (Ano)
 :Odeslat upozornění hráčům;
+else (Ne)
 endif
 
 |Hráč|
@@ -18,7 +21,7 @@ endif
 
 if (Zúčastní se?) then (Ano)
 :Potvrdí účast;
-else
+else (Ne)
 :Odmítne účast;
 endif
 
@@ -28,38 +31,43 @@ endif
 |Trenér|
 :Zkontroluje přehled účasti hráčů;
 
-while (Není dostatek hráčů?) is (Ano)
+while (Dostatek hráčů?) is (Ne)
+  if (Pozvat další hráče?) then (Ano)
+    :Pozve další hráče;
 
-if (Pozvat další hráče?) then (Ano)
+    |Systém|
+    :Přidá nové hráče do události;
 
-:Pozve další hráče;
+    if (Událost je zápas?) then (Ano)
+      :Odešle upozornění nově přidaným hráčům;
+    else (Ne)
+    endif
 
-|Systém|
-:Aktualizuje seznam účasti;
+    |Hráč|
+    :Zobrazí událost v aplikaci;
+    :Rozhodne se o účasti;
 
-|Hráč|
-:Zobrazí událost v aplikaci;
-:Rozhodne se o účasti;
+    if (Zúčastní se?) then (Ano)
+    :Potvrdí účast;
+    else (Ne)
+    :Odmítne účast;
+    endif
 
-|Systém|
-:Aktualizuje seznam účasti;
+    |Systém|
+    :Aktualizuje seznam účasti;
+
+    |Trenér|
+    :Zkontroluje přehled účasti hráčů;
+
+  else (Ne)
+    |Systém|
+    :Zruší událost;
+    :Informuje hráče o zrušení;
+    stop
+  endif
+endwhile (Ano)
 
 |Trenér|
-:Znovu zkontroluje účast;
-
-else (Ne)
-
-:Zruší událost;
-
-|Systém|
-:Informuje hráče o zrušení;
-
-stop
-
-endif
-
-endwhile (Dostatek hráčů)
-
 :Potvrdí sestavu události;
 
 stop

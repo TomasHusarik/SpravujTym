@@ -371,6 +371,9 @@ export const updateTeamEvent = async (req: Request, res: Response) => {
             return res.status(404).json({ error: ErrorMessages.notFound });
         }
 
+        const previousType = teamEvent.type;
+        const notificationUserIds: string[] = [];
+
         // Update fields
         teamEvent.title = title;
         teamEvent.type = type;
@@ -419,6 +422,7 @@ export const updateTeamEvent = async (req: Request, res: Response) => {
                     ],
                     { session }
                 );
+                notificationUserIds.push(String(userId));
             }
         }
 
@@ -434,6 +438,31 @@ export const updateTeamEvent = async (req: Request, res: Response) => {
 
         await session.commitTransaction();
         session.endSession();
+
+        if (type === TeamEventType.Match) {
+            const recipients: string[] =
+                previousType !== TeamEventType.Match
+                    ? Array.from(incomingMap.keys()).map((id) => String(id))
+                    : notificationUserIds;
+
+                const participantEmails = await User.find({
+                    _id: { $in: recipients }
+                })
+                    .select('email')
+                    .lean();
+
+            try {
+                for (const participant of participantEmails) {
+                    await NominationMail(participant.email, {
+                        title,
+                        startDate,
+                        endDate,
+                    });
+                }
+            } catch (emailError) {
+                console.error('Failed to send nomination emails:', emailError);
+            }
+        }
 
         return res.status(200).json({ message: "Team event updated" });
     } catch (error) {
