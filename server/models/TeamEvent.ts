@@ -30,7 +30,7 @@ const TeamEventSchema = new mongoose.Schema<ITeamEvent>({
     endDate: { type: Date, required: true },
     venue: { type: mongoose.Schema.Types.ObjectId, ref: 'Venue' },
     squads: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Squad' }],
-    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
+    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }
 }, { 
     timestamps: true,
     versionKey: false,

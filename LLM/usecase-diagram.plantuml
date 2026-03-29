@@ -1,13 +1,9 @@
 @startuml
 top to bottom direction
-!theme plain
 skinparam packageStyle rectangle
-skinparam shadowing false
 skinparam linetype ortho
 skinparam ranksep 45
 skinparam nodesep 25
-
-title Use-case diagram - Sprava sportovnich tymu
 
 actor "Veřejnost" as Public
 actor "Hráč" as Player

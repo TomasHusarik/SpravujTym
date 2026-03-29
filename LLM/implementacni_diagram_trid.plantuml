@@ -124,7 +124,7 @@ class Payment {
 ' REFERENCES WITH CARDINALITY
 ' =====================
 
-Team "0..*" --> "1" Venue
+Venue "1" <-- "0..*" Team
 
 Squad "0..*" --> "1" League
 Squad "0..*" --> "1" Team
@@ -134,7 +134,7 @@ SquadMembership "0..*" --> "1" Squad
 
 TeamEvent "0..*" --> "0..1" Venue
 TeamEvent "0..*" --> "0..*" Squad
-TeamEvent "0..*" --> "0..1" User
+TeamEvent "0..*" --> "1" User
 
 EventParticipation "0..*" --> "1" User
 EventParticipation "0..*" --> "1" TeamEvent
