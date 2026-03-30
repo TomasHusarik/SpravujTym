@@ -10,18 +10,22 @@ Prompty jsou seskupené podle typu výstupu, aby bylo jasné, který prompt se h
 1.1 Základní návrh doménového modelu
 Na základě následujícího popisu navrhni konceptuální UML diagram tříd pomocí PlantUML syntaxe.
 Při návrhu se striktně řiď prepromptem pro konceptuální diagram tříd, který máš k dispozici.
-Dodrž všechna jeho pravidla, zejména zachování konceptuální úrovně modelu bez identifikátorů, datových typů a implementačních detailů.
+Dodržuj všechna jeho pravidla (rozsah, omezení, styl výstupu).
 
-Navrhovaný systém je aplikace pro správu sportovních týmů a lig.
-Systém umožňuje evidenci uživatelů, týmů, soupisek, lig, týmových událostí, účasti hráčů, oznámení, komentářů a plateb.
-Výsledný model má zachytit základní doménové entity, jejich podstatné vlastnosti a vztahy.
+Navrhovaný systém je aplikace pro správu sportovních týmů.
+
+Systém umožňuje: evidenci uživatelů zapojených do týmů, plánování týmových událostí (např. zápasy, tréninky), evidenci účasti hráčů na událostech, správu týmů, publikaci týmových a veřejných příspěvků, správu plateb souvisejících s členstvím nebo aktivitami týmu
+Model má zachytit základní pojmy domény, jejich vlastnosti a vztahy.
+
+Model by měl obsahovat entity typu: uživatel, tým, účast, hala, platba, příspěvek...
+
 
 1.2 Iterativní zpřesnění návrhu
-Na základě již vygenerovaného konceptuálního UML diagramu tříd proveď jeho revizi a uprav jej tak, aby lépe odpovídal doméně aplikace pro správu sportovních týmů.
-Zachovej konceptuální úroveň modelu a nepřidávej implementační detaily.
+Na základě již vygenerovaného konceptuálního UML diagramu tříd proveď jeho revizi a uprav jej tak, aby lépe odpovídal doméně aplikace pro správu sportovních týmů. Při úpravách zachovej konceptuální úroveň modelu, tedy nepřidávej identifikátory, datové typy ani implementační detaily.
 
-Sjednoť názvosloví entit, zpřesni vztahy mezi nimi, doplň podporu pro soupisky a použij entity `SquadMembership` a `EventParticipation` jako asociační třídy.
-Výsledný diagram má být věcně správný, konzistentní a přehlednější než původní verze.
+Sjednoť názvosloví entit tak, aby bylo doménově smysluplné, například nahraď obecné názvy přesnějšími pojmy jako TeamEvent a EventParticipation. Doplň podporu pro rozdělení týmu na více soupisek, přidej entitu SquadMembership a použij ji společně s EventParticipation jako asociační třídu.
+
+Uprav vztahy tak, aby odpovídaly pravidlům domény: platba má být evidována pouze vůči uživateli, nikoli vůči týmu; league má obsahovat season a category; týmová událost má být navázána na squad a venue. Zachovej pouze atributy, které mají doménový význam, a uprav diagram tak, aby byl přehlednější a konzistentnější.
 
 1.3 Zpřesnění konceptuálního modelu podle domény
 Na základě textového popisu domény a existujícího konceptuálního UML diagramu tříd navrhni jeho zpřesněnou verzi.
