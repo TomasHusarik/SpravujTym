@@ -1,8 +1,8 @@
 const ErrorMessages = {
-    
+
     // General errors
-    mandatoryField: 'This field is mandatory',
-    futureDate: 'Date must be in the future',
+    mandatoryField: 'Toto pole je povinné',
+    futureDate: 'Datum musí být v budoucnosti',
 };
 
 export default ErrorMessages;

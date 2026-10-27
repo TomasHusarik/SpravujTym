@@ -10,6 +10,25 @@ export const generateRandomPassword = (): string => {
     return randomBytes(12).toString('hex');
 };
 
+// Escape user-provided text before inserting it into HTML (e.g. e-mail templates)
+export const escapeHtml = (value: unknown): string => {
+    return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+};
+
+// Pick only allowed keys from a request body (prevents mass assignment)
+export const pickFields = <T extends string>(source: Record<string, unknown>, fields: readonly T[]) => {
+    const result: Partial<Record<T, unknown>> = {};
+    for (const field of fields) {
+        if (source?.[field] !== undefined) result[field] = source[field];
+    }
+    return result;
+};
+
 //#region Token and Cookie Helpers
 
 // Create JWT token

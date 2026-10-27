@@ -21,6 +21,11 @@ jest.mock('@mails/NominationMail', () => ({
   NominationMail: jest.fn().mockResolvedValue(undefined),
 }));
 
+// Never call the real e-mail provider from tests
+jest.mock('../services/mailer', () => ({
+  mailer: jest.fn().mockResolvedValue(undefined),
+}));
+
 beforeAll(async () => {
   mongoServer = await MongoMemoryReplSet.create({
     replSet: {

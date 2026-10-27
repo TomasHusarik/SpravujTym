@@ -3,7 +3,7 @@ import { NextFunction, Request, Response } from 'express';
 import { ensurePermissions } from './permission.middleware';
 import ErrorMessages from '@utils/errorMessages';
 
-type Rule = (req: Request) => boolean;
+type Rule = (req: Request) => boolean | Promise<boolean>;
 
 export const requireAccess = (rule: Rule, forbiddenMessage = 'Forbidden') => {
   return async (req: Request, res: Response, next: NextFunction) => {
@@ -12,7 +12,7 @@ export const requireAccess = (rule: Rule, forbiddenMessage = 'Forbidden') => {
 
       if (permissions.isAdmin) return next();
 
-      if (!rule(req)) {
+      if (!(await rule(req))) {
         return res.status(403).json({ error: forbiddenMessage });
       }
 

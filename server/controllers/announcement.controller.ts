@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import ErrorMessages from "@utils/errorMessages";
-import Announcement from "@models/Announcement";
+import Announcement, { AnnouncementVisibility } from "@models/Announcement";
+import { notifyAnnouncement, safely } from "../services/notification.service";
 
 // POST /announcement/create - Create a new announcement
 export const createAnnouncement = async (req: Request, res: Response) => {
@@ -21,6 +22,7 @@ export const createAnnouncement = async (req: Request, res: Response) => {
         });
 
         await newAnnouncement.save();
+        await safely(() => notifyAnnouncement(newAnnouncement, author));
         res.status(201).json({ message: 'Announcement created successfully', announcement: newAnnouncement });
     } catch (error) {
         console.error('Error creating announcement:', error);
@@ -31,18 +33,11 @@ export const createAnnouncement = async (req: Request, res: Response) => {
 // GET /announcement/get-announcements - Get all announcements
 export const getAnnouncements = async (req: Request, res: Response) => {
 
-    let query: string = '';
-
-    if (req.loggedUser?.isAdmin) {
-        // Admins can see all announcements
-    } else if (req.loggedUser) {
-        query = 'private';
-    } else {
-        query = 'public';
-    }
+    // Logged members see all announcements, anonymous visitors (public home page) only public ones
+    const filter = req.loggedUser ? {} : { visibility: AnnouncementVisibility.Public };
 
     try {
-        const announcements = await Announcement.find(query ? { visibility: query } : {})
+        const announcements = await Announcement.find(filter)
             .populate('author', 'firstName lastName') // Populate author details
             .sort({ pinned: -1, createdAt: -1 })
             .lean();

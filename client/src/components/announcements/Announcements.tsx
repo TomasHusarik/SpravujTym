@@ -3,7 +3,9 @@ import { deleteAnnouncement, getAnnouncements } from '@/utils/api';
 import { getFullName, showErrorNotification, showSuccessNotification, useAdminPermissions } from '@/utils/helpers';
 import {
     ActionIcon,
+    Avatar,
     Badge,
+    TypographyStylesProvider,
     Button,
     Divider,
     Group,
@@ -13,14 +15,19 @@ import {
     Title,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
-import { IconEdit, IconPlus, IconTrash } from '@tabler/icons-react';
+import { IconEdit, IconPin, IconPlus, IconSpeakerphone, IconTrash } from '@tabler/icons-react';
+import { useConfirm } from '@/hooks/useConfirm';
+import PageHeader from '../ui/PageHeader';
+import { EmptyState, ErrorState, ListSkeleton } from '../ui/StateViews';
 import { useEffect, useState } from 'react';
 import AnnouncementModal from '../modals/AnnouncementModal';
 
 const Announcements = () => {
     const isAdmin = useAdminPermissions();
     const [announcements, setAnnouncements] = useState<Announcement[]>([]);
-    const [isLoading, setIsLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
+    const [loadError, setLoadError] = useState<string | null>(null);
+    const { confirm, confirmDialog } = useConfirm();
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingAnnouncement, setEditingAnnouncement] = useState<Announcement | null>(null);
 
@@ -59,7 +66,12 @@ const Announcements = () => {
     };
 
     const handleDelete = async (announcementId: string) => {
-        const confirmed = window.confirm('Opravdu chcete toto oznámení smazat?');
+        const confirmed = await confirm({
+            title: 'Smazat oznámení?',
+            message: 'Oznámení zmizí ze Zdi i z veřejné stránky. Tuto akci nelze vrátit.',
+            confirmLabel: 'Smazat',
+            danger: true,
+        });
         if (!confirmed) return;
 
         try {
@@ -74,12 +86,11 @@ const Announcements = () => {
 
     const loadAnnouncements = async () => {
         try {
-            setIsLoading(true);
             const response = await getAnnouncements();
             setAnnouncements(response?.announcements || response || []);
+            setLoadError(null);
         } catch (error) {
-            showErrorNotification('Nepodařilo se načíst oznámení');
-            console.error('Error loading announcements:', error);
+            setLoadError((error as Error)?.message || 'Nepodařilo se načíst oznámení');
         } finally {
             setIsLoading(false);
         }
@@ -90,31 +101,31 @@ const Announcements = () => {
     }, []);
 
     return (
-        <Stack gap="lg">
-            {isAdmin && (
-                <Paper withBorder radius="lg" p="lg">
-                    <Group justify="space-between" align="center">
-                        <div>
-                            <Title order={3}>Oznámení</Title>
-                            <Text size="sm" c="dimmed">Přehled a správa týmových oznámení.</Text>
-                        </div>
-                        <Button leftSection={<IconPlus size={16} />} radius="md" onClick={openCreate}>
-                            Nové oznámení
-                        </Button>
-                    </Group>
-                </Paper>
-            )}
+        <Stack gap={0}>
+            <PageHeader
+                title="Zeď"
+                description="Novinky a oznámení klubu."
+                actions={isAdmin && (
+                    <Button leftSection={<IconPlus size={16} />} onClick={openCreate}>
+                        Nové oznámení
+                    </Button>
+                )}
+            />
 
             <Stack gap="md">
-                {isLoading && <Text c="dimmed">Načítám oznámení...</Text>}
+                {isLoading && <ListSkeleton rows={3} height={160} />}
 
-                {!isLoading && announcements.length === 0 && (
-                    <Paper withBorder radius="lg" p="lg">
-                        <Text c="dimmed">Zatím nejsou vytvořená žádná oznámení.</Text>
-                    </Paper>
+                {!isLoading && loadError && <ErrorState message={loadError} onRetry={loadAnnouncements} />}
+
+                {!isLoading && !loadError && announcements.length === 0 && (
+                    <EmptyState
+                        icon={<IconSpeakerphone size={24} />}
+                        title="Zatím žádná oznámení"
+                        description={isAdmin ? 'Vytvořte první oznámení tlačítkem „Nové oznámení“.' : 'Jakmile klub něco oznámí, uvidíte to tady.'}
+                    />
                 )}
 
-                {!isLoading && announcements.map((announcement) => (
+                {!isLoading && !loadError && announcements.map((announcement) => (
                     <Paper
                         withBorder
                         radius="lg"
@@ -122,7 +133,7 @@ const Announcements = () => {
                         key={announcement._id}
                         style={{
                             height: "100%",
-                            borderColor: announcement.pinned ? "var(--mantine-color-yellow-4)" : undefined
+                            borderLeft: announcement.pinned ? "4px solid var(--mantine-color-accent-5)" : undefined
                         }}
                     >
                         <Stack gap="sm">
@@ -137,17 +148,17 @@ const Announcements = () => {
                                         )
                                         }
                                         {announcement.pinned && (
-                                            <Badge color="yellow" variant="light">Připnuté</Badge>
+                                            <Badge color="accent" variant="light" leftSection={<IconPin size={12} />}>Připnuté</Badge>
                                         )}
                                     </Group>
                                 </Stack>
 
                                 {isAdmin && (
                                     <Group gap="xs">
-                                        <ActionIcon variant="light" color="blue" onClick={() => openEdit(announcement)}>
+                                        <ActionIcon variant="light" aria-label="Upravit oznámení" onClick={() => openEdit(announcement)}>
                                             <IconEdit size={16} />
                                         </ActionIcon>
-                                        <ActionIcon variant="light" color="red" onClick={() => handleDelete(announcement._id)}>
+                                        <ActionIcon variant="light" color="red" aria-label="Smazat oznámení" onClick={() => handleDelete(announcement._id)}>
                                             <IconTrash size={16} />
                                         </ActionIcon>
                                     </Group>
@@ -155,28 +166,29 @@ const Announcements = () => {
 
                             </Group>
 
-                            <div dangerouslySetInnerHTML={{ __html: announcement.content }} />
+                            <TypographyStylesProvider p={0}>
+                                <div dangerouslySetInnerHTML={{ __html: announcement.content }} />
+                            </TypographyStylesProvider>
 
                             <Divider />
 
                             <Group justify="space-between" align="center">
-                                <Badge color="blue" variant="light">
-                                    {getFullName(announcement.author)}
-                                </Badge>
-                                <Text size="xs" c="dimmed">
-                                    {announcement.updatedAt ?
-                                        <Badge color="blue" variant="light">
-                                            {new Date(announcement.updatedAt).toLocaleString('cs-CZ', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' })}
-                                        </Badge>
-                                        :
-                                        "N/A"
-                                    }
-                                </Text>
+                                <Group gap="xs">
+                                    <Avatar size="sm" radius="xl" color="initials" name={getFullName(announcement.author)} />
+                                    <Text size="sm" fw={500}>{getFullName(announcement.author)}</Text>
+                                </Group>
+                                {announcement.updatedAt && (
+                                    <Text size="xs" c="dimmed">
+                                        {new Date(announcement.updatedAt).toLocaleString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                    </Text>
+                                )}
                             </Group>
                         </Stack>
                     </Paper>
                 ))}
             </Stack>
+
+            {confirmDialog}
 
             <AnnouncementModal isFormOpen={isFormOpen} setIsFormOpen={setIsFormOpen} form={form} editingAnnouncement={editingAnnouncement} loadAnnouncements={loadAnnouncements} />
 

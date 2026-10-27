@@ -1,7 +1,6 @@
 
 import { createComment, deleteComment, getComment, updateComment } from '@controllers/comment.controller';
 import { authMiddleware } from '@middleware/auth.middleware';
-import { requireAdmin, requireLoggedUser } from '@middleware/permission.rules';
 import express from 'express';
 
 const router = express.Router();
@@ -19,7 +18,7 @@ router.post('/create-comment', createComment);
 // PUT /comment/update-comment/:commentId - Update comment
 router.put('/update-comment/:commentId', updateComment);
 
-// DELETE /comment/delete-comment/:commentId - Delete comment
-router.delete('/delete-comment/:commentId', requireLoggedUser, deleteComment);
+// DELETE /comment/delete-comment/:commentId - Delete comment (author or admin, checked in controller)
+router.delete('/delete-comment/:commentId', deleteComment);
 
 export default router;

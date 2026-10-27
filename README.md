@@ -89,6 +89,43 @@ RESEND_API_KEY=your_resend_api_key
 NODE_ENV=development
 ```
 
+## Testovací data (seed)
+
+Pro vývoj a demo lze databázi naplnit realistickými **smyšlenými** daty: 6 celků (muži A/B, junioři, dorost, starší a mladší žáci), trenéři, hráči s pozicemi a čísly dresů, tréninky a zápasy 6 týdnů zpět a 8 týdnů dopředu, účasti, komentáře, oznámení a platby. Data se generují relativně k aktuálnímu datu a jsou při každém spuštění stejná.
+
+```bash
+npm run seed       # naplní PRÁZDNOU databázi z MONGO_URI
+npm run db:reset   # smaže databázi vytvořenou seedem a naplní ji znovu
+```
+
+Pojistky:
+
+- skript nikdy neběží s `NODE_ENV=production`,
+- do neprázdné databáze bez `--reset` nic nezapíše,
+- `--reset` smaže jen databázi, kterou vytvořil seed (značka v kolekci `seedmeta`); jinou databázi smaže jen s `npm run db:reset -- --force`.
+
+Seed používá doménu `spravujtym.test` a mailer na tyto adresy e-maily neodesílá.
+
+### Testovací přihlášení
+
+Heslo pro všechny seedované účty: `Test1234!` (jen testovací hodnota).
+
+| Role | E-mail | Poznámka |
+|---|---|---|
+| Admin | `admin@spravujtym.test` | správa všeho |
+| Trenér | `trener@spravujtym.test` | trenér Muži A a Junioři |
+| Trenér mládeže | `trener.mladez@spravujtym.test` | trenérka starších a mladších žáků |
+| Hráč | `hrac@spravujtym.test` | hráč Muži A, má nezodpovězené události a platby |
+| Nový uživatel | `novacek@spravujtym.test` | první přihlášení – vyplnění profilu |
+
+## Upozornění a připomínky
+
+- Upozornění v aplikaci (zvoneček v hlavičce) se ukládají do kolekce `notifications` a mažou se po 90 dnech.
+- Důležité změny (zrušení, změna času/místa, obnovení, smazání, nominace na zápas, připomínky) chodí i e-mailem; uživatel to může vypnout v profilu.
+- E-maily se posílají postupně na pozadí (limit Resend ~2/s). Odkaz „Otevřít v aplikaci“ v e-mailu vyžaduje proměnnou `APP_URL` (např. `https://spravujtym.cz`).
+- Hráčům bez odpovědi přijde automatická připomínka 24 hodin před akcí; trenér může poslat připomínku ručně z detailu události (nejvýše jednou za hodinu).
+- Připomínky spouští plánovač uvnitř serveru (každých 15 minut). Na Azure App Service musí být zapnuté **Always On**, jinak aplikace bez provozu usne a připomínky se neodešlou.
+
 ## Spuštění projektu
 
 Spuštění frontendu i backendu v development režimu:
@@ -101,6 +138,24 @@ Root skript spouští:
 
 - backend přes `npm run dev --prefix server`
 - frontend přes `npm run dev --prefix client`
+
+Vývojový server Vite přeposílá požadavky na `/api` na backend (`http://localhost:8000`, lze změnit proměnnou `API_PROXY_TARGET`). V `client/.env` proto stačí relativní `VITE_API_BASE_URL=/api` (viz `client/.env.example`).
+
+Pro testování z telefonu nebo jiného počítače ve stejné síti:
+
+```bash
+npm run dev -- --host
+```
+
+nebo zkráceně `npm run dev:host`. Vite vypíše adresu `Network: http://<IP>:5173/`, kterou otevřete na druhém zařízení. Další parametry (např. `--port 5180`) se předají Vite stejným způsobem.
+
+Frontend je ve vývojovém režimu dostupný i z jiných zařízení v místní síti. V terminálu Vite vypíše adresu `Network`; použijte ji například z telefonu nebo jiného počítače:
+
+```text
+http://<IP-adresa-počítače>:5173
+```
+
+Požadavky na `/api` Vite předává lokálnímu backendu na portu `8000`. Pokud port `5173` už používá jiný proces, Vite zvolí další volný port a je potřeba použít port uvedený v jeho výpisu. Zařízení musí být ve stejné síti a firewall musí povolit příslušný port.
 
 ## Build
 

@@ -1,5 +1,5 @@
 import react, { createContext, useContext, useEffect, useMemo, useState } from 'react';
-import { loginUser, logoutUser, authUser, getTeam, getMyPermissions } from '@utils/api';
+import { loginUser, logoutUser, authUser, getTeam, getMyPermissions, onUnauthorized } from '@utils/api';
 import type { User } from '@/types/User';
 import type { UserPermissions } from '@/types/Permissions';
 import { useApp } from './AppContext';
@@ -41,6 +41,16 @@ export const AuthProvider = ({ children }: { children: react.ReactNode }) => {
         }
     };
 
+    const clearSession = () => {
+        setUser(null);
+        setPermissions(null);
+        localStorage.removeItem(USER_STORAGE_KEY);
+        setTeam(null);
+    };
+
+    // Log out locally when any API call says the session is no longer valid
+    useEffect(() => onUnauthorized(clearSession), []);
+
     // Verify token with backend on mount
     const verifyToken = async () => {
         try {
@@ -58,15 +68,11 @@ export const AuthProvider = ({ children }: { children: react.ReactNode }) => {
                         }
                         await syncTeamContext();
                     } else {
-                        setUser(JSON.parse(storedUser));
-                        setPermissions(null);
-                        await syncTeamContext();
+                        clearSession();
                     }
                 } catch {
-                    // fallback
-                    setUser(JSON.parse(storedUser));
-                    setPermissions(null);
-                    await syncTeamContext();
+                    // Expired or invalid token - the user has to log in again
+                    clearSession();
                 }
             } else {
                 setPermissions(null);

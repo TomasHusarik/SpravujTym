@@ -1,17 +1,37 @@
 import type { Request, Response } from "express";
+import validator from 'validator';
 import { IEmail } from "@utils/specialTypes"
+import { escapeHtml } from "@utils/helpers";
 import { mailer } from "../services/mailer";
 
-export const guestEmail = async (req: Request, res: Response) => {
-        const emailData = req.body;
+const MAX_NAME_LENGTH = 100;
+const MAX_MESSAGE_LENGTH = 5000;
 
-        if (!emailData?.name || !emailData?.email || !emailData?.message) {
+export const guestEmail = async (req: Request, res: Response) => {
+        const body = req.body;
+
+        if (!body?.name || !body?.email || !body?.message) {
             return res.status(400).json({ error: 'Missing required email fields' });
         }
 
+        if (typeof body.email !== 'string' || !validator.isEmail(body.email)) {
+            return res.status(400).json({ error: 'Invalid email format' });
+        }
+
+        if (String(body.name).length > MAX_NAME_LENGTH || String(body.message).length > MAX_MESSAGE_LENGTH) {
+            return res.status(400).json({ error: 'Message is too long' });
+        }
+
+        // User input is escaped before it is inserted into the HTML template
+        const emailData = {
+            name: escapeHtml(body.name),
+            email: escapeHtml(body.email),
+            message: escapeHtml(body.message).replace(/\n/g, '<br />'),
+        };
+
         try {
             const emailcontent: IEmail = {
-                subject: `Zpráva od ${emailData.email}`,
+                subject: `Zpráva od ${body.email}`,
                 context: `
                         <tr>
                             <td style="padding:28px;">

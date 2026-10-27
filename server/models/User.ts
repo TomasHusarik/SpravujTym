@@ -12,6 +12,8 @@ export interface IUser {
   birthDate?: Date;
   active: boolean;
   imageUrl?: string;
+  // User wants to receive notifications also by e-mail
+  emailNotifications?: boolean;
   createdAt: Date;
   updatedAt: Date;
 } 
@@ -28,6 +30,7 @@ const UserSchema = new mongoose.Schema<IUser>(
     birthDate: { type: Date },
     active: { type: Boolean, default: true },
     imageUrl: { type: String },
+    emailNotifications: { type: Boolean, default: true },
   },
   { timestamps: true }
 );

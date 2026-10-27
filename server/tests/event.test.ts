@@ -12,6 +12,7 @@ import Team from '../models/Team';
 import Venue from '../models/Venue';
 import { NominationMail } from '../mails/NominationMail';
 import { createTestUser } from './factories/userFactory';
+import { drainEmailQueue } from '../services/emailQueue';
 
 const createSquadGraph = async () => {
   const venue = await Venue.create({
@@ -177,8 +178,8 @@ describe('PUT /api/team-event/update-event/:_id', () => {
     const event = await TeamEvent.create({
       title: 'League Match',
       type: TeamEventType.Match,
-      startDate: new Date('2025-03-22T15:00:00.000Z'),
-      endDate: new Date('2025-03-22T17:00:00.000Z'),
+      startDate: new Date('2027-03-22T15:00:00.000Z'),
+      endDate: new Date('2027-03-22T17:00:00.000Z'),
       venue: venue._id,
       squads: [squad._id],
       createdBy: coach._id,
@@ -196,8 +197,8 @@ describe('PUT /api/team-event/update-event/:_id', () => {
       .send({
         title: 'League Match',
         type: TeamEventType.Match,
-        startDate: '2025-03-22T15:00:00.000Z',
-        endDate: '2025-03-22T17:00:00.000Z',
+        startDate: '2027-03-22T15:00:00.000Z',
+        endDate: '2027-03-22T17:00:00.000Z',
         venue: venue._id.toString(),
         squads: [squad._id.toString()],
         participations: [
@@ -221,6 +222,9 @@ describe('PUT /api/team-event/update-event/:_id', () => {
     }).lean();
 
     expect(createdParticipation?.status).toBe(EventParticipationStatus.Pending);
+
+    // Nomination e-mails are sent by the background e-mail queue
+    await drainEmailQueue();
     expect(nominationMailMock).toHaveBeenCalledTimes(1);
     expect(nominationMailMock).toHaveBeenCalledWith(
       newPlayer.email,

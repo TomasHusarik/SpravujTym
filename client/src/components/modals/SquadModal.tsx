@@ -11,7 +11,7 @@ interface ISquadModal {
     opened: boolean;
     setOpened: React.Dispatch<React.SetStateAction<boolean>>;
     squad?: Squad
-    loadSquads?: () => Promise<void>;
+    loadSquads?: () => void;
 }
 
 const SquadModal = (props: ISquadModal) => {

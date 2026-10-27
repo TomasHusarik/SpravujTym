@@ -1,5 +1,6 @@
 import type { User } from "@/types/User";
-import { EventType, LeagueCategory } from "./const";
+import { EventType, LeagueCategory, ParticipationStatus, Weekdays } from "./const";
+import type { RecurrenceRule } from "@/types/EventSeries";
 import ErrorMessages from "./errorMessages";
 import { notifications } from "@mantine/notifications";
 import type { Squad } from "@/types/Squad";
@@ -53,17 +54,21 @@ export const formatTeamEventDate = (startDate: Date, endDate: Date): string => {
     return `${formattedDate} ${startTime} - ${endTime}`;
 }
 
-// Returns event color based on event type
+// Returns Mantine color of an event type (training = club blue, match = club orange)
 export const getEventColor = (eventType: string): string => {
     switch (eventType) {
         case EventType.TRAINING.value:
-            return "green";
+            return "brand";
         case EventType.MATCH.value:
-            return "red";
+            return "accent";
         default:
-            return "blue";
+            return "teal";
     }
 }
+
+// CSS color of an event type for components outside Mantine (e.g. FullCalendar)
+export const getEventCssColor = (eventType: string): string =>
+    `var(--mantine-color-${getEventColor(eventType)}-6)`;
 
 // Returns participation status color
 export const getParticipationStatusColor = (status?: string): string => {
@@ -72,10 +77,59 @@ export const getParticipationStatusColor = (status?: string): string => {
             return "green";
         case 'declined':
             return "red";
-        default:
+        case 'maybe':
             return "yellow";
+        default:
+            return "gray";
     }
 }
+
+// Returns participation status label
+export const getParticipationStatusLabel = (status?: string): string =>
+    Object.values(ParticipationStatus).find((item) => item.value === status)?.label ?? ParticipationStatus.PENDING.label;
+
+// Human readable description of a recurrence rule, e.g. "Každý týden v út, čt · do 21. 1. 2027"
+export const describeRecurrence = (rule?: RecurrenceRule | null): string => {
+    if (!rule) return '';
+
+    const interval = rule.interval ?? 1;
+    let text = '';
+
+    if (rule.frequency === 'daily') {
+        text = interval === 1 ? 'Každý den' : `Každých ${interval} dní`;
+    }
+
+    if (rule.frequency === 'weekly') {
+        const days = Weekdays
+            .filter((day) => (rule.weekdays ?? []).includes(day.value))
+            .map((day) => day.short.toLowerCase())
+            .join(', ');
+        text = interval === 1 ? 'Každý týden' : `Každý ${interval}. týden`;
+        if (days) text += ` v ${days}`;
+    }
+
+    if (rule.frequency === 'monthly') {
+        text = interval === 1 ? 'Každý měsíc' : `Každý ${interval}. měsíc`;
+    }
+
+    if (rule.until) text += ` · do ${formatDate(rule.until)}`;
+    if (rule.count) text += ` · ${rule.count}× celkem`;
+
+    return text;
+}
+
+// Search ignoring case and diacritics; every word of the query must be found ("dvorak muzi" finds "Dvořák, Muži A")
+const normalizeSearch = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+
+export const matchesSearch = (text: string, query: string) => {
+    const words = normalizeSearch(query).split(/\s+/).filter(Boolean);
+    const haystack = normalizeSearch(text);
+    return words.every((word) => haystack.includes(word));
+};
+
+// Event has already ended
+export const isEventFinished = (event: { endDate?: Date | string }) =>
+    Boolean(event?.endDate) && new Date(event.endDate).getTime() < Date.now();
 
 // Combines date and time into a single Date object
 export const combinateDateAndTime = (date: Date | null, time: string | null) => {
@@ -93,7 +147,7 @@ export const combinateDateAndTime = (date: Date | null, time: string | null) => 
 // Show success notification
 export const showSuccessNotification = (message: string) => {
     notifications.show({
-        title: 'Success',
+        title: 'Hotovo',
         message: message,
         color: 'green',
     });
@@ -102,7 +156,7 @@ export const showSuccessNotification = (message: string) => {
 // Show error notification
 export const showErrorNotification = (message: string) => {
     notifications.show({
-        title: 'Error',
+        title: 'Chyba',
         message: message,
         color: 'red',
     });

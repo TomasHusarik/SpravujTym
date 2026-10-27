@@ -1,5 +1,5 @@
 import { Group, Text, useMantineColorScheme, useComputedColorScheme, Menu } from '@mantine/core';
-import { IconLogout, IconMoon, IconSettings, IconSun } from '@tabler/icons-react';
+import { IconLogout, IconMoon, IconReceipt2, IconSettings, IconSun } from '@tabler/icons-react';
 import { useNavigate } from 'react-router';
 import { useAuth } from '@context/AuthContext';
 import classes from './Header.module.css';
@@ -30,6 +30,11 @@ export const MenuItems = ({ variant, onNavigate }: MenuItemsProps) => {
     onNavigate?.();
   };
 
+  const handlePaymentsClick = () => {
+    navigate('/user?tab=payments');
+    onNavigate?.();
+  };
+
   const handleThemeToggle = () => {
     setColorScheme(computedColorScheme === 'dark' ? 'light' : 'dark');
   };
@@ -45,8 +50,11 @@ export const MenuItems = ({ variant, onNavigate }: MenuItemsProps) => {
         <Menu.Item leftSection={<IconSettings size={16} stroke={1.5} />} onClick={handleSettingsClick}>
           Nastavení účtu
         </Menu.Item>
+        <Menu.Item leftSection={<IconReceipt2 size={16} stroke={1.5} />} onClick={handlePaymentsClick}>
+          Moje platby
+        </Menu.Item>
         <Menu.Item leftSection={<IconLogout size={16} stroke={1.5} />} onClick={handleLogoutClick}>
-          Odhlasit
+          Odhlásit
         </Menu.Item>
 
         <Menu.Divider />
@@ -76,6 +84,18 @@ export const MenuItems = ({ variant, onNavigate }: MenuItemsProps) => {
           onClick={handleSettingsClick}
         >
           Nastavení účtu
+        </Text>
+      </Group>
+
+      <Group justify="flex-start" gap="xs">
+        <IconReceipt2 size={18} stroke={1.5} />
+        <Text
+          fw={500}
+          className={classes.drawerMenuItem}
+          style={{ cursor: 'pointer', flex: 1 }}
+          onClick={handlePaymentsClick}
+        >
+          Moje platby
         </Text>
       </Group>
 

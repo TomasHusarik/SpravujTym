@@ -10,6 +10,8 @@ export interface User {
   birthDate?: Date;
   active?: boolean;
   imageUrl?: string;
+  // User wants to receive notifications also by e-mail
+  emailNotifications?: boolean;
   createdAt?: Date;
   updatedAt?: Date;
 }

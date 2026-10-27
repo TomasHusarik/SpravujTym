@@ -1,190 +1,148 @@
 import type { User } from '@/types/User';
 import { deleteUser } from '@/utils/api';
 import { formatDate, getFullName, showErrorNotification, showSuccessNotification, useAdminPermissions } from '@/utils/helpers';
-import { ActionIcon, Avatar, Box, Group, NumberInput, Pagination, Stack, Table, Text } from '@mantine/core';
-import { useDebouncedValue } from '@mantine/hooks';
+import { ActionIcon, Anchor, Avatar, Badge, Card, Group, Pagination, Select, Stack, Table, Text, Tooltip } from '@mantine/core';
 import { IconTrash } from '@tabler/icons-react';
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom';
+import { useConfirm } from '@/hooks/useConfirm';
 
 interface IUsersTable {
     filteredUsers: User[];
     loadData: () => void;
 }
 
+const PAGE_SIZES = ['10', '25', '50'];
+
 const UsersTable = ({ filteredUsers, loadData }: IUsersTable) => {
 
     const navigate = useNavigate();
     const isAdmin = useAdminPermissions();
+    const { confirm, confirmDialog } = useConfirm();
 
     const [page, setPage] = useState(1);
-    const [pageSize, setPageSize] = useState(10);
-    const [debouncedPageSize] = useDebouncedValue(pageSize, 700);
+    const [pageSize, setPageSize] = useState(25);
 
-    const handleDelete = async (userId: string) => {
-
-        const confirmed = window.confirm(
-            'Opravdu chcete smazat tohoto uživatele?\n\nTuto akci nelze vrátit zpět.'
-        );
-
+    const handleDelete = async (user: User) => {
+        const confirmed = await confirm({
+            title: 'Deaktivovat uživatele?',
+            message: `${getFullName(user)} se už nebude moci přihlásit a bude odebrán ze všech soupisek. Údaje o platbách zůstanou zachované.`,
+            confirmLabel: 'Deaktivovat',
+            danger: true,
+        });
         if (!confirmed) return;
 
         try {
-            await deleteUser(userId);
-            showSuccessNotification('Uživatel byl úspěšně smazán');
-        } catch (error) {
-            console.error('Error deleting user:', error);
-            showErrorNotification('Chyba při mazání uživatele');
-        } finally {
+            await deleteUser(user._id);
+            showSuccessNotification('Uživatel byl deaktivován');
             loadData();
+        } catch {
+            showErrorNotification('Uživatele se nepodařilo deaktivovat');
         }
     };
 
-    const totalPages = Math.max(1, Math.ceil(filteredUsers.length / debouncedPageSize));
+    const totalPages = Math.max(1, Math.ceil(filteredUsers.length / pageSize));
 
-    const paginatedUsers = filteredUsers
-        .sort((a, b) => a.lastName!.localeCompare(b.lastName!))
-        .slice((page - 1) * debouncedPageSize, page * debouncedPageSize);
+    const paginatedUsers = [...filteredUsers]
+        .sort((a, b) => (a.lastName ?? '').localeCompare(b.lastName ?? '', 'cs'))
+        .slice((page - 1) * pageSize, page * pageSize);
+
+    const deleteButton = (user: User) => isAdmin && user.active !== false && (
+        <Tooltip label="Deaktivovat">
+            <ActionIcon
+                variant="subtle"
+                color="red"
+                aria-label={`Deaktivovat ${getFullName(user)}`}
+                onClick={(e) => {
+                    e.stopPropagation();
+                    handleDelete(user);
+                }}
+            >
+                <IconTrash size={16} />
+            </ActionIcon>
+        </Tooltip>
+    );
 
     return (
         <Stack>
 
             {/* DESKTOP TABLE */}
-            <Table striped highlightOnHover visibleFrom="sm">
-                <Table.Thead>
-                    <Table.Tr>
-                        <Table.Th></Table.Th>
-                        <Table.Th>Jméno</Table.Th>
-                        <Table.Th>Email</Table.Th>
-                        <Table.Th>Datum narození</Table.Th>
-                        {isAdmin && (<Table.Th />)}
-                    </Table.Tr>
-                </Table.Thead>
-
-                <Table.Tbody>
-                    {paginatedUsers.map((u) => (
-                        <Table.Tr
-                            key={u._id}
-                            style={{ cursor: 'pointer' }}
-                            onClick={() => navigate(`/user/${u._id}`)}
-                        >
-                            <Table.Td>
-                                <Avatar
-                                    radius="xl"
-                                    size="sm"
-                                    color="initials"
-                                    name={getFullName(u)}
-                                    src={u.imageUrl}
-                                />
-                            </Table.Td>
-                            <Table.Td>{getFullName(u)}</Table.Td>
-                            <Table.Td>{u.email}</Table.Td>
-                            <Table.Td>{new Date(u.birthDate)?.toLocaleDateString('cs-CZ', { day: '2-digit', month: '2-digit', year: 'numeric' }) || 'N/A'}</Table.Td>
-
-                            {isAdmin && (
-                                <Table.Td>
-                                    <ActionIcon
-                                        size={32}
-                                        radius="xl"
-                                        variant="subtle"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleDelete(u._id!);
-                                        }}
-                                    >
-                                        <IconTrash stroke={1.5} />
-                                    </ActionIcon>
-                                </Table.Td>
-                            )}
+            <Card padding={0} visibleFrom="sm">
+                <Table highlightOnHover verticalSpacing="sm" horizontalSpacing="md">
+                    <Table.Thead>
+                        <Table.Tr>
+                            <Table.Th>Jméno</Table.Th>
+                            <Table.Th>E-mail</Table.Th>
+                            <Table.Th>Telefon</Table.Th>
+                            <Table.Th>Datum narození</Table.Th>
+                            {isAdmin && (<Table.Th w={56} />)}
                         </Table.Tr>
-                    ))}
-                </Table.Tbody>
-            </Table>
+                    </Table.Thead>
+
+                    <Table.Tbody>
+                        {paginatedUsers.map((u) => (
+                            <Table.Tr
+                                key={u._id}
+                                style={{ cursor: 'pointer' }}
+                                onClick={() => navigate(`/user/${u._id}`)}
+                            >
+                                <Table.Td>
+                                    <Group gap="sm" wrap="nowrap">
+                                        <Avatar radius="xl" size="sm" color="initials" name={getFullName(u)} src={u.imageUrl} />
+                                        <Text size="sm" fw={500}>{getFullName(u)}</Text>
+                                        {u.isAdmin && <Badge size="xs" variant="light" color="accent">Admin</Badge>}
+                                        {u.active === false && <Badge size="xs" variant="light" color="gray">Neaktivní</Badge>}
+                                    </Group>
+                                </Table.Td>
+                                <Table.Td><Text size="sm">{u.email}</Text></Table.Td>
+                                <Table.Td><Text size="sm">{u.mobile || '–'}</Text></Table.Td>
+                                <Table.Td><Text size="sm">{u.birthDate ? formatDate(u.birthDate) : '–'}</Text></Table.Td>
+                                {isAdmin && <Table.Td>{deleteButton(u)}</Table.Td>}
+                            </Table.Tr>
+                        ))}
+                    </Table.Tbody>
+                </Table>
+            </Card>
 
             {/* MOBILE LIST */}
-            <Stack hiddenFrom="sm" gap={6}>
+            <Stack hiddenFrom="sm" gap="xs">
                 {paginatedUsers.map((u) => (
-                    <Box
-                        key={u._id}
-                        p="xs"
-                        style={{
-                            border: "1px solid var(--mantine-color-default-border)",
-                            borderRadius: "var(--mantine-radius-md)",
-                            cursor: "pointer"
-                        }}
-                        bg="light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-6))"
-                        onClick={() => navigate(`/user/${u._id}`)}
-                    >
-
+                    <Card key={u._id} padding="sm" onClick={() => navigate(`/user/${u._id}`)} style={{ cursor: 'pointer' }}>
                         <Group align="flex-start" wrap="nowrap">
-
-                            <Avatar
-                                size="sm"
-                                color="initials"
-                                name={getFullName(u)}
-                                src={u.imageUrl}
-                            />
-
-                            <Stack
-                                gap={2}
-                                style={{ flex: 1 }}
-                            >
-
-                                <Text fw={600} size="sm">
-                                    {getFullName(u)}
-                                </Text>
-
-                                <Text size="xs" c="dimmed">
-                                    {u.email}
-                                </Text>
-
-                                <Text size="xs" c="dimmed">
-                                    {new Date(u.birthDate)?.toLocaleDateString('cs-CZ', { day: '2-digit', month: '2-digit', year: 'numeric' }) || 'N/A'}
-                                </Text>
-
+                            <Avatar radius="xl" color="initials" name={getFullName(u)} src={u.imageUrl} />
+                            <Stack gap={2} style={{ flex: 1, minWidth: 0 }}>
+                                <Text fw={600} size="sm">{getFullName(u)}</Text>
+                                <Text size="xs" c="dimmed" truncate>{u.email}</Text>
+                                {u.mobile && (
+                                    <Anchor href={`tel:${u.mobile.replace(/\s/g, '')}`} size="xs" onClick={(e) => e.stopPropagation()}>
+                                        {u.mobile}
+                                    </Anchor>
+                                )}
                             </Stack>
-
-                            {isAdmin && (
-                                <ActionIcon
-                                    color="red"
-                                    variant="subtle"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleDelete(u._id!);
-                                    }}
-                                >
-                                    <IconTrash size={16} />
-                                </ActionIcon>
-                            )}
-
+                            {deleteButton(u)}
                         </Group>
-
-                    </Box>
+                    </Card>
                 ))}
             </Stack>
 
             {/* PAGINATION */}
-            <Stack align="center" mt="md" gap="xs">
+            {filteredUsers.length > PAGE_SIZES.map(Number)[0] && (
+                <Group justify="space-between" mt="xs" wrap="wrap" gap="sm">
+                    <Text size="sm" c="dimmed">Celkem {filteredUsers.length}</Text>
+                    <Pagination value={page} onChange={setPage} total={totalPages} size="sm" />
+                    <Select
+                        aria-label="Počet na stránku"
+                        data={PAGE_SIZES}
+                        value={String(pageSize)}
+                        onChange={(value) => { setPageSize(Number(value)); setPage(1); }}
+                        allowDeselect={false}
+                        w={80}
+                        size="xs"
+                    />
+                </Group>
+            )}
 
-                <Pagination
-                    value={page}
-                    onChange={setPage}
-                    total={totalPages}
-                />
-
-                <NumberInput
-                    radius="md"
-                    size="sm"
-                    name="pageSize"
-                    min={1}
-                    max={filteredUsers.length}
-                    value={pageSize}
-                    onChange={(value) => setPageSize(value as number)}
-                    w={80}
-                />
-
-            </Stack>
-
+            {confirmDialog}
         </Stack>
     )
 }

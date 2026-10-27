@@ -1,6 +1,6 @@
 import { addSquadMembers, createSquad, deleteSquad, deleteSquadMember, getSquad, getSquadMembers, getSquads, updateSquad, updateSquadMemberRoles } from '@controllers/squad.controller';
 import { authMiddleware } from '@middleware/auth.middleware';
-import { requireAdmin, requireCoachOfSquad } from '@middleware/permission.rules';
+import { requireAdmin, requireCoachOfMembership, requireCoachOfSquad } from '@middleware/permission.rules';
 import express from 'express';
 
 const router = express.Router();
@@ -26,10 +26,10 @@ router.get('/get-squad-members/:_id', getSquadMembers);
 router.post('/add-squad-members/:squadId', requireCoachOfSquad, addSquadMembers);
 
 // PUT /squad/update-squad-member-roles/:membershipId - Update roles of squad member
-router.put('/update-squad-member-roles/:membershipId', requireCoachOfSquad, updateSquadMemberRoles);
+router.put('/update-squad-member-roles/:membershipId', requireCoachOfMembership, updateSquadMemberRoles);
 
 // DELETE /squad/delete-squad-member/:membershipId - Remove user from squad roster
-router.delete('/delete-squad-member/:membershipId', requireCoachOfSquad, deleteSquadMember);
+router.delete('/delete-squad-member/:membershipId', requireCoachOfMembership, deleteSquadMember);
 
 // DELETE /squad/delete-squad/:_id - Delete squad by id
 router.delete('/delete-squad/:_id', requireAdmin, deleteSquad);

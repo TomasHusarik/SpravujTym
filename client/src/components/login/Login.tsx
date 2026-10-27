@@ -33,7 +33,15 @@ const Login = () => {
             await login(values.email, values.password);
             navigate('/overview');
         } catch (error) {
-            setError(error instanceof Error ? error.message : 'Špatné přihlašovací údaje');
+            const message = error instanceof Error ? error.message : '';
+            // Only a real "wrong credentials" answer says so - network errors must not look like a wrong password
+            if (message === 'Invalid email or password') {
+                setError('Nesprávný e-mail nebo heslo.');
+            } else if (message === 'Too many requests. Please try again later.') {
+                setError('Příliš mnoho pokusů o přihlášení. Zkuste to prosím za 15 minut.');
+            } else {
+                setError('Server je nedostupný. Zkontrolujte připojení a zkuste to znovu.');
+            }
         } finally {
             setIsSubmitting(false);
         }
@@ -51,7 +59,9 @@ const Login = () => {
 
                         <TextInput
                             label="Email"
-                            placeholder="bluehorses@gmail.com"
+                            placeholder="jmeno@email.cz"
+                            type="email"
+                            autoComplete="email"
                             size="md"
                             radius="md"
                             value={loginForm.values.email}
@@ -61,6 +71,7 @@ const Login = () => {
                         <PasswordInput
                             label="Heslo"
                             placeholder="Vaše heslo"
+                            autoComplete="current-password"
                             mt="md"
                             size="md"
                             radius="md"

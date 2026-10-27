@@ -16,6 +16,8 @@ import paymentRoutes from '@routes/paymnet.routes';
 import announcementRoutes from '@routes/announcement.routes';
 import emailRoutes from '@routes/email.routes';
 import commentRoutes from '@routes/comment.routes';
+import notificationRoutes from '@routes/notification.routes';
+import { startReminderScheduler } from './services/reminder.service';
 
 const PORT = env.PORT;
 const app = express();
@@ -44,6 +46,7 @@ app.use('/api/payment', paymentRoutes);
 app.use('/api/announcement', announcementRoutes);
 app.use('/api/email', emailRoutes);
 app.use('/api/comment', commentRoutes);
+app.use('/api/notification', notificationRoutes);
 
 // React client
 if (process.env.NODE_ENV === "production") {
@@ -59,6 +62,7 @@ if (process.env.NODE_ENV === "production") {
 if (require.main === module) {
     app.listen(PORT, () => {
         connectDB();
+        startReminderScheduler();
         console.log(`Server running on port ${PORT}`);
     });
 }

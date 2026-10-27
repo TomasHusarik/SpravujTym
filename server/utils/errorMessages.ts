@@ -1,6 +1,3 @@
-import { email } from "envalid";
-import { match } from "node:assert";
-
 const ErrorMessages = {
     // Authentication errors
     emailRequired: 'Email is required',
@@ -14,7 +11,9 @@ const ErrorMessages = {
     passwordSameAsCurrent: 'The new password must be different from the current password.',
     passwordConfirmationMismatch: 'New password and confirmation do not match',
     notAuthenticated: 'Not authenticated',
-    
+    currentPasswordIncorrect: 'Current password is incorrect',
+    tooManyRequests: 'Too many requests. Please try again later.',
+
     
     // General errors
     internalServerError: 'Internal server error',
@@ -27,6 +26,13 @@ const ErrorMessages = {
     serverError: 'A server error occurred. Please try again later.',
     InvalidDateRange: 'Invalid date range: endDate must be after startDate',
     invalidDate: 'Invalid date format',
+    invalidParticipationStatus: 'Invalid participation status',
+    squadNotCoached: 'You can only assign events to squads you coach',
+    participationNoteTooLong: 'Note is too long',
+    cancelReasonTooLong: 'Cancel reason is too long',
+    eventCanceled: 'The event is canceled',
+    eventFinished: 'The event has already finished',
+    reminderTooSoon: 'A reminder was sent less than an hour ago',
 };
 
 export default ErrorMessages;

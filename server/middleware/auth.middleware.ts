@@ -19,7 +19,8 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
         const decoded = jwt.verify(token, env.JWT_SECRET) as JwtPayload;
         const user = await User.findById(decoded.userId).select('-password').lean();
 
-        if (!user) {
+        // Deactivated users lose access even with a still valid token
+        if (!user || user.active === false) {
             return res.status(401).json({ error: ErrorMessages.notAuthenticated });
         }
 
@@ -32,4 +33,23 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
     } catch (error) {
         return res.status(401).json({ error: 'Invalid or expired token' });
     }
+};
+
+// Loads the user when a valid token is present, but lets anonymous requests through (public pages)
+export const optionalAuthMiddleware = async (req: Request, res: Response, next: NextFunction) => {
+    const token = req.cookies.authToken;
+    if (!token) return next();
+
+    try {
+        const decoded = jwt.verify(token, env.JWT_SECRET) as JwtPayload;
+        const user = await User.findById(decoded.userId).select('-password').lean();
+
+        if (user && user.active !== false) {
+            req.loggedUser = { ...user, _id: user._id };
+        }
+    } catch {
+        // Invalid token - continue as anonymous
+    }
+
+    next();
 };

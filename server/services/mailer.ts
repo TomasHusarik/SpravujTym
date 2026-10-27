@@ -8,6 +8,12 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 export const mailer = async (emailData: IEmail) => {
     const { from, to, subject, context } = emailData;
 
+    // Seed users use the reserved .test domain - never send real e-mails to them
+    if (to && /\.test$/i.test(to.trim())) {
+        console.info(`Skipping e-mail "${subject}" to test address ${to}`);
+        return;
+    }
+
     const logoFilePathCandidates = [
         path.join(__dirname, '..', 'assets', 'logo40x40.png'),
         path.join(__dirname, '..', '..', 'assets', 'logo40x40.png'),

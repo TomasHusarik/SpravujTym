@@ -2,6 +2,9 @@ import type { User } from '@/types/User';
 import type { Squad } from '@/types/Squad';
 import type { SquadMembership } from '@/types/SquadMembership';
 import type { UserPermissions } from '@/types/Permissions';
+import type { EditScope } from '@/types/EventSeries';
+import type { AppNotification } from '@/types/Notification';
+import type { Payment, PaymentInput } from '@/types/Payment';
 import axios from 'axios';
 import { config } from '@/config/config';
 
@@ -13,6 +16,27 @@ const api = axios.create({
     withCredentials: true,
 });
 
+// Notify the app when the session expired (401 from any endpoint except login)
+const unauthorizedListeners = new Set<() => void>();
+
+export const onUnauthorized = (listener: () => void) => {
+    unauthorizedListeners.add(listener);
+    return () => {
+        unauthorizedListeners.delete(listener);
+    };
+};
+
+api.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        const isLoginRequest = error?.config?.url?.includes('/user/login');
+        if (error?.response?.status === 401 && !isLoginRequest) {
+            unauthorizedListeners.forEach((listener) => listener());
+        }
+        return Promise.reject(error);
+    }
+);
+
 // #region Email APIs
 export const sendEmail = async (emailData: any) => {
     try {
@@ -21,6 +45,43 @@ export const sendEmail = async (emailData: any) => {
     } catch (error) {
         if (axios.isAxiosError(error)) {
             throw new Error(error.response?.data?.error || 'Failed to send email');
+        }
+        throw error;
+    }
+}
+
+// #region Notification APIs
+export const getNotifications = async () => {
+    try {
+        const response = await api.get('/notification/get-notifications');
+        return response.data as { notifications: AppNotification[]; unreadCount: number };
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            throw new Error(error.response?.data?.error || 'Failed to fetch notifications');
+        }
+        throw error;
+    }
+}
+
+export const markNotificationRead = async (notificationId: string) => {
+    try {
+        const response = await api.post(`/notification/mark-read/${notificationId}`);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            throw new Error(error.response?.data?.error || 'Failed to mark notification as read');
+        }
+        throw error;
+    }
+}
+
+export const markAllNotificationsRead = async () => {
+    try {
+        const response = await api.post('/notification/mark-all-read');
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            throw new Error(error.response?.data?.error || 'Failed to mark notifications as read');
         }
         throw error;
     }
@@ -96,14 +157,16 @@ export const getPayment = async (paymentId: string) => {
     }
 }
 
+const parsePaymentDates = (payment: any): Payment => ({
+    ...payment,
+    dueDate: payment.dueDate ? new Date(payment.dueDate) : undefined,
+    paidAt: payment.paidAt ? new Date(payment.paidAt) : undefined,
+});
+
 export const getPayments = async (userId: string) => {
     try {
         const response = await api.get(`/payment/get-payments/${userId}`);
-        const payments = response.data.map((payment: any) => ({
-            ...payment,
-            dueDate: payment.dueDate ? new Date(payment.dueDate) : undefined,
-        }));
-        return payments;
+        return (response.data as any[]).map(parsePaymentDates);
     } catch (error) {
         if (axios.isAxiosError(error)) {
             throw new Error(error.response?.data?.error || 'Failed to fetch payments');
@@ -112,10 +175,23 @@ export const getPayments = async (userId: string) => {
     }
 }
 
-export const createPayments = async (paymentData: any) => {
+// Treasurer overview (admin)
+export const getAllPayments = async (filters: { status?: string; type?: string; squadId?: string } = {}) => {
+    try {
+        const response = await api.get('/payment/get-all-payments', { params: filters });
+        return (response.data as any[]).map(parsePaymentDates);
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            throw new Error(error.response?.data?.error || 'Failed to fetch payments');
+        }
+        throw error;
+    }
+}
+
+export const createPayments = async (paymentData: PaymentInput) => {
     try {
         const response = await api.post('/payment/add-payments', paymentData);
-        return response.data;
+        return (response.data as any[]).map(parsePaymentDates);
     } catch (error) {
         if (axios.isAxiosError(error)) {
             throw new Error(error.response?.data?.error || 'Failed to add payment');
@@ -124,10 +200,10 @@ export const createPayments = async (paymentData: any) => {
     }
 }
 
-export const updatePayment = async (paymentId: string, paymentData: any) => {
+export const updatePayment = async (paymentId: string, paymentData: Partial<PaymentInput>) => {
     try {
         const response = await api.put(`/payment/update-payment/${paymentId}`, paymentData);
-        return response.data;
+        return parsePaymentDates(response.data);
     } catch (error) {
         if (axios.isAxiosError(error)) {
             throw new Error(error.response?.data?.error || 'Failed to update payment');
@@ -335,15 +411,55 @@ export const createTeamEvent = async (eventData: any) => {
     }
 };
 
-export const updateParticipationStatus = async (eventId: string, newStatus: string) => {
+export const updateParticipationStatus = async (eventId: string, newStatus: string, note?: string) => {
     try {
         const response = await api.post('/team-event/update-participation-status', {
             eventId,
-            status: newStatus
+            status: newStatus,
+            note,
         });
         return response.data;
     } catch (error) {
-        console.error('Error updating participation status:', error);
+        if (axios.isAxiosError(error)) {
+            throw new Error(error.response?.data?.error || 'Failed to update participation status');
+        }
+        throw error;
+    }
+}
+
+export const cancelTeamEvent = async (eventId: string, scope: EditScope, reason?: string) => {
+    try {
+        const response = await api.post(`/team-event/cancel-event/${eventId}`, { scope, reason });
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            throw new Error(error.response?.data?.error || 'Failed to cancel team event');
+        }
+        throw error;
+    }
+}
+
+export const remindTeamEvent = async (eventId: string) => {
+    try {
+        const response = await api.post(`/team-event/remind/${eventId}`);
+        return response.data as { remindedCount: number };
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            throw new Error(error.response?.data?.error || 'Failed to send reminder');
+        }
+        throw error;
+    }
+}
+
+export const restoreTeamEvent = async (eventId: string) => {
+    try {
+        const response = await api.post(`/team-event/restore-event/${eventId}`);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            throw new Error(error.response?.data?.error || 'Failed to restore team event');
+        }
+        throw error;
     }
 }
 
@@ -359,9 +475,9 @@ export const updateTeamEvent = async (eventId: string, eventData: any) => {
     }
 }
 
-export const deleteTeamEvent = async (eventId: string) => {
+export const deleteTeamEvent = async (eventId: string, scope: EditScope = 'this') => {
     try {
-        const response = await api.delete(`/team-event/delete-event/${eventId}`);
+        const response = await api.delete(`/team-event/delete-event/${eventId}`, { params: { scope } });
         return response.data;
     } catch (error) {
         if (axios.isAxiosError(error)) {

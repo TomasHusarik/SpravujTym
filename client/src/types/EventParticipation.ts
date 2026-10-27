@@ -2,11 +2,13 @@ import type { User } from "./User";
 
 export interface EventParticipation {
     _id?: string;
-    eventId?: Event;
+    event?: string;
     user?: User;
     status?: ParticipationStatus;
+    // Optional reason, e.g. why the player declined
+    note?: string;
     createdAt?: Date;
     updatedAt?: Date;
 }
 
-export type ParticipationStatus = 'confirmed' | 'declined' | 'pending';
+export type ParticipationStatus = 'confirmed' | 'declined' | 'maybe' | 'pending';

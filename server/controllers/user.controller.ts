@@ -6,7 +6,7 @@ import env from '@utils/validateEnv';
 
 import ErrorMessages from '@utils/errorMessages';
 import User from '@models/User';
-import { createToken, generateRandomPassword, generateTokenCookie, resetCookie } from '@utils/helpers';
+import { createToken, generateRandomPassword, generateTokenCookie, pickFields, resetCookie } from '@utils/helpers';
 import { RegistrationMail } from '@mails/RegistrationMail';
 import SquadMembership from '@models/SquadMembership';
 import { resolveUserPermissions } from '@middleware/permission.middleware';
@@ -38,10 +38,15 @@ export const getUsers = async (req: Request, res: Response) => {
     }
 };
 
+// Fields a user can change on their own profile
+const SELF_EDITABLE_USER_FIELDS = ['firstName', 'lastName', 'mobile', 'birthDate', 'imageUrl', 'emailNotifications'] as const;
+
+// Fields only an admin can change (password is never updated here)
+const ADMIN_EDITABLE_USER_FIELDS = [...SELF_EDITABLE_USER_FIELDS, 'email', 'isAdmin', 'active', 'new'] as const;
+
 // POST /user/update-user/:id - Edit user by ID
 export const updateUser = async (req: Request, res: Response) => {
     const userId = req.params.userId;
-    const { _id, ...updateData } = req.body;
 
     if (!userId) {
         return res.status(400).json({ error: ErrorMessages.mandatoryField });
@@ -53,13 +58,10 @@ export const updateUser = async (req: Request, res: Response) => {
             return res.status(404).json({ error: ErrorMessages.notFound });
         }
 
-        // Only admin can update isAdmin field
-        if (!req.loggedUser.isAdmin) {
-            delete updateData.isAdmin;
-            delete updateData.new;
-            delete updateData.email;
-            delete updateData.active;
-        }
+        const updateData = pickFields(
+            req.body,
+            req.loggedUser.isAdmin ? ADMIN_EDITABLE_USER_FIELDS : SELF_EDITABLE_USER_FIELDS
+        );
 
         // Update fields
         Object.assign(user, updateData);
@@ -106,6 +108,11 @@ export const login = async (req: Request, res: Response) => {
         // Compare password
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
+            return res.status(401).json({ error: ErrorMessages.invalidCredentials });
+        }
+
+        // Deactivated users cannot log in
+        if (user.active === false) {
             return res.status(401).json({ error: ErrorMessages.invalidCredentials });
         }
 
@@ -167,7 +174,7 @@ export const signUp = async (req: Request, res: Response) => {
 
 // POST /user/sign-up-admin - Admin registration
 export const signUpAdmin = async (req: Request, res: Response) => {
-    const { email, password } = req.body;
+    const { email, password, firstName, lastName, mobile } = req.body;
 
     // Input validation
     if (!email || !password) {
@@ -191,7 +198,7 @@ export const signUpAdmin = async (req: Request, res: Response) => {
         const salt = await bcrypt.genSalt(10);
         const hash = await bcrypt.hash(password, salt);
 
-        const newUser = await User.create({ ...req.body, password: hash, new: false });
+        const newUser = await User.create({ email, firstName, lastName, mobile, password: hash, isAdmin: true, new: false });
 
         // Generate token for the new user
         // const token = createToken({ userId: newUser._id.toString() });
@@ -206,9 +213,10 @@ export const signUpAdmin = async (req: Request, res: Response) => {
     }
 };
 
-// PUT /user/update-password - Update user password
+// PUT /user/update-password - Update password of the logged user
 export const updatePassword = async (req: Request, res: Response) => {
-    const { currentPassword, newPassword, confirmPassword, userId } = req.body;
+    const { currentPassword, newPassword, confirmPassword } = req.body;
+    const userId = req.loggedUser?._id;
 
     if (!userId) {
         return res.status(401).json({ error: ErrorMessages.notAuthenticated });
@@ -222,6 +230,10 @@ export const updatePassword = async (req: Request, res: Response) => {
         return res.status(400).json({ error: ErrorMessages.passwordConfirmationMismatch });
     }
 
+    if (String(newPassword).length < 8) {
+        return res.status(400).json({ error: ErrorMessages.weakPassword });
+    }
+
     try {
         const user = await User.findById(userId).select('+password');
         if (!user) {
@@ -230,7 +242,7 @@ export const updatePassword = async (req: Request, res: Response) => {
 
         const isMatch = await bcrypt.compare(currentPassword, user.password);
         if (!isMatch) {
-            return res.status(401).json({ error: ErrorMessages.passwordSameAsCurrent });
+            return res.status(400).json({ error: ErrorMessages.currentPasswordIncorrect });
         }
 
         const salt = await bcrypt.genSalt(10);

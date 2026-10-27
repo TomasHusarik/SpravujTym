@@ -1,11 +1,21 @@
 import { Request, Response } from 'express';
 import ErrorMessages from '@utils/errorMessages';
-import TeamEvent, { TeamEventType } from '@models/TeamEvent';
+import TeamEvent, { TeamEventStatus, TeamEventType } from '@models/TeamEvent';
 import mongoose from 'mongoose';
-import EventParticipation, { IEventParticipation } from '@models/EventParticipation';
+import EventParticipation, { EventParticipationStatus, IEventParticipation, PARTICIPATION_NOTE_MAX_LENGTH } from '@models/EventParticipation';
 import { ensurePermissions } from '@middleware/permission.middleware';
-import { NominationMail } from '@mails/NominationMail';
-import User from '@models/User';
+import { canAssignSquads, canManageEvent } from '@middleware/permission.rules';
+import {
+    notifyEventRestored, notifyEventsCanceled, notifyEventsChanged, notifyInvited, notifyRsvpReminder,
+    prepareDeletedNotification, safely,
+} from '../services/notification.service';
+import {
+    EditScope, SeriesError, cancelEvents, createSeries, deleteEvents, findDeleteTargets, getSquadPlayerIds, parseScope, restoreEvent, updateSeries,
+} from '../services/eventSeries.service';
+
+const CANCEL_REASON_MAX_LENGTH = 200;
+// A coach can send a manual reminder at most once per hour
+const MANUAL_REMINDER_INTERVAL_MS = 60 * 60 * 1000;
 
 // GET /team-event/:id - Get team event by ID
 export const getTeamEventById = async (req: Request, res: Response) => {
@@ -14,14 +24,30 @@ export const getTeamEventById = async (req: Request, res: Response) => {
         const teamEvent = await TeamEvent.findById(req.params._id)
             .populate({
                 path: 'eventParticipations',
-                populate: { path: 'user' }
+                populate: { path: 'user', select: 'firstName lastName email imageUrl' }
             })
             .populate('venue', 'name')
             .populate('squads', 'name')
+            .populate('series', 'recurrence startDate startTime endTime canceledAt cancelReason')
             .lean();
 
         if (!teamEvent) {
             return res.status(404).json({ error: ErrorMessages.notFound });
+        }
+
+        // Event is visible to its managers, participants and members of its squads
+        const permissions = await ensurePermissions(req);
+        const userId = req.loggedUser._id.toString();
+        const participations = ((teamEvent as any).eventParticipations ?? []) as { user?: { _id?: unknown } }[];
+        const squadIds = (teamEvent.squads ?? []).map((squad: any) => String(squad?._id ?? squad));
+
+        const canView =
+            canManageEvent(userId, permissions, teamEvent) ||
+            participations.some((p) => String(p.user?._id) === userId) ||
+            (permissions.playerSquadId !== null && squadIds.includes(permissions.playerSquadId));
+
+        if (!canView) {
+            return res.status(403).json({ error: ErrorMessages.forbidden });
         }
 
         return res.status(200).json(teamEvent);
@@ -47,11 +73,12 @@ export const getTeamEvents = async (req: Request, res: Response) => {
             const [events, myParticipations] = await Promise.all([
                 TeamEvent.find()
                     .populate('venue', 'name')
+                    .populate('squads', 'name')
                     .lean(),
 
                 EventParticipation
                     .find({ user: userId })
-                    .select('event status user')
+                    .select('event status note user')
                     .lean()
             ]);
 
@@ -78,7 +105,7 @@ export const getTeamEvents = async (req: Request, res: Response) => {
         const [myParticipations, coachedEventIds] = await Promise.all([
             EventParticipation
                 .find({ user: userId })
-                .select('event status user')
+                .select('event status note user')
                 .lean(),
 
             coachedSquadObjectIds.length > 0
@@ -99,6 +126,7 @@ export const getTeamEvents = async (req: Request, res: Response) => {
         const events = await TeamEvent
             .find({ _id: { $in: eventIds } })
             .populate('venue', 'name')
+            .populate('squads', 'name')
             .lean();
 
         const participationMap = new Map(
@@ -119,9 +147,29 @@ export const getTeamEvents = async (req: Request, res: Response) => {
     }
 };
 
+
+type IncomingParticipation = { userId: string; status?: EventParticipationStatus };
+
+// Participations from the request, or all players of the selected squads when none were sent
+const resolveParticipations = async (participations: unknown, squads: unknown): Promise<IncomingParticipation[]> => {
+    if (Array.isArray(participations)) {
+        return participations.filter((p) => p?.userId).map((p) => ({ userId: String(p.userId), status: p.status }));
+    }
+
+    const squadIds = Array.isArray(squads) ? squads.map(String) : [];
+    return (await getSquadPlayerIds(squadIds)).map((userId) => ({ userId }));
+};
+
+const handleSeriesError = (res: Response, error: unknown) => {
+    if (error instanceof SeriesError) {
+        return res.status(400).json({ error: error.message });
+    }
+    return res.status(500).json({ error: ErrorMessages.internalServerError });
+};
+
 // PUT /team-event/update-participation-status - Update participation status
 export const updateParticapationStatus = async (req: Request, res: Response) => {
-    const { status } = req.body;
+    const { status, note } = req.body;
     const event = req.body.event || req.body.eventId;
     const userId = req.loggedUser?._id.toString();
 
@@ -133,6 +181,14 @@ export const updateParticapationStatus = async (req: Request, res: Response) => 
         return res.status(400).json({ error: 'Event ID and status are required' });
     }
 
+    if (!Object.values(EventParticipationStatus).includes(status)) {
+        return res.status(400).json({ error: ErrorMessages.invalidParticipationStatus });
+    }
+
+    if (note !== undefined && note !== null && String(note).length > PARTICIPATION_NOTE_MAX_LENGTH) {
+        return res.status(400).json({ error: ErrorMessages.participationNoteTooLong });
+    }
+
     try {
         const participation = await EventParticipation.findOne({ event, user: userId });
 
@@ -140,7 +196,15 @@ export const updateParticapationStatus = async (req: Request, res: Response) => 
             return res.status(404).json({ error: 'Participation not found' });
         }
 
+        const teamEvent = await TeamEvent.findById(event).select('status').lean();
+        if (teamEvent?.status === TeamEventStatus.Canceled) {
+            return res.status(400).json({ error: ErrorMessages.eventCanceled });
+        }
+
         participation.status = status;
+        if (note !== undefined) {
+            participation.note = note ? String(note).trim() : undefined;
+        }
         await participation.save();
 
         return res.status(200).json({ message: 'Participation status updated' });
@@ -149,26 +213,51 @@ export const updateParticapationStatus = async (req: Request, res: Response) => 
     }
 };
 
-// POST /team-event/create-team-event - Create a new team event
+// POST /team-event/create-team-event - Create a new team event (or a recurring series when `recurrence` is sent)
 export const createTeamEvent = async (req: Request, res: Response) => {
-    const { title, type, startDate, endDate, venue, participations, squads } = req.body;
+    const { title, type, startDate, endDate, venue, participations, squads, recurrence } = req.body;
+    const userId = req.loggedUser?._id.toString();
+
+    if (!userId) {
+        return res.status(401).json({ error: ErrorMessages.notAuthenticated });
+    }
 
     if (!title || !type || !startDate || !endDate) {
         return res.status(400).json({ error: ErrorMessages.mandatoryField });
+    }
+
+    if (new Date(endDate) <= new Date(startDate)) {
+        return res.status(400).json({ error: ErrorMessages.InvalidDateRange });
+    }
+
+    if (!canAssignSquads(await ensurePermissions(req), squads)) {
+        return res.status(403).json({ error: ErrorMessages.squadNotCoached });
+    }
+
+    const incoming = await resolveParticipations(participations, squads);
+    const participantIds = incoming.map((p) => p.userId);
+
+    if (recurrence) {
+        try {
+            const { series, events } = await createSeries(
+                { title, type, startDate, endDate, venue, squads, participantIds },
+                recurrence,
+                userId
+            );
+
+            // One summary invitation per player for the whole series
+            await safely(() => notifyInvited(events.map((event) => event._id), participantIds, userId));
+
+            return res.status(201).json({ eventId: events[0]?._id, seriesId: series._id, occurrences: events.length });
+        } catch (error) {
+            return handleSeriesError(res, error);
+        }
     }
 
     const session = await mongoose.startSession();
     session.startTransaction();
 
     try {
-        const userId = req.loggedUser?._id.toString();
-
-        if (!userId) {
-            await session.abortTransaction();
-            session.endSession();
-            return res.status(401).json({ error: ErrorMessages.notAuthenticated });
-        }
-
         const newTeamEvent = await TeamEvent.create(
             [
                 {
@@ -184,11 +273,11 @@ export const createTeamEvent = async (req: Request, res: Response) => {
             { session }
         );
 
-        if (Array.isArray(participations) && participations.length > 0) {
-            const participationDocs = participations.map((p: any) => ({
+        if (incoming.length > 0) {
+            const participationDocs = incoming.map((p) => ({
                 event: newTeamEvent[0]._id,
                 user: p.userId,
-                status: p.status || 'pending',
+                status: p.status || EventParticipationStatus.Pending,
             }));
             await EventParticipation.insertMany(participationDocs, { session });
         }
@@ -196,25 +285,7 @@ export const createTeamEvent = async (req: Request, res: Response) => {
         await session.commitTransaction();
         session.endSession();
 
-        if (type === TeamEventType.Match && Array.isArray(participations) && participations.length > 0) {
-            const participantEmails = await User.find({
-                _id: { $in: participations.map((p: any) => p.userId) }
-            })
-                .select('email')
-                .lean();
-
-            try {
-                for (const participant of participantEmails) {
-                    await NominationMail(participant.email, {
-                        title,
-                        startDate,
-                        endDate,
-                    });
-                }
-            } catch (emailError) {
-                console.error('Failed to send nomination emails:', emailError);
-            }
-        }
+        await safely(() => notifyInvited([newTeamEvent[0]._id], participantIds, userId));
 
         return res.status(201).json({ eventId: newTeamEvent[0]._id });
     } catch (error) {
@@ -293,63 +364,12 @@ export const addEvents = async (req: Request, res: Response) => {
     }
 }
 
-// PUT /team-events/:eventId/participants - Update participants of a team event
-export const updateParticipants = async (req: Request, res: Response) => {
-    const { eventId } = req.params;
-    const { participants } = req.body;
-
-    if (!Array.isArray(participants)) {
-        return res.status(400).json({ error: "Participants must be an array" });
-    }
-
-    const session = await mongoose.startSession();
-    session.startTransaction();
-
-    try {
-        const existing = await EventParticipation
-            .find({ event: eventId })
-            .select('user')
-            .lean();
-
-        const existingIds = existing.map(p => p.user.toString());
-        const newIds = participants.map((id: string) => id.toString());
-
-        const toAdd = newIds.filter(id => !existingIds.includes(id));
-        const toRemove = existingIds.filter(id => !newIds.includes(id));
-
-        if (toAdd.length > 0) {
-            await EventParticipation.insertMany(
-                toAdd.map(user => ({
-                    event: eventId,
-                    user
-                })),
-                { session }
-            );
-        }
-
-        if (toRemove.length > 0) {
-            await EventParticipation.deleteMany(
-                { event: eventId, user: { $in: toRemove } },
-                { session }
-            );
-        }
-
-        await session.commitTransaction();
-        session.endSession();
-
-        return res.status(200).json({ message: "Participants updated" });
-
-    } catch (error) {
-        await session.abortTransaction();
-        session.endSession();
-        return res.status(500).json({ error: "Internal server error" });
-    }
-};
-
 // PUT /team-events/update-event/:eventId - Update team event details
+// Body `scope`: "this" (default), "following" or "all" for occurrences of a recurring series
 export const updateTeamEvent = async (req: Request, res: Response) => {
-    const eventId = req.params;
-    const { title, type, startDate, endDate, venue, participations, squads } = req.body;
+    const eventId = req.params._id;
+    const { title, type, startDate, endDate, venue, participations, squads, recurrence } = req.body;
+    const scope = parseScope(req.body.scope);
 
     if (!eventId) {
         return res.status(400).json({ error: ErrorMessages.mandatoryField });
@@ -357,6 +377,58 @@ export const updateTeamEvent = async (req: Request, res: Response) => {
 
     if (!title || !type || !startDate || !endDate) {
         return res.status(400).json({ error: ErrorMessages.mandatoryField });
+    }
+
+    if (new Date(endDate) <= new Date(startDate)) {
+        return res.status(400).json({ error: ErrorMessages.InvalidDateRange });
+    }
+
+    const currentEvent = await TeamEvent.findById(eventId);
+    if (!currentEvent) {
+        return res.status(404).json({ error: ErrorMessages.notFound });
+    }
+
+    if (!canAssignSquads(await ensurePermissions(req), squads, currentEvent.squads ?? [])) {
+        return res.status(403).json({ error: ErrorMessages.squadNotCoached });
+    }
+
+    if (!Array.isArray(participations)) {
+        return res.status(400).json({ error: ErrorMessages.mandatoryField });
+    }
+
+    const incoming = await resolveParticipations(participations, squads);
+    const actorId = req.loggedUser._id.toString();
+
+    // Players are notified only about changes of the date, time or venue
+    const scheduleChanged =
+        new Date(startDate).getTime() !== currentEvent.startDate.getTime() ||
+        new Date(endDate).getTime() !== currentEvent.endDate.getTime() ||
+        String(venue ?? '') !== String(currentEvent.venue ?? '');
+
+    // Series-wide changes
+    if (currentEvent.series && scope !== EditScope.This) {
+        try {
+            const previousParticipants = (await EventParticipation.find({ event: currentEvent._id }).distinct('user')).map(String);
+            const participantIds = incoming.map((p) => p.userId);
+            const newParticipants = participantIds.filter((id) => !previousParticipants.includes(id));
+
+            const result = await updateSeries(
+                currentEvent,
+                { title, type, startDate, endDate, venue, squads, participantIds },
+                scope,
+                recurrence
+            );
+
+            const affectedIds = [...result.updatedIds, ...result.createdIds];
+            await safely(() => notifyInvited(affectedIds, newParticipants, actorId));
+            if (scheduleChanged || recurrence) {
+                await safely(() => notifyEventsChanged(affectedIds, actorId, newParticipants));
+            }
+
+            return res.status(200).json({ message: 'Team event updated', ...result });
+        } catch (error) {
+            return handleSeriesError(res, error);
+        }
     }
 
     const session = await mongoose.startSession();
@@ -382,6 +454,11 @@ export const updateTeamEvent = async (req: Request, res: Response) => {
         teamEvent.venue = venue;
         teamEvent.squads = squads;
 
+        // An occurrence edited on its own is no longer changed by series-wide edits of its fields
+        if (teamEvent.series) {
+            teamEvent.isException = true;
+        }
+
         await teamEvent.save({ session });
 
         // Load participations
@@ -394,20 +471,21 @@ export const updateTeamEvent = async (req: Request, res: Response) => {
         );
 
         const incomingMap = new Map(
-            participations.map((p: any) => [
+            incoming.map((p) => [
                 String(p.userId),
                 p,
             ])
         );
 
         // Update existing participations
-        for (const [userId, incoming] of incomingMap) {
-            const existing = existingMap.get(userId.toString());
+        for (const [userId, participation] of incomingMap) {
+            const existing = existingMap.get(userId);
+            const status = participation.status || EventParticipationStatus.Pending;
 
             if (existing) {
                 // Update status if changed
-                if (existing.status !== (incoming as any).status) {
-                    existing.status = (incoming as any).status;
+                if (existing.status !== status) {
+                    existing.status = status;
                     await existing.save({ session });
                 }
             } else {
@@ -417,7 +495,7 @@ export const updateTeamEvent = async (req: Request, res: Response) => {
                         {
                             event: eventId,
                             user: userId,
-                            status: (incoming as any).status,
+                            status,
                         },
                     ],
                     { session }
@@ -439,29 +517,15 @@ export const updateTeamEvent = async (req: Request, res: Response) => {
         await session.commitTransaction();
         session.endSession();
 
-        if (type === TeamEventType.Match) {
-            const recipients: string[] =
-                previousType !== TeamEventType.Match
-                    ? Array.from(incomingMap.keys()).map((id) => String(id))
-                    : notificationUserIds;
+        // Turning an event into a match nominates all participants again
+        const invitedIds: string[] =
+            type === TeamEventType.Match && previousType !== TeamEventType.Match
+                ? Array.from(incomingMap.keys()).map((id) => String(id))
+                : notificationUserIds;
 
-                const participantEmails = await User.find({
-                    _id: { $in: recipients }
-                })
-                    .select('email')
-                    .lean();
-
-            try {
-                for (const participant of participantEmails) {
-                    await NominationMail(participant.email, {
-                        title,
-                        startDate,
-                        endDate,
-                    });
-                }
-            } catch (emailError) {
-                console.error('Failed to send nomination emails:', emailError);
-            }
+        await safely(() => notifyInvited([teamEvent._id], invitedIds, actorId));
+        if (scheduleChanged) {
+            await safely(() => notifyEventsChanged([teamEvent._id], actorId, invitedIds));
         }
 
         return res.status(200).json({ message: "Team event updated" });
@@ -472,35 +536,108 @@ export const updateTeamEvent = async (req: Request, res: Response) => {
     }
 }
 
+// POST /team-event/cancel-event/:_id - Cancel event (body: scope, reason); canceled events stay visible
+export const cancelTeamEvent = async (req: Request, res: Response) => {
+    const scope = parseScope(req.body?.scope);
+    const reason = req.body?.reason;
+
+    if (reason && String(reason).length > CANCEL_REASON_MAX_LENGTH) {
+        return res.status(400).json({ error: ErrorMessages.cancelReasonTooLong });
+    }
+
+    try {
+        const teamEvent = await TeamEvent.findById(req.params._id);
+
+        if (!teamEvent) {
+            return res.status(404).json({ error: ErrorMessages.notFound });
+        }
+
+        const actorId = req.loggedUser._id.toString();
+        const cancelReason = reason ? String(reason).trim() : undefined;
+        const canceledIds = await cancelEvents(teamEvent, scope, cancelReason, actorId);
+        await safely(() => notifyEventsCanceled(canceledIds, actorId, cancelReason));
+
+        return res.status(200).json({ message: 'Team event canceled', canceledIds });
+    } catch (error) {
+        return handleSeriesError(res, error);
+    }
+};
+
+// POST /team-event/restore-event/:_id - Restore a canceled event
+export const restoreTeamEvent = async (req: Request, res: Response) => {
+    try {
+        const teamEvent = await TeamEvent.findById(req.params._id);
+
+        if (!teamEvent) {
+            return res.status(404).json({ error: ErrorMessages.notFound });
+        }
+
+        await restoreEvent(teamEvent);
+        await safely(() => notifyEventRestored(teamEvent._id, req.loggedUser._id));
+
+        return res.status(200).json({ message: 'Team event restored' });
+    } catch (error) {
+        return res.status(500).json({ error: ErrorMessages.internalServerError });
+    }
+};
+
+// DELETE /team-event/delete-event/:_id?scope= - Delete event (or part of a series) with participations and comments
 export const deleteTeamEvent = async (req: Request, res: Response) => {
     const eventId = req.params._id;
+    const scope = parseScope(req.query.scope);
 
     if (!eventId) {
         return res.status(400).json({ error: ErrorMessages.mandatoryField });
     }
 
-    const session = await mongoose.startSession();
-    session.startTransaction();
-
     try {
-        const teamEvent = await TeamEvent.findById(eventId).session(session);
+        const teamEvent = await TeamEvent.findById(eventId);
 
         if (!teamEvent) {
-            await session.abortTransaction();
-            session.endSession();
             return res.status(404).json({ error: ErrorMessages.notFound });
         }
 
-        await EventParticipation.deleteMany({ event: eventId }, { session });
-        await teamEvent.deleteOne({ session });
+        // Recipients must be collected before the events and their participations disappear
+        const targets = await findDeleteTargets(teamEvent, scope);
+        const sendNotifications = await prepareDeletedNotification(targets.map((event) => event._id), req.loggedUser._id);
 
-        await session.commitTransaction();
-        session.endSession();
+        const deletedIds = await deleteEvents(teamEvent, scope);
+        await safely(sendNotifications);
 
-        return res.status(200).json({ message: "Team event deleted" });
+        return res.status(200).json({ message: "Team event deleted", deletedIds });
     } catch (error) {
-        await session.abortTransaction();
-        session.endSession();
-        return res.status(500).json({ error: ErrorMessages.internalServerError });
+        return handleSeriesError(res, error);
     }
 }
+
+// POST /team-event/remind/:_id - Remind players who have not answered yet
+export const remindTeamEvent = async (req: Request, res: Response) => {
+    try {
+        const teamEvent = await TeamEvent.findById(req.params._id);
+
+        if (!teamEvent) {
+            return res.status(404).json({ error: ErrorMessages.notFound });
+        }
+
+        if (teamEvent.status === TeamEventStatus.Canceled) {
+            return res.status(400).json({ error: ErrorMessages.eventCanceled });
+        }
+
+        if (teamEvent.endDate < new Date()) {
+            return res.status(400).json({ error: ErrorMessages.eventFinished });
+        }
+
+        const lastReminder = teamEvent.manualReminderAt?.getTime() ?? 0;
+        if (Date.now() - lastReminder < MANUAL_REMINDER_INTERVAL_MS) {
+            return res.status(429).json({ error: ErrorMessages.reminderTooSoon });
+        }
+
+        teamEvent.manualReminderAt = new Date();
+        await teamEvent.save();
+
+        const remindedCount = await notifyRsvpReminder(teamEvent._id, req.loggedUser._id);
+        return res.status(200).json({ message: 'Reminder sent', remindedCount });
+    } catch (error) {
+        return res.status(500).json({ error: ErrorMessages.internalServerError });
+    }
+};

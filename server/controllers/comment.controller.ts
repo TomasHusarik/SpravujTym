@@ -79,23 +79,24 @@ export const updateComment = async (req: Request, res: Response) => {
 // DELETE /comment/delete-comment/:commentId - Delete comment
 export const deleteComment = async (req: Request, res: Response) => {
     const { commentId } = req.params;
-    const author = req.body.author;
 
     if (!commentId) {
         return res.status(400).json({ error: "Comment ID is required for deletion" });
     }
 
-    if (!req.loggedUser.isAdmin && author !== req.loggedUser._id.toString()) {
-        console.log(req.loggedUser._id.toString(), author)
-        return res.status(403).json({ error: "You do not have permission to delete this comment" });
-    }
-
     try {
-        const deletedComment = await Comment.findByIdAndDelete(commentId);
+        const comment = await Comment.findById(commentId);
 
-        if (!deletedComment) {
+        if (!comment) {
             return res.status(404).json({ error: "Comment not found" });
         }
+
+        // Only the author or an admin can delete the comment
+        if (!req.loggedUser.isAdmin && comment.author.toString() !== req.loggedUser._id.toString()) {
+            return res.status(403).json({ error: "You do not have permission to delete this comment" });
+        }
+
+        await comment.deleteOne();
 
         res.json({ message: "Comment deleted successfully" });
     } catch (error) {

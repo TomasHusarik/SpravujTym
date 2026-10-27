@@ -1,7 +1,7 @@
 import express from 'express';
-import { addEvents, createTeamEvent, deleteTeamEvent, getTeamEventById, getTeamEvents, updateParticapationStatus, updateTeamEvent } from '@controllers/team-events.controller';
+import { addEvents, cancelTeamEvent, createTeamEvent, deleteTeamEvent, restoreTeamEvent, remindTeamEvent, getTeamEventById, getTeamEvents, updateParticapationStatus, updateTeamEvent } from '@controllers/team-events.controller';
 import { authMiddleware } from '@middleware/auth.middleware';
-import { requireCanCreateEvent } from '@middleware/permission.rules';
+import { requireCanCreateEvent, requireEventManager } from '@middleware/permission.rules';
 
 const router = express.Router();
 
@@ -23,9 +23,18 @@ router.post('/add-events', requireCanCreateEvent, addEvents);
 router.post('/update-participation-status', updateParticapationStatus);
 
 // PUT /team-event/update-event/:id - Update team event by ID
-router.put('/update-event/:_id', requireCanCreateEvent, updateTeamEvent);
+router.put('/update-event/:_id', requireEventManager, updateTeamEvent);
+
+// POST /team-event/cancel-event/:id - Cancel event (body: scope, reason)
+router.post('/cancel-event/:_id', requireEventManager, cancelTeamEvent);
+
+// POST /team-event/restore-event/:id - Restore canceled event
+router.post('/restore-event/:_id', requireEventManager, restoreTeamEvent);
+
+// POST /team-event/remind/:id - Remind players who have not answered
+router.post('/remind/:_id', requireEventManager, remindTeamEvent);
 
 // DELETE /team-event/delete-event/:id - Delete team event by ID
-router.delete('/delete-event/:_id', requireCanCreateEvent, deleteTeamEvent);
+router.delete('/delete-event/:_id', requireEventManager, deleteTeamEvent);
 
 export default router;

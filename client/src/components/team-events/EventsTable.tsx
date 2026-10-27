@@ -1,15 +1,20 @@
 import type { TeamEvent } from '@/types/TeamEvent';
-import { formatTeamEventDate, getEventColor, getParticipationStatusColor } from '@/utils/helpers';
-import { Group, Paper, Stack, ThemeIcon, Text, Select, Badge, Box } from '@mantine/core';
-import { IconBarbell } from '@tabler/icons-react';
-import { ParticipationStatus } from '@/utils/const';
-import React from 'react'
+import { formatTeamEventDate, getEventColor, isEventFinished } from '@/utils/helpers';
+import { Badge, Box, Card, Group, Paper, Stack, Text, ThemeIcon, Tooltip, UnstyledButton } from '@mantine/core';
+import { IconBallFootball, IconBan, IconBarbell, IconCalendarEvent, IconRepeat } from '@tabler/icons-react';
 import { useNavigate } from 'react-router';
+import RsvpButtons from './RsvpButtons';
 
 interface IEventsTable {
     filteredTeamEvents: TeamEvent[];
-    handleStatusChange: (eventId: string | undefined, newStatus: string) => void;
+    handleStatusChange: (eventId: string | undefined, newStatus: string, note?: string) => Promise<void>;
 }
+
+const getEventIcon = (type: string) => {
+    if (type === 'match') return IconBallFootball;
+    if (type === 'training') return IconBarbell;
+    return IconCalendarEvent;
+};
 
 const EventsTable = ({ filteredTeamEvents, handleStatusChange }: IEventsTable) => {
 
@@ -33,86 +38,85 @@ const EventsTable = ({ filteredTeamEvents, handleStatusChange }: IEventsTable) =
             {filteredTeamEvents.map((event) => {
 
                 const participation = event.eventParticipations?.[0];
+                const isCanceled = event.status === 'canceled';
+                const Icon = getEventIcon(event.type);
 
                 return (
-                    <Paper
+                    <Card
                         key={event._id}
-                        withBorder
-                        radius="md"
-                        p="md"
-                        bg="light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-6))"
+                        padding="md"
+                        style={isCanceled ? { opacity: 0.75 } : undefined}
                     >
+                        <Group align="flex-start" gap="md" wrap="nowrap">
 
-                        {/* MAIN ROW */}
-                        <Group align="flex-start" gap="md">
-
-                            {/* ICON */}
                             <ThemeIcon
                                 radius="xl"
                                 size={38}
-                                variant="filled"
-                                color={getEventColor(event.type)}
+                                variant="light"
+                                color={isCanceled ? 'gray' : getEventColor(event.type)}
                             >
-                                <IconBarbell size={18} />
+                                {isCanceled ? <IconBan size={18} /> : <Icon size={18} />}
                             </ThemeIcon>
 
-                            {/* TEXT */}
-                            <Stack gap={2} flex={1}>
+                            <Stack gap={2} flex={1} miw={0}>
 
-                                <Text
-                                    fw={700}
-                                    onClick={() => navigate(`/event-detail/${event._id}`)}
-                                    style={{ cursor: 'pointer' }}
-                                >
-                                    {event.title}
-                                </Text>
+                                <UnstyledButton onClick={() => navigate(`/event-detail/${event._id}`)}>
+                                    <Group gap={6} wrap="nowrap">
+                                        <Text fw={700} td={isCanceled ? 'line-through' : undefined} truncate>
+                                            {event.title}
+                                        </Text>
+                                        {event.series && (
+                                            <Tooltip label="Opakovaná událost" withArrow>
+                                                <IconRepeat size={14} aria-label="Opakovaná událost" />
+                                            </Tooltip>
+                                        )}
+                                    </Group>
+                                </UnstyledButton>
 
                                 <Text size="sm" c="dimmed">
                                     {formatTeamEventDate(event.startDate!, event.endDate!)} {event.venue?.name ?? ''}
                                 </Text>
 
-                                {/* MOBILE STATUS */}
-                                {participation && (
-                                    <Box hiddenFrom="sm" mt={6}>
-                                        <Group gap="xs">
-                                            <Badge
-                                                color={getParticipationStatusColor(participation.status)}
-                                                variant="dot"
-                                            />
+                                {isCanceled && (
+                                    <Group gap={6}>
+                                        <Badge color="red" variant="light" size="sm">Zrušeno</Badge>
+                                        {event.cancelReason && (
+                                            <Text size="xs" c="dimmed">{event.cancelReason}</Text>
+                                        )}
+                                    </Group>
+                                )}
 
-                                            <Select
-                                                data={Object.values(ParticipationStatus)}
-                                                value={participation.status}
-                                                onChange={(value) => handleStatusChange(event._id, value)}
-                                                size="xs"
-                                                flex={1}
-                                            />
-                                        </Group>
+                                {/* MOBILE RSVP */}
+                                {participation && !isCanceled && (
+                                    <Box hiddenFrom="sm" mt={6}>
+                                        <RsvpButtons
+                                            size="xs"
+                                            fullWidth
+                                            status={participation.status}
+                                            note={participation.note}
+                                            disabled={isEventFinished(event)}
+                                            onChange={(status, note) => handleStatusChange(event._id, status, note)}
+                                        />
                                     </Box>
                                 )}
 
                             </Stack>
 
-                            {/* DESKTOP STATUS */}
-                            {participation && (
-                                <Group gap="xs" visibleFrom="sm">
-                                    <Badge
-                                        color={getParticipationStatusColor(participation.status)}
-                                        variant="dot"
+                            {/* DESKTOP RSVP */}
+                            {participation && !isCanceled && (
+                                <Box visibleFrom="sm">
+                                    <RsvpButtons
+                                        size="xs"
+                                        status={participation.status}
+                                        note={participation.note}
+                                        disabled={isEventFinished(event)}
+                                        onChange={(status, note) => handleStatusChange(event._id, status, note)}
                                     />
-
-                                    <Select
-                                        data={Object.values(ParticipationStatus)}
-                                        value={participation.status}
-                                        onChange={(value) => handleStatusChange(event._id, value)}
-                                        w={150}
-                                        size="sm"
-                                    />
-                                </Group>
+                                </Box>
                             )}
 
                         </Group>
-                    </Paper>
+                    </Card>
                 );
             })}
         </Stack>

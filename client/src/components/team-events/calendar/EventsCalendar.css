@@ -1,48 +1,85 @@
-.fc-theme-standard .fc-list {
-  border-radius: 10px;
+/* FullCalendar styled to match the Mantine theme (colors come from src/theme.ts) */
+
+.fc {
+  --fc-border-color: var(--mantine-color-default-border);
+  --fc-page-bg-color: var(--mantine-color-body);
+  --fc-neutral-bg-color: var(--app-surface-subtle);
+  --fc-list-event-hover-bg-color: var(--mantine-color-default-hover);
+  --fc-today-bg-color: light-dark(var(--mantine-color-accent-0), rgba(251, 148, 27, 0.12));
+  font-size: var(--mantine-font-size-sm);
+}
+
+.fc .fc-toolbar-title {
+  font-size: var(--mantine-font-size-lg);
+  font-weight: 700;
+  text-transform: capitalize;
+}
+
+.fc-theme-standard .fc-list,
+.fc .fc-scrollgrid {
+  border-radius: var(--mantine-radius-md);
   overflow: hidden;
 }
 
-.fc-scrollgrid {
-  border: 1px solid #dcdcdc !important;
-  border-radius: 10px;
-  overflow: hidden;
+.fc .fc-button-primary {
+  background: var(--mantine-color-default);
+  border: 1px solid var(--mantine-color-default-border);
+  color: var(--mantine-color-text);
+  font-weight: 600;
+  text-transform: none;
 }
 
-.fc-button-primary {
-  background: #f3f5f7 !important;
-  border: 1px solid #dcdcdc !important;
-  color: #1f2933 !important;
+.fc .fc-button-primary:disabled {
+  background: var(--mantine-color-default);
+  border-color: var(--mantine-color-default-border);
+  color: var(--mantine-color-dimmed);
+  opacity: 0.7;
 }
 
-.fc-button-primary:focus,
-.fc-button-primary:focus-visible,
-.fc-button-primary:active {
-  outline: none !important;
-  box-shadow: none !important;
+.fc .fc-button-primary:hover {
+  background: var(--mantine-color-default-hover);
+  color: var(--mantine-color-text);
 }
 
-/* Dark mode styles */
-
-.calendar-dark-mode .fc-cell-shaded {
-  background: #25282c !important;
-  border: none !important;
+.fc .fc-button-primary:not(:disabled).fc-button-active,
+.fc .fc-button-primary:not(:disabled):active {
+  background: var(--mantine-color-brand-6);
+  border-color: var(--mantine-color-brand-6);
+  color: var(--mantine-color-white);
 }
 
-.calendar-dark-mode .fc-list-event:hover td {
-  background: #2a2d31 !important;
-  color: #fff !important;
+.fc .fc-button-primary:focus,
+.fc .fc-button-primary:focus-visible {
+  box-shadow: none;
+  outline: 2px solid var(--mantine-color-accent-5);
 }
 
-.calendar-dark-mode .fc-theme-standard .fc-list {
-  background: #1d2024;
-  border: 1px solid #30343a;
-  border-radius: 10px;
-  overflow: hidden;
+.fc .fc-daygrid-day-number,
+.fc .fc-col-header-cell-cushion,
+.fc .fc-list-day-text,
+.fc .fc-list-day-side-text {
+  color: var(--mantine-color-text);
+  text-decoration: none;
 }
 
-.calendar-dark-mode .fc-button-primary {
-  background: #2a2d31 !important;
-  border: 1px solid #3a3f45 !important;
-  color: #f3f4f6 !important;
+/* Canceled events stay visible but muted */
+.event-canceled {
+  opacity: 0.6;
+}
+
+.fc-event,
+.fc-list-event {
+  cursor: pointer;
+}
+
+/* Smaller toolbar on phones */
+@media (max-width: 48em) {
+  .fc .fc-toolbar {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .fc .fc-toolbar-title {
+    font-size: var(--mantine-font-size-md);
+  }
 }

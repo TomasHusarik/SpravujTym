@@ -1,9 +1,11 @@
 import { Routes, Route, Navigate } from "react-router";
-import { AppShell } from "@mantine/core";
+import { AppShell, Container } from "@mantine/core";
 import { Suspense, lazy } from "react";
 
 import Header from "./components/layout/Header";
 import Footer from "./components/layout/Footer";
+import MobileNav from "./components/layout/MobileNav";
+import { PageLoader } from "./components/ui/StateViews";
 import { useAuth } from "./context/AuthContext";
 import type { JSX } from "react";
 import LoginPage from "./pages/LoginPage";
@@ -24,7 +26,7 @@ const App = () => {
   const { isAuthenticated, isLoading, user } = useAuth();
 
   if (isLoading) {
-    return null;
+    return <PageLoader />;
   }
 
   const requireAuth = (element: JSX.Element) =>
@@ -32,9 +34,10 @@ const App = () => {
 
   return (
     <AppShell
-      padding={isAuthenticated ? "xl" : 0}
-      header={isAuthenticated ? { height: { base: 50, sm: 100 } } : undefined}
-      footer={isAuthenticated ? { height: 80 } : undefined}
+      padding={0}
+      header={isAuthenticated ? { height: { base: 59, sm: 104 } } : undefined}
+      // Mobile bottom navigation only; on desktop the footer is part of the page
+      footer={isAuthenticated ? { height: { base: 64, sm: 0 } } : undefined}
     >
       {isAuthenticated && (
         <AppShell.Header>
@@ -43,9 +46,14 @@ const App = () => {
       )}
 
       <AppShell.Main>
+        <Container
+          size={isAuthenticated ? "lg" : "100%"}
+          px={isAuthenticated ? { base: "sm", sm: "lg" } : 0}
+          py={isAuthenticated ? { base: "md", sm: "xl" } : 0}
+        >
 
         {/* Suspense wrapper for lazy pages */}
-        <Suspense fallback={null}>
+        <Suspense fallback={<PageLoader />}>
 
           <Routes>
             {user?.new ? (
@@ -85,6 +93,7 @@ const App = () => {
 
                 <Route path="/calendar" element={requireAuth(<CalendarPage />)} />
 
+                <Route path="/user" element={requireAuth(<UserPage />)} />
                 <Route path="/user/:id" element={requireAuth(<UserPage />)} />
 
                 <Route path="/payment" element={requireAuth(<PaymentPage />)} />
@@ -98,17 +107,26 @@ const App = () => {
                   path="/announcements"
                   element={requireAuth(<AnnouncementsPage />)}
                 />
+
+                {/* Unknown addresses go to the overview (or login) */}
+                <Route path="*" element={<Navigate to={isAuthenticated ? "/overview" : "/login"} replace />} />
               </>
             )}
           </Routes>
 
         </Suspense>
+        </Container>
 
+        {isAuthenticated && (
+          <Container size="lg" visibleFrom="sm">
+            <Footer />
+          </Container>
+        )}
       </AppShell.Main>
 
       {isAuthenticated && (
-        <AppShell.Footer visibleFrom="sm">
-          <Footer />
+        <AppShell.Footer hiddenFrom="sm" withBorder={false}>
+          <MobileNav />
         </AppShell.Footer>
       )}
     </AppShell>

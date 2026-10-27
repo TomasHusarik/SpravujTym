@@ -1,123 +1,61 @@
-import {
-  Burger,
-  Container,
-  Divider,
-  Drawer,
-  Group,
-  Image,
-  Stack,
-  Tabs,
-  Text,
-} from '@mantine/core';
-import { useDisclosure } from '@mantine/hooks';
+import { Container, Group, Image, Text, UnstyledButton } from '@mantine/core';
+import { NavLink, useLocation, useNavigate } from 'react-router';
 import classes from './Header.module.css';
 import UserMenu from './UserMenu';
-import { MenuItems } from './MenuItems';
-import { useNavigate } from 'react-router';
+import NotificationBell from './NotificationBell';
 import { useAuth } from '@context/AuthContext';
 import { useAdminPermissions } from '@/utils/helpers';
 import logo from '@assets/logo40x40.svg';
 import { config } from '@/config/config';
+import { NAV_ITEMS, isNavItemActive } from './navigation';
 
 const Header = () => {
-  const [opened, { toggle }] = useDisclosure(false);
   const isAdmin = useAdminPermissions();
-
   const navigate = useNavigate();
-  const { isAuthenticated, user } = useAuth();
+  const { pathname } = useLocation();
+  const { user } = useAuth();
 
-  const tabs = [
-  { label: 'Přehled', value: 'overview' },
-  { label: 'Kalendář', value: 'calendar' },
-  { label: 'Zeď', value: 'announcements' }, 
-  { label: 'Celky', value: 'squads' },
-  { label: 'Uživatelé', value: 'users' },
-  ...(isAdmin ? [{ label: 'Nová platba', value: 'payment' }] : []),
-];
-
-  const items = tabs.map((tab) => (
-    <Tabs.Tab value={tab.value} key={tab.value} onClick={() => navigate(`/${tab.value}`)}>
-      {tab.label}
-    </Tabs.Tab>
-  ));
+  const items = NAV_ITEMS.filter((item) => !item.adminOnly || isAdmin);
 
   return (
     <div className={classes.header}>
-      <Container className={classes.mainSection} size="">
-        <Group justify="space-between">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '15px', cursor: 'pointer' }} onClick={() => navigate('/')}>
-            <Image src={logo} alt="Bluehorses Logo" w={40} h={40} />
-            <Text fw={700} fz="xl" className={classes.logoText}>
-              {config.teamName}
-            </Text>
-          </div>
+      <Container size="lg" className={classes.topBar}>
+        <UnstyledButton className={classes.brand} onClick={() => navigate('/overview')} aria-label="Přejít na přehled">
+          <Image src={logo} alt="" w={36} h={36} />
+          <Text fw={800} fz={{ base: 'md', sm: 'lg' }} className={classes.brandText} truncate>
+            {config.teamName}
+          </Text>
+        </UnstyledButton>
 
-          <Burger
-            opened={opened}
-            onClick={toggle}
-            hiddenFrom="sm"
-            size="sm"
-            aria-label="Toggle navigation"
-          />
-          
+        <Group gap="xs" wrap="nowrap">
+          <NotificationBell />
           <Group visibleFrom="sm">
             <UserMenu user={user} />
           </Group>
-
         </Group>
       </Container>
 
-      <Container size="">
-        <Tabs
-          defaultValue="Home"
-          variant="outline"
-          visibleFrom="sm"
-          classNames={{
-            root: classes.tabs,
-            list: classes.tabsList,
-            tab: classes.tab,
-          }}
-        >
-          <Tabs.List>{items}</Tabs.List>
-          {items.map((item) => (
-            <Tabs.Panel value={item.key!} key={item.key}>
-              {' '}
-            </Tabs.Panel>
-          ))}
-        </Tabs>
+      {/* Desktop navigation; on mobile the bottom bar is used */}
+      <Container size="lg" visibleFrom="sm">
+        <nav aria-label="Hlavní navigace" className={classes.nav}>
+          {items.map((item) => {
+            const Icon = item.icon;
+            const isActive = isNavItemActive(item, pathname);
+            return (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                className={classes.navLink}
+                data-active={isActive || undefined}
+                aria-current={isActive ? 'page' : undefined}
+              >
+                <Icon size={18} stroke={1.8} />
+                <span>{item.label}</span>
+              </NavLink>
+            );
+          })}
+        </nav>
       </Container>
-
-      <Drawer
-        opened={opened}
-        onClose={toggle}
-        title="Menu"
-        hiddenFrom="sm"
-        size="100%"
-      >
-        <Stack gap="md" pt="xl">
-          {tabs.map((tab) => (
-            <Text
-              key={tab.value}
-              fw={500}
-              className={classes.drawerMenuItem}
-              style={{ cursor: 'pointer' }}
-              onClick={() => {
-                navigate(`/${tab.value}`);
-                toggle();
-              }}
-            >
-              {tab.label}
-            </Text>
-          ))}
-
-          {isAuthenticated && (
-            <>
-              <Divider my="xs" />
-              <MenuItems variant="mobile" onNavigate={toggle} />
-            </>
-          )}
-        </Stack>
-      </Drawer>
     </div>
   );
 }

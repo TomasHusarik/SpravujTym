@@ -1,104 +1,91 @@
 import type { User } from '@/types/User';
 import { getUsers } from '@/utils/api';
-import {
-    ActionIcon,
-    Chip,
-    Group,
-    Stack,
-    TextInput,
-    Tooltip,
-} from '@mantine/core';
-import { IconUserPlus } from '@tabler/icons-react';
-import { useEffect, useState } from 'react';
+import { Button, Group, Stack, Switch, TextInput } from '@mantine/core';
+import { IconSearch, IconUserPlus, IconUsers } from '@tabler/icons-react';
+import { useMemo, useState } from 'react';
 import { useDebouncedValue } from '@mantine/hooks';
 import UsersTable from './UsersTable';
 import NewUserDrawer from '../drawers/NewUserDrawer';
-import { useAdminPermissions } from '@/utils/helpers';
+import { matchesSearch, useAdminPermissions } from '@/utils/helpers';
+import { useAsyncData } from '@/hooks/useAsyncData';
+import PageHeader from '../ui/PageHeader';
+import { EmptyState, ErrorState, ListSkeleton } from '../ui/StateViews';
 
 const UserSearch = () => {
     const isAdmin = useAdminPermissions();
 
-    const [users, setUsers] = useState<User[]>([]);
     const [searchValue, setSearchValue] = useState('');
-    const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
     const [debouncedSearchValue] = useDebouncedValue(searchValue, 150);
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const [showInactive, setShowInactive] = useState(false);
 
-    const loadData = async () => {
-        try {
-            const data = await getUsers(showInactive);
-            setUsers(data);
-        } catch (error) {
-            console.error('Error fetching users:', error);
-        }
+    const { data: users = [], loading, error, reload } = useAsyncData<User[]>(() => getUsers(showInactive), [showInactive]);
+
+    // Search ignores diacritics, so "dvorak" finds "Dvořák"
+    const filteredUsers = useMemo(() => {
+        if (!debouncedSearchValue.trim()) return users;
+        return users.filter((user) =>
+            matchesSearch(`${user.firstName ?? ''} ${user.lastName ?? ''} ${user.email ?? ''}`, debouncedSearchValue)
+        );
+    }, [users, debouncedSearchValue]);
+
+    const handleDrawer = (open: boolean) => {
+        setIsDrawerOpen(open);
+        if (!open) reload();
     };
 
-    useEffect(() => {
-        const lowerSearch = debouncedSearchValue.toLowerCase();
-
-        const filtered = users.filter((user) => {
-            const fullName = `${user.firstName} ${user.lastName}`.toLowerCase();
-            const email = user.email?.toLowerCase() || '';
-
+    const renderContent = () => {
+        if (loading) return <ListSkeleton rows={8} height={52} />;
+        if (error) return <ErrorState message={error} onRetry={reload} />;
+        if (filteredUsers.length === 0) {
             return (
-                fullName.includes(lowerSearch) ||
-                email.includes(lowerSearch)
+                <EmptyState
+                    icon={<IconUsers size={24} />}
+                    title={searchValue ? 'Nikoho jsme nenašli' : 'Zatím žádní uživatelé'}
+                    description={searchValue ? 'Zkuste jiné jméno nebo e-mail.' : undefined}
+                />
             );
-        });
-
-        setFilteredUsers(filtered);
-    }, [debouncedSearchValue, users]);
-
-    useEffect(() => {
-        loadData();
-    }, [showInactive]);
+        }
+        return <UsersTable key={debouncedSearchValue} filteredUsers={filteredUsers} loadData={reload} />;
+    };
 
     return (
         <>
+            <PageHeader
+                title="Uživatelé"
+                description="Hráči, trenéři a další členové klubu."
+                actions={isAdmin && (
+                    <Button leftSection={<IconUserPlus size={16} />} onClick={() => setIsDrawerOpen(true)}>
+                        Přidat uživatele
+                    </Button>
+                )}
+            />
+
             <Stack gap="md">
-
-                {/* Search + create */}
-                <Group align="flex-end" wrap="nowrap">
+                <Group justify="space-between" wrap="wrap" gap="sm">
                     <TextInput
-                        radius="md"
-                        size="md"
-                        placeholder="Vyhledat uživatele..."
+                        placeholder="Hledat podle jména nebo e-mailu…"
+                        aria-label="Hledat uživatele"
+                        leftSection={<IconSearch size={16} />}
                         value={searchValue}
-                        onChange={(e) => setSearchValue(e.target.value)}
-                        rightSection={isAdmin && (
-                            <Tooltip label="Vytvořit uživatele" withArrow>
-                                <ActionIcon size={32} radius="xl" variant="subtle" onClick={() => setIsDrawerOpen(true)} >
-                                    <IconUserPlus stroke={1.5} />
-                                </ActionIcon>
-                            </Tooltip>
-                        )}
-                        style={{ flex: 1, maxWidth: 450 }}
+                        onChange={(e) => setSearchValue(e.currentTarget.value)}
+                        w={{ base: '100%', sm: 360 }}
                     />
+                    {isAdmin && (
+                        <Switch
+                            checked={showInactive}
+                            onChange={(event) => setShowInactive(event.currentTarget.checked)}
+                            label="Jen neaktivní"
+                        />
+                    )}
                 </Group>
 
-                {/* Filters */}
-                <Group>
-                    <Chip
-                        checked={showInactive}
-                        onChange={(checked) => setShowInactive(checked)}
-                        variant="outline"
-                    >
-                        Zobrazit neaktivní
-                    </Chip>
-                </Group>
-
-                {/* Table */}
-                <UsersTable
-                    filteredUsers={filteredUsers}
-                    loadData={loadData}
-                />
-
+                {renderContent()}
             </Stack>
 
             <NewUserDrawer
                 isDrawerOpen={isDrawerOpen}
-                setIsDrawerOpen={setIsDrawerOpen}
+                setIsDrawerOpen={handleDrawer}
             />
         </>
     );

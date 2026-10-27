@@ -3,12 +3,13 @@ import type { User } from '@/types/User'
 import { deleteUser, getUser, updateUser } from '@/utils/api'
 import { UserStatus } from '@/utils/const'
 import { showErrorNotification, showSuccessNotification, useAdminPermissions, usePlayerPermissions } from '@/utils/helpers'
-import { Button, Checkbox, Grid, MultiSelect, NumberInput, Select, TextInput, Title } from '@mantine/core'
+import { Button, Card, Checkbox, Grid, MultiSelect, NumberInput, Select, Switch, TextInput, Title } from '@mantine/core'
 import { DatePickerInput } from '@mantine/dates'
 import { useForm } from '@mantine/form'
 import { IconDeviceFloppy, IconPhone, IconUser, IconMail, IconCalendar, IconShieldCheck, IconToggleRight, IconPencil, IconTrash } from '@tabler/icons-react'
 import React, { useEffect, useState } from 'react'
 import ChangePasswordModal from '../modals/ChangePasswordModal'
+import { useConfirm } from '@/hooks/useConfirm'
 import { useNavigate } from 'react-router-dom'
 
 interface IUserDetail {
@@ -24,6 +25,9 @@ const UserDetail = (props: IUserDetail) => {
     const [user, setUser] = useState<User>(null);
     const hasPlayerPermissions = usePlayerPermissions(user);
     const navigate = useNavigate();
+    const { user: loggedUser } = useAuth();
+    const { confirm, confirmDialog } = useConfirm();
+    const isOwnProfile = Boolean(userId) && loggedUser?._id === userId;
 
     const form = useForm({
         initialValues: {
@@ -35,6 +39,7 @@ const UserDetail = (props: IUserDetail) => {
             isAdmin: false,
             birthDate: null,
             active: false,
+            emailNotifications: true,
         },
 
         validate: {
@@ -58,12 +63,20 @@ const UserDetail = (props: IUserDetail) => {
     const handleUserDelete = async () => {
         if (!userId) return;
 
+        const confirmed = await confirm({
+            title: 'Deaktivovat uživatele?',
+            message: 'Uživatel se už nebude moci přihlásit a bude odebrán ze všech soupisek.',
+            confirmLabel: 'Deaktivovat',
+            danger: true,
+        });
+        if (!confirmed) return;
+
         try {
             await deleteUser(userId);
-            showSuccessNotification('Uživatel úspěšně smazán');
+            showSuccessNotification('Uživatel byl deaktivován');
             navigate('/users');
         } catch (error) {
-            showErrorNotification('Chyba při mazání uživatele');
+            showErrorNotification('Uživatele se nepodařilo deaktivovat');
             console.error('Error deleting user:', error);
         }
     };
@@ -82,6 +95,18 @@ const UserDetail = (props: IUserDetail) => {
             loadData();
         }
     });
+
+    // Saved immediately, independent of the edit mode
+    const handleEmailNotificationsChange = async (checked: boolean) => {
+        form.setFieldValue('emailNotifications', checked);
+        try {
+            await updateUser({ _id: userId, emailNotifications: checked });
+            showSuccessNotification(checked ? 'Upozornění budou chodit i e-mailem' : 'E-mailová upozornění jsou vypnutá');
+        } catch {
+            form.setFieldValue('emailNotifications', !checked);
+            showErrorNotification('Nastavení se nepodařilo uložit');
+        }
+    };
 
     const loadData = async () => {
         try {
@@ -107,8 +132,9 @@ const UserDetail = (props: IUserDetail) => {
             e.stopPropagation();
             handleSave(e);
         }}>
+            <Card padding="lg">
             <Grid>
-                {editMode && userId && (
+                {editMode && userId && isAdmin && !isOwnProfile && (
                     <Grid.Col span={12} style={{ display: 'flex', justifyContent: 'flex-end' }}>
                         <Button
                             variant="light"
@@ -117,7 +143,7 @@ const UserDetail = (props: IUserDetail) => {
                             color="red"
                             radius="md"
                         >
-                            Smazat
+                            Deaktivovat
                         </Button>
                     </Grid.Col>
                 )}
@@ -163,6 +189,7 @@ const UserDetail = (props: IUserDetail) => {
                 </Grid.Col>
                 <Grid.Col span={{ base: 12, md: 6 }}>
                     <DatePickerInput
+                        valueFormat="D. M. YYYY"
                         label="Datum narození"
                         placeholder="Datum narození"
                         locale='cs'
@@ -226,6 +253,17 @@ const UserDetail = (props: IUserDetail) => {
                     />
                 </Grid.Col>
 
+                {isOwnProfile && !user?.new && (
+                    <Grid.Col span={12}>
+                        <Switch
+                            label="Posílat upozornění také e-mailem"
+                            description="Zrušení a změny událostí, nominace a připomínky. Upozornění v aplikaci (zvoneček) chodí vždy."
+                            checked={form.values.emailNotifications !== false}
+                            onChange={(event) => handleEmailNotificationsChange(event.currentTarget.checked)}
+                        />
+                    </Grid.Col>
+                )}
+
                 {hasPlayerPermissions && (
                     <Grid.Col span={12} style={{ display: 'flex', justifyContent: 'space-between' }}>
                         <Button
@@ -253,6 +291,8 @@ const UserDetail = (props: IUserDetail) => {
                     </Grid.Col>
                 )}
             </Grid>
+            </Card>
+            {confirmDialog}
         </form>
     )
 }

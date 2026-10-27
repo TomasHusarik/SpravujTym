@@ -1,0 +1,31 @@
+/* Global styles - colors and spacing come from the Mantine theme (src/theme.ts) */
+
+/* App tokens are defined per color scheme explicitly: light-dark() inside :root custom properties
+   is resolved to the light value by postcss-preset-mantine */
+:root,
+:root[data-mantine-color-scheme='light'] {
+  /* Page background behind cards */
+  --app-body-bg: var(--mantine-color-gray-0);
+  /* Header uses the club blue */
+  --app-header-bg: var(--mantine-color-brand-8);
+  --app-header-hover: var(--mantine-color-brand-7);
+  /* Subtle surface for list items inside cards */
+  --app-surface-subtle: var(--mantine-color-gray-0);
+}
+
+:root[data-mantine-color-scheme='dark'] {
+  --app-body-bg: var(--mantine-color-dark-8);
+  --app-header-bg: var(--mantine-color-dark-7);
+  --app-header-hover: var(--mantine-color-dark-5);
+  --app-surface-subtle: var(--mantine-color-dark-6);
+}
+
+body {
+  background-color: var(--app-body-bg);
+}
+
+/* Visible keyboard focus everywhere */
+:focus-visible {
+  outline: 2px solid var(--mantine-color-accent-5);
+  outline-offset: 2px;
+}

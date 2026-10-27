@@ -1,9 +1,8 @@
-import Payment from '@/components/payment/Payment'
-import React from 'react'
+import PaymentsOverview from '@/components/payment/PaymentsOverview'
 
 const PaymentPage = () => {
   return (
-    <Payment />
+    <PaymentsOverview />
   )
 }
 
